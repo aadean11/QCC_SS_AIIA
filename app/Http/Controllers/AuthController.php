@@ -11,7 +11,7 @@ class AuthController extends Controller
 {
     public function showLogin()
     {
-        return view('auth.login');
+        return view('login');
     }
 
     public function login(Request $request)
@@ -35,7 +35,7 @@ class AuthController extends Controller
             Auth::login($employee);
             
             // Simpan flash message untuk SweetAlert sukses
-            return redirect()->intended('/dashboard')->with('success', 'Selamat Datang, ' . $employee->nama);
+            return redirect()->intended('/welcome')->with('success', 'Selamat Datang, ' . $employee->nama);
         }
 
         // 3. Login Gagal
@@ -44,9 +44,14 @@ class AuthController extends Controller
             ->with('error', 'Username atau Password salah!');
     }
 
-    public function logout()
+    public function logout(Request $request) // Tambahkan parameter Request
     {
         Auth::logout();
+
+        // Membersihkan session agar tidak bisa di-back setelah logout
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
         return redirect('/login');
     }
 }

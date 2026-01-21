@@ -11,15 +11,19 @@ class Employee extends Authenticatable
 
     protected $table = 'm_employees';
 
-    // Karena tabel m_employees menggunakan id, npk, nama
     protected $fillable = [
-        'nama', 'npk', 'line_code', 'sub_section'
+        'nama', 'npk', 'line_code', 'sub_section', 'occupation',
     ];
 
-    // Jika Anda ingin menggunakan Auth bawaan laravel, 
-    // Beritahu laravel bahwa 'password' sebenarnya ada di kolom 'npk'
     public function getAuthPassword()
     {
         return $this->npk;
+    }
+
+    // RELASI KE TABEL JABATAN
+    // Parameter: (NamaModel, foreign_key_di_employee, primary_key_di_occupation)
+    public function job()
+    {
+        return $this->belongsTo(Occupation::class, 'occupation', 'code');
     }
 }
