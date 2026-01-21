@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\WelcomeController;
+use App\Http\Controllers\AdminQccController;
 
 // Redirect root ke login jika belum login, ke welcome jika sudah
 Route::get('/', function () {
@@ -17,4 +18,10 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // Halaman Welcome (Hanya untuk user yang login)
 Route::middleware(['auth'])->group(function () {
     Route::get('/welcome', [WelcomeController::class, 'showWelcome'])->name('welcome');
+});
+
+// Admin QCC
+Route::middleware(['auth'])->group(function () {
+    // Route Dashboard Admin QCC
+    Route::get('/qcc/admin/dashboard', [AdminQccController::class, 'index'])->name('qcc.admin.dashboard');
 });

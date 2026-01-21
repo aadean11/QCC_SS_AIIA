@@ -5,17 +5,17 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Employee;
+use App\Models\QccCircle; // Import model QCC
+// use App\Models\SuggestionSystem; // Import model SS jika sudah ada
 
 class WelcomeController extends Controller
 {
     public function showWelcome()
     {
-        // Mengambil data user yang sedang login beserta relasi jabatan
         $user = Employee::with('job')->find(Auth::id());
-
-        $jumlahQcc = 100; 
+        $jumlahQcc = QccCircle::count(); 
         $jumlahSs = 100;
 
-        return view('welcome', compact('user', 'jumlahQcc', 'jumlahSs'));
+        return view('home', compact('user', 'jumlahQcc', 'jumlahSs'));
     }
 }
