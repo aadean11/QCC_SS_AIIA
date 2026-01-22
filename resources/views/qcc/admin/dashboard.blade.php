@@ -38,17 +38,21 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <div>
                     <h2 class="text-2xl font-bold text-[#091E6E]">Progress Activity Circle</h2>
-                    <p class="text-sm text-gray-400">Monitoring pencapaian langkah per periode</p>
+                    <p class="text-sm text-gray-400">Monitoring pencapaian langkah per periode (Actual vs Target)</p>
                 </div>
-                <!-- Legend Custom agar senada -->
-                <div class="flex gap-4 text-xs font-bold uppercase tracking-wider">
+                <!-- Legend Custom: Submitted (Kiri) - Approved (Kanan) -->
+                <div class="flex flex-wrap gap-4 text-xs font-bold uppercase tracking-wider">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-[#93C5FD]"></span>
+                        <span class="text-gray-500 text-[10px]">Submitted (Belum Approve)</span>
+                    </div>
                     <div class="flex items-center gap-2">
                         <span class="w-3 h-3 rounded-full bg-[#1035D1]"></span>
-                        <span class="text-gray-500">Actual</span>
+                        <span class="text-gray-500 text-[10px]">Approved (Selesai)</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
-                        <span class="text-gray-500">Target</span>
+                        <span class="text-gray-500 text-[10px]">Target</span>
                     </div>
                 </div>
             </div>
@@ -73,8 +77,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr class="bg-white hover:shadow-md transition-all rounded-2xl group">
-                            <td class="px-6 py-5 rounded-l-2xl">
+                        <tr class="bg-white hover:shadow-md transition-all rounded-2xl group border border-gray-100">
+                            <td class="px-6 py-5 rounded-l-2xl leading-tight">
                                 <p class="font-bold text-[#091E6E]">QCC BRAKE SYSTEM</p>
                                 <p class="text-[10px] text-gray-400 uppercase font-medium">DEPT: PRODUCTION #1</p>
                             </td>
@@ -88,8 +92,8 @@
                                     @endfor
                                 </div>
                             </td>
-                            <td class="px-6 py-5"><span class="bg-amber-50 text-amber-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase">Waiting Step 4</span></td>
-                            <td class="px-6 py-5 rounded-r-2xl text-center text-blue-500"><i class="fa-solid fa-eye cursor-pointer"></i></td>
+                            <td class="px-6 py-5"><span class="bg-amber-50 text-amber-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase border border-amber-100">Waiting Review Step 4</span></td>
+                            <td class="px-6 py-5 rounded-r-2xl text-center text-blue-500"><i class="fa-solid fa-eye cursor-pointer hover:scale-110 transition"></i></td>
                         </tr>
                     </tbody>
                 </table>
@@ -103,7 +107,6 @@
     document.addEventListener('DOMContentLoaded', function() {
         const ctx = document.getElementById('qccProgressChart').getContext('2d');
         
-        // Data Dummy (Nanti bisa dipassing dari Controller)
         const labels = [
             ['0. Profile', "Aug '25"], 
             ['1. Tema', "Aug '25"], 
@@ -117,28 +120,44 @@
         ];
 
         new Chart(ctx, {
-            type: 'bar', // Kombinasi Bar dan Line
+            type: 'bar',
             data: {
                 labels: labels,
                 datasets: [
                     {
                         label: 'Target',
-                        data: [5, 5, 5, 5, 5, 5, 5, 5, 5],
+                        data: [10, 10, 10, 10, 10, 10, 10, 10, 10],
                         type: 'line',
-                        borderColor: '#10B981', // Emerald Green
+                        borderColor: '#10B981',
                         borderWidth: 3,
                         pointBackgroundColor: '#10B981',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
                         pointRadius: 5,
                         fill: false,
-                        tension: 0, // Garis lurus
+                        tension: 0,
                         order: 1
                     },
                     {
-                        label: 'Actual',
-                        data: [5, 5, 5, 0, 0, 0, 0, 0, 0], // Contoh baru sampai Step 2
-                        backgroundColor: '#1035D1', // Deep Blue senada dengan tombol login
-                        borderRadius: 8,
-                        barThickness: 40,
+                        label: 'Submitted', // BIRU MUDA (Kiri)
+                        // Dummy: Menunjukkan proses yang sudah masuk tapi belum di-approve
+                        data: [6, 8, 7, 10, 4, 9, 10, 12, 11], 
+                        backgroundColor: '#93C5FD', 
+                        borderRadius: 5,
+                        barThickness: 22,
+                        categoryPercentage: 0.8,
+                        barPercentage: 0.9,
+                        order: 2
+                    },
+                    {
+                        label: 'Approved', // BIRU TUA (Kanan)
+                        // Dummy: Menunjukkan proses yang sudah resmi selesai
+                        data: [5, 5, 4, 9, 3, 10, 6, 5, 4], 
+                        backgroundColor: '#1035D1', 
+                        borderRadius: 5,
+                        barThickness: 22,
+                        categoryPercentage: 0.8,
+                        barPercentage: 0.9,
                         order: 2
                     }
                 ]
@@ -147,40 +166,31 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        display: false // Kita pakai legend custom di atas
-                    },
+                    legend: { display: false },
                     tooltip: {
                         backgroundColor: '#091E6E',
-                        titleFont: { family: 'Poppins', size: 14 },
+                        titleFont: { family: 'Poppins', size: 13, weight: 'bold' },
                         bodyFont: { family: 'Poppins', size: 12 },
                         padding: 12,
-                        cornerRadius: 10
+                        cornerRadius: 10,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.raw + ' Circle';
+                            }
+                        }
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
-                        max: 6,
-                        grid: {
-                            drawBorder: false,
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        },
-                        ticks: {
-                            font: { family: 'Poppins', size: 12, weight: '600' },
-                            color: '#94a3b8'
-                        }
+                        max: 20,
+                        grid: { color: 'rgba(0, 0, 0, 0.05)', drawBorder: false },
+                        ticks: { stepSize: 1, font: { family: 'Poppins', size: 12, weight: '600' }, color: '#94a3b8' }
                     },
                     x: {
-                        grid: {
-                            display: false
-                        },
-                        ticks: {
-                            font: { family: 'Poppins', size: 10, weight: '600' },
-                            color: '#64748b',
-                            maxRotation: 0,
-                            minRotation: 0
-                        }
+                        grid: { display: false },
+                        ticks: { font: { family: 'Poppins', size: 10, weight: '600' }, color: '#64748b' }
                     }
                 }
             }

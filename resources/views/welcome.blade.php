@@ -160,13 +160,16 @@
                                 <i class="fa-solid fa-chart-line text-[12px]"></i>
                                 <span class="menu-text whitespace-nowrap">Dashboard Admin</span>
                             </a>
-                            <a href="#" class="flex items-center gap-3 text-blue-100/70 hover:text-white text-xs py-2">
+                            <!-- Link Master Steps di Sidebar Submenu QCC -->
+                            <a href="{{ route('qcc.admin.master_steps') }}" 
+                                class="flex items-center gap-3 text-blue-100/70 hover:text-white text-xs py-2 {{ request()->is('qcc/admin/master-steps*') ? 'text-white font-bold' : '' }}">
+                                <i class="fa-solid fa-list-ol text-[12px]"></i>
+                                <span class="menu-text">Master Steps</span>
+                            </a>
+                            <!-- Link Master Periods di Sidebar Submenu QCC -->
+                            <a href="{{ route('qcc.admin.master_periods') }}" class="flex items-center gap-3 text-blue-100/70 hover:text-white text-xs py-2">
                                 <i class="fa-solid fa-calendar-days text-[12px]"></i>
                                 <span class="menu-text whitespace-nowrap">Master Periode</span>
-                            </a>
-                            <a href="#" class="flex items-center gap-3 text-blue-100/70 hover:text-white text-xs py-2">
-                                <i class="fa-solid fa-list-ol text-[12px]"></i>
-                                <span class="menu-text whitespace-nowrap">Master Steps</span>
                             </a>
                             <a href="#" class="flex items-center gap-3 text-blue-100/70 hover:text-white text-xs py-2">
                                 <i class="fa-solid fa-users-rectangle text-[12px]"></i>
