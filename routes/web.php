@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\AdminQccController;
 use App\Http\Controllers\QccStepController;
+use App\Http\Controllers\KaryawanQccController;
 
 // Redirect root ke login jika belum login, ke welcome jika sudah
 Route::get('/', function () {
@@ -13,6 +14,8 @@ Route::get('/', function () {
 
 // Route Auth
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/check-role', [AuthController::class, 'checkRole'])->name('check.role');
+Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
@@ -37,4 +40,25 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/qcc/admin/master-periods', [AdminQccController::class, 'storePeriod'])->name('qcc.admin.store_period');
     Route::put('/qcc/admin/master-periods/{id}', [AdminQccController::class, 'updatePeriod'])->name('qcc.admin.update_period');
     Route::delete('/qcc/admin/master-periods/{id}', [AdminQccController::class, 'deletePeriod'])->name('qcc.admin.delete_period');
+
+    // 4. Master Circles & Members (Data Kelompok QCC)
+    Route::get('/qcc/admin/master-circles', [AdminQccController::class, 'masterCircles'])->name('qcc.admin.master_circles');
+    Route::post('/qcc/admin/master-circles', [AdminQccController::class, 'storeCircle'])->name('qcc.admin.store_circle');
+
+    // 5. Monitoring Progress (Monitoring File Transaksi Circle)
+    Route::get('/qcc/admin/monitoring-progress/{circle_id}', [AdminQccController::class, 'monitoringProgress'])->name('qcc.admin.monitoring_progress');
+
+
+    // ==========================================
+    // MODULE KARYAWAN QCC
+    // ==========================================
+    // 1. Manajemen Circle Saya (Info Kelompok, Member, & Create Circle)
+    Route::get('/qcc/karyawan/my-circle', [KaryawanQccController::class, 'myCircle'])->name('qcc.karyawan.my_circle');
+    Route::post('/qcc/karyawan/store-circle', [KaryawanQccController::class, 'storeCircle'])->name('qcc.karyawan.store_circle');
+
+    // 2. Upload Progress (Transaksi 8 Langkah PDCA per Tema)
+    Route::get('/qcc/karyawan/progress', [KaryawanQccController::class, 'progress'])->name('qcc.karyawan.progress');
+    Route::post('/qcc/karyawan/upload-file', [KaryawanQccController::class, 'uploadFile'])->name('qcc.karyawan.upload_file');
+    
 });
+

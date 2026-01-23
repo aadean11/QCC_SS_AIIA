@@ -3,6 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\QccPeriod;
+use App\Models\Department;
+use App\Models\QccCircleMember;
+use App\Models\QccCircleStepTransaction;
+use App\Models\QccTheme;
 
 class QccCircle extends Model
 {
@@ -31,5 +36,16 @@ class QccCircle extends Model
     public function stepProgress()
     {
         return $this->hasMany(QccCircleStepTransaction::class, 'qcc_circle_id');
+    }
+
+    public function themes()
+    {
+        return $this->hasMany(QccTheme::class, 'qcc_circle_id');
+    }
+
+    // Helper untuk mengambil tema yang sedang aktif saat ini
+    public function activeTheme()
+    {
+        return $this->hasOne(QccTheme::class, 'qcc_circle_id')->where('status', 'ACTIVE');
     }
 }

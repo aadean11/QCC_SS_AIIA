@@ -43,7 +43,7 @@
     </div>
 
     <!-- Table Section -->
-    <div class="glass-card rounded-[2rem] p-6 shadow-sm border border-white">
+    <div class="glass-card rounded-[2rem] p-6 shadow-sm ">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-separate border-spacing-y-2">
                 <thead>
@@ -120,9 +120,9 @@
 <!-- ================= MODAL DETAIL ================= -->
 <div id="modalDetail" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
     <div class="flex items-center justify-center min-h-screen p-4 text-left">
-        <div class="bg-white rounded-[2rem] w-full max-w-2xl shadow-2xl animate-reveal overflow-hidden border border-white">
+        <div class="bg-white rounded-[2rem] w-full max-w-2xl shadow-2xl animate-reveal overflow-hidden">
             <div class="sidebar-gradient p-6 text-white flex justify-between items-center">
-                <h3 class="text-xl font-bold uppercase tracking-widest">Detail Periode</h3>
+                <h3 class="text-xl font-bold">Detail Periode</h3>
                 <button onclick="closeModal('modalDetail')" class="text-white/70 hover:text-white text-2xl">&times;</button>
             </div>
             <div class="p-8 space-y-6">
@@ -150,7 +150,7 @@
                         <!-- Content via JS -->
                     </div>
                 </div>
-                <button onclick="closeModal('modalDetail')" class="w-full py-4 bg-gray-100 text-gray-500 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-gray-200 transition-all">Tutup</button>
+                <button onclick="closeModal('modalDetail')" class="w-full py-4 bg-gray-300 text-gray-500 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-gray-200 transition-all">Tutup</button>
             </div>
         </div>
     </div>
@@ -159,9 +159,9 @@
 <!-- ================= MODAL ADD PERIOD ================= -->
 <div id="modalAdd" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
     <div class="flex items-center justify-center min-h-screen p-4 text-left">
-        <div class="bg-white rounded-[2rem] w-full max-w-xl shadow-2xl animate-reveal overflow-hidden border border-white">  
+        <div class="bg-white rounded-[2rem] w-full max-w-xl shadow-2xl animate-reveal overflow-hidden">  
             <div class="sidebar-gradient p-6 text-white flex justify-between items-center">
-                <h3 class="text-xl font-bold uppercase tracking-widest">Tambah Periode Baru</h3>
+                <h3 class="text-xl font-bold">Tambah Periode Baru</h3>
                 <button onclick="closeModal('modalAdd')" class="text-white/70 hover:text-white text-2xl">&times;</button>
             </div>
             <form id="formAdd" action="{{ route('qcc.admin.store_period') }}" method="POST" class="p-8 grid grid-cols-2 gap-6">
@@ -198,9 +198,9 @@
 <!-- ================= MODAL EDIT PERIOD ================= -->
 <div id="modalEdit" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
     <div class="flex items-center justify-center min-h-screen p-4 text-left">
-        <div class="bg-white rounded-[2.5rem] w-full max-w-xl shadow-2xl animate-reveal overflow-hidden border border-white">
+        <div class="bg-white rounded-[2.5rem] w-full max-w-xl shadow-2xl animate-reveal overflow-hidden">
             <div class="sidebar-gradient p-6 text-white flex justify-between items-center">
-                <h3 class="text-xl font-bold uppercase tracking-widest">Update Data Periode</h3>
+                <h3 class="text-xl font-bold">Update Data Periode</h3>
                 <button onclick="closeModal('modalEdit')" class="text-white/70 hover:text-white text-2xl">&times;</button>
             </div>
             <form id="formEdit" method="POST" class="p-8 grid grid-cols-2 gap-6">
@@ -234,7 +234,7 @@
                     </select>
                 </div>
                 <div class="flex gap-3 col-span-2 mt-4">
-                    <button type="button" onclick="closeModal('modalEdit')" class="flex-1 py-4 bg-gray-100 text-gray-500 rounded-xl font-bold uppercase tracking-widest text-[10px]">Batal</button>
+                    <button type="button" onclick="closeModal('modalEdit')" class="flex-1 py-4 bg-gray-300 text-gray-500 rounded-xl font-bold uppercase tracking-widest text-[10px]">Batal</button>
                     <button type="submit" class="flex-1 py-4 bg-amber-500 text-white rounded-xl font-bold shadow-lg uppercase tracking-widest text-[10px] hover:bg-amber-600 transition-all">Update Data</button>
                 </div>
             </form>
@@ -245,9 +245,9 @@
 <!-- ================= MODAL DEADLINE ================= -->
 <div id="modalDeadline" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
     <div class="flex items-center justify-center min-h-screen p-4 text-left">
-        <div class="bg-white rounded-[2rem] w-full max-w-2xl shadow-2xl animate-reveal overflow-hidden border border-white">
+        <div class="bg-white rounded-[2rem] w-full max-w-2xl shadow-2xl animate-reveal overflow-hidden">
             <div class="sidebar-gradient p-6 text-white flex justify-between items-center">
-                <h3 class="text-xl font-bold uppercase tracking-widest">Set Deadlines Langkah</h3>
+                <h3 class="text-xl font-bold">Set Deadlines Langkah</h3>
                 <button onclick="closeModal('modalDeadline')" class="text-white/70 hover:text-white text-2xl">&times;</button>
             </div>
             <form id="formDeadline" method="POST" class="p-8">
@@ -267,7 +267,7 @@
                     </table>
                 </div>
                 <div class="flex gap-3">
-                    <button type="button" onclick="closeModal('modalDeadline')" class="flex-1 py-4 bg-gray-100 text-gray-500 rounded-xl font-bold uppercase tracking-widest text-xs">Tutup</button>
+                    <button type="button" onclick="closeModal('modalDeadline')" class="flex-1 py-4 bg-gray-300 text-gray-500 rounded-xl font-bold uppercase tracking-widest text-xs">Tutup</button>
                     <button type="submit" class="flex-1 py-4 bg-[#091E6E] text-white rounded-xl font-bold shadow-lg uppercase tracking-widest text-xs hover:bg-[#130998]">Update Deadline</button>
                 </div>
             </form>
@@ -319,7 +319,7 @@
                 <tr class="border-t border-gray-100">
                     <td class="px-4 py-3 whitespace-nowrap">
                         <span class="text-xs font-bold text-[#091E6E]">Step ${ps.step.step_number}</span><br>
-                        <span class="text-[9px] text-gray-400 uppercase font-black tracking-widest">${ps.step.step_name}</span>
+                        <span class="text-[9px] text-gray-400 font-black">${ps.step.step_name}</span>
                     </td>
                     <td class="px-4 py-3 text-center">
                         <input type="date" name="deadlines[${ps.qcc_step_id}]" value="${ps.deadline_date}" 

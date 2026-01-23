@@ -13,25 +13,32 @@ use Illuminate\Support\Facades\DB;
 
 class AdminQccController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = Employee::with('job')->find(Auth::id());
         
-        // Tambahkan ini agar layout 'welcome' tidak error
-        $jumlahQcc = QccCircle::count(); 
-        $jumlahSs = 100; // Sesuaikan dengan logika Anda
+        // Ambil semua departemen untuk dropdown filter
+        $departments = \App\Models\Department::orderBy('name', 'asc')->get();
 
+        // Logika Filter (Contoh sederhana)
+        $selectedDept = $request->get('department_code');
+        
+        // Di sini Anda biasanya melakukan query ke database berdasarkan $selectedDept
+        // Untuk contoh ini, kita asumsikan data chart berubah jika filter dipilih
         $stats = [
-            'total_circles' => $jumlahQcc,
-            'active_periods' => 2,
+            'total_circles' => $selectedDept ? 15 : 124, // Contoh angka berubah
             'need_review' => 15,
-            'completed' => 45
+            'completed' => 45,
+            'active_periods' => 2
         ];
 
-        $circles = []; 
+        // Data Chart (Nanti diisi dari query database berdasarkan $selectedDept)
+        $chartData = [
+            'submitted' => $selectedDept ? [2, 4, 3, 5, 2, 6, 8, 5, 4] : [6, 8, 7, 10, 4, 9, 10, 12, 11],
+            'approved' => $selectedDept ? [1, 2, 2, 4, 1, 5, 3, 2, 1] : [5, 5, 4, 9, 3, 10, 6, 5, 4]
+        ];
 
-        // Kirimkan jumlahQcc dan jumlahSs ke view
-        return view('qcc.admin.dashboard', compact('user', 'stats', 'circles', 'jumlahQcc', 'jumlahSs'));
+        return view('qcc.admin.dashboard', compact('user', 'stats', 'departments', 'selectedDept', 'chartData'));
     }
 
     // Master Steps QCC

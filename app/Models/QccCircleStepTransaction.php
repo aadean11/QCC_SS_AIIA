@@ -9,8 +9,14 @@ class QccCircleStepTransaction extends Model
     protected $table = 't_qcc_circle_steps';
 
     protected $fillable = [
-        'qcc_circle_id', 'qcc_step_id', 'file_name', 'file_path', 
-        'file_type', 'upload_by', 'upload_at', 'status'
+        'qcc_circle_id', 
+        'qcc_theme_id',
+        'qcc_step_id', 
+        'file_name', 
+        'file_path', 
+        'file_type', 
+        'upload_by', 
+        'status'
     ];
 
     public function circle()
