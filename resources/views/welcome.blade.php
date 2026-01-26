@@ -69,7 +69,6 @@
             margin: 0;
         }
 
-        /* Munculkan kembali teks menu saat melayang (floating) */
         .sidebar-collapsed .group:hover .submenu .menu-text {
             display: inline-block !important;
             opacity: 1 !important;
@@ -161,17 +160,28 @@
                             </button>
 
                             <div id="qccSubmenu" class="submenu pl-12 space-y-1 {{ request()->is('qcc/admin*') ? 'show' : '' }}">
-                                <a href="{{ route('qcc.admin.dashboard') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/dashboard') ? 'text-white font-bold' : '' }}">
+                                <a href="{{ route('qcc.admin.dashboard') }}" class="flex items-center gap-3 text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/dashboard') ? 'text-white font-bold' : '' }}">
+                                    <i class="fa-solid fa-gauge-high w-4"></i>
                                     <span class="menu-text">Dashboard Admin</span>
                                 </a>
-                                <a href="{{ route('qcc.admin.master_steps') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/master-steps') ? 'text-white font-bold' : '' }}">
+                                <a href="{{ route('qcc.admin.master_steps') }}" class="flex items-center gap-3 text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/master-steps') ? 'text-white font-bold' : '' }}">
+                                    <i class="fa-solid fa-list-ol w-4"></i>
                                     <span class="menu-text">Master Steps</span>
                                 </a>
-                                <a href="{{ route('qcc.admin.master_periods') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/master-periods') ? 'text-white font-bold' : '' }}">
+                                <a href="{{ route('qcc.admin.master_periods') }}" class="flex items-center gap-3 text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/master-periods') ? 'text-white font-bold' : '' }}">
+                                    <i class="fa-solid fa-calendar-days w-4"></i>
                                     <span class="menu-text">Master Periode</span>
                                 </a>
                             </div>
                         </div>
+
+                        <!-- Menu Monitoring SS -->
+                        <a href="#" class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl">
+                            <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg">
+                                <i class="fa-regular fa-lightbulb text-blue-200 text-sm"></i>
+                            </div>
+                            <span class="menu-text font-medium whitespace-nowrap text-sm">Monitoring SS</span>
+                        </a>
                     @endif
 
                     <!-- 3. MENU KHUSUS KARYAWAN -->
@@ -188,11 +198,18 @@
                             </button>
 
                             <div id="karyawanSubmenu" class="submenu pl-12 space-y-1 {{ request()->is('qcc/karyawan*') ? 'show' : '' }}">
-                                <a href="{{ route('qcc.karyawan.my_circle') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/my-circle') ? 'text-white font-bold' : '' }}">
-                                    <span class="menu-text">Manajemen Circle</span>
+                                <a href="{{ route('qcc.karyawan.my_circle') }}" class="flex items-center gap-3 text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/my-circle') ? 'text-white font-bold' : '' }}">
+                                    <i class="fa-solid fa-circle-info w-4"></i>
+                                    <span class="menu-text whitespace-nowrap">Info Circle & Member</span>
                                 </a>
-                                <a href="{{ route('qcc.karyawan.progress') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/progress') ? 'text-white font-bold' : '' }}">
-                                    <span class="menu-text">Update Progress</span>
+                                <!-- SUB MENU BARU -->
+                                <a href="{{ route('qcc.karyawan.themes') }}" class="flex items-center gap-3 text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/themes') ? 'text-white font-bold' : '' }}">
+                                    <i class="fa-solid fa-lightbulb w-4"></i>
+                                    <span class="menu-text whitespace-nowrap">Manajemen Tema</span>
+                                </a>
+                                <a href="{{ route('qcc.karyawan.progress') }}" class="flex items-center gap-3 text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/progress') ? 'text-white font-bold' : '' }}">
+                                    <i class="fa-solid fa-cloud-arrow-up w-4"></i>
+                                    <span class="menu-text whitespace-nowrap">Upload Progress</span>
                                 </a>
                             </div>
                         </div>
@@ -204,14 +221,6 @@
                             <span class="menu-text font-medium whitespace-nowrap text-sm">Input SS Baru</span>
                         </a>
                     @endif
-
-                    <!-- 4. Menu Monitoring SS -->
-                    <a href="#" class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl">
-                        <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg">
-                            <i class="fa-regular fa-lightbulb text-blue-200 text-sm"></i>
-                        </div>
-                        <span class="menu-text font-medium whitespace-nowrap text-sm">Monitoring SS</span>
-                    </a>
                 </nav>
             </div>
 

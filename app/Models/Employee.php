@@ -6,6 +6,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\Occupation;
 use App\Models\Role;
+use App\Models\SubSection;
 
 class Employee extends Authenticatable
 {
@@ -40,5 +41,11 @@ class Employee extends Authenticatable
         return \App\Models\Role::where('npk', $this->npk)
                             ->where('display_name', 'Admin')
                             ->exists();
+    }
+
+    public function subSection()
+    {
+        // Menghubungkan kolom sub_section di m_employees ke code di m_sub_sections
+        return $this->belongsTo(SubSection::class, 'sub_section', 'code');
     }
 }

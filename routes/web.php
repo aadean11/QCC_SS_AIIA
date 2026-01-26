@@ -24,7 +24,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/welcome', [WelcomeController::class, 'showWelcome'])->name('welcome');
 });
 
-// Admin QCC
+// Monitoring QCC
 Route::middleware(['auth'])->group(function () {
     // Route Dashboard Admin QCC
     Route::get('/qcc/admin/dashboard', [AdminQccController::class, 'index'])->name('qcc.admin.dashboard');
@@ -48,15 +48,16 @@ Route::middleware(['auth'])->group(function () {
     // 5. Monitoring Progress (Monitoring File Transaksi Circle)
     Route::get('/qcc/admin/monitoring-progress/{circle_id}', [AdminQccController::class, 'monitoringProgress'])->name('qcc.admin.monitoring_progress');
 
-
-    // ==========================================
-    // MODULE KARYAWAN QCC
-    // ==========================================
-    // 1. Manajemen Circle Saya (Info Kelompok, Member, & Create Circle)
-    Route::get('/qcc/karyawan/my-circle', [KaryawanQccController::class, 'myCircle'])->name('qcc.karyawan.my_circle');
+    // Route Karyawan QCC
+    Route::get('/qcc/karyawan/my-circle', [KaryawanQccController::class, 'myCircle'])->name('qcc.karyawan.my_circle');   
     Route::post('/qcc/karyawan/store-circle', [KaryawanQccController::class, 'storeCircle'])->name('qcc.karyawan.store_circle');
+    Route::put('/qcc/karyawan/update-circle/{id}', [KaryawanQccController::class, 'updateCircle'])->name('qcc.karyawan.update_circle');
+    Route::delete('/qcc/karyawan/delete-circle/{id}', [KaryawanQccController::class, 'deleteCircle'])->name('qcc.karyawan.delete_circle');
 
-    // 2. Upload Progress (Transaksi 8 Langkah PDCA per Tema)
+    // Route Tema (Sub-menu baru)
+    Route::get('/qcc/karyawan/themes', [KaryawanQccController::class, 'themes'])->name('qcc.karyawan.themes');
+    Route::post('/qcc/karyawan/store-theme', [KaryawanQccController::class, 'storeTheme'])->name('qcc.karyawan.store_theme');
+
     Route::get('/qcc/karyawan/progress', [KaryawanQccController::class, 'progress'])->name('qcc.karyawan.progress');
     Route::post('/qcc/karyawan/upload-file', [KaryawanQccController::class, 'uploadFile'])->name('qcc.karyawan.upload_file');
     
