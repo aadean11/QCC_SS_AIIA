@@ -105,57 +105,6 @@ class KaryawanQccController extends Controller
         }
     }
 
-    // --- MANAJEMEN TEMA ---
-    public function themes(Request $request)
-    {
-        $user = $this->getAuthUser();
-        $circleId = $request->get('circle_id');
-
-        // --- TAMBAHAN VALIDASI: CEK APAKAH PUNYA CIRCLE ---
-        $hasAnyCircle = QccCircleMember::where('employee_npk', $user->npk)->exists();
-        if (!$hasAnyCircle) {
-            return redirect()->route('qcc.karyawan.my_circle')->with('info', 'Silakan buat atau bergabung dengan Circle terlebih dahulu!');
-        }
-
-        if (!$circleId) {
-            $firstMembership = QccCircleMember::where('employee_npk', $user->npk)->first();
-            if (!$firstMembership) return redirect()->route('qcc.karyawan.my_circle')->with('error', 'Buat Circle dulu!');
-            return redirect()->route('qcc.karyawan.themes', ['circle_id' => $firstMembership->qcc_circle_id]);
-        }
-
-        $circle = QccCircle::findOrFail($circleId);
-        $perPage = $request->get('per_page', 10);
-        $search = $request->get('search');
-
-        $themes = QccTheme::with('period')
-            ->where('qcc_circle_id', $circleId)
-            ->when($search, function($query) use ($search) {
-                $query->where('theme_name', 'like', "%{$search}%");
-            })
-            ->orderBy('created_at', 'desc')
-            ->paginate($perPage)
-            ->withQueryString();
-
-        $activePeriods = QccPeriod::where('status', 'ACTIVE')->get();
-
-        return view('qcc.karyawan.manage_themes', compact('user', 'circle', 'themes', 'activePeriods', 'perPage'));
-    }
-
-    public function storeTheme(Request $request)
-    {
-        $request->validate(['theme_name' => 'required', 'qcc_period_id' => 'required', 'qcc_circle_id' => 'required']);
-        
-        // Logika diubah: Tidak mematikan tema lama (Sesuai permintaan Anda)
-        QccTheme::create([
-            'qcc_circle_id' => $request->qcc_circle_id,
-            'qcc_period_id' => $request->qcc_period_id,
-            'theme_name' => $request->theme_name,
-            'status' => 'ACTIVE'
-        ]);
-
-        return redirect()->back()->with('success', 'Tema baru berhasil ditambahkan!');
-    }
-
     public function updateCircle(Request $request, $id)
     {
         $request->validate([
@@ -210,6 +159,88 @@ class KaryawanQccController extends Controller
             return redirect()->back()->with('success', 'Circle berhasil dihapus selamanya.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal menghapus: ' . $e->getMessage());
+        }
+    }
+
+    // --- MANAJEMEN TEMA ---
+    public function themes(Request $request)
+    {
+        $user = $this->getAuthUser();
+        $circleId = $request->get('circle_id');
+
+        // --- TAMBAHAN VALIDASI: CEK APAKAH PUNYA CIRCLE ---
+        $hasAnyCircle = QccCircleMember::where('employee_npk', $user->npk)->exists();
+        if (!$hasAnyCircle) {
+            return redirect()->route('qcc.karyawan.my_circle')->with('info', 'Silakan buat atau bergabung dengan Circle terlebih dahulu!');
+        }
+
+        if (!$circleId) {
+            $firstMembership = QccCircleMember::where('employee_npk', $user->npk)->first();
+            if (!$firstMembership) return redirect()->route('qcc.karyawan.my_circle')->with('error', 'Buat Circle dulu!');
+            return redirect()->route('qcc.karyawan.themes', ['circle_id' => $firstMembership->qcc_circle_id]);
+        }
+
+        $circle = QccCircle::findOrFail($circleId);
+        $perPage = $request->get('per_page', 10);
+        $search = $request->get('search');
+
+        $themes = QccTheme::with('period')
+            ->where('qcc_circle_id', $circleId)
+            ->when($search, function($query) use ($search) {
+                $query->where('theme_name', 'like', "%{$search}%");
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        $activePeriods = QccPeriod::where('status', 'ACTIVE')->get();
+
+        return view('qcc.karyawan.manage_themes', compact('user', 'circle', 'themes', 'activePeriods', 'perPage'));
+    }
+
+    public function storeTheme(Request $request)
+    {
+        $request->validate(['theme_name' => 'required', 'qcc_period_id' => 'required', 'qcc_circle_id' => 'required']);
+        
+        // Logika diubah: Tidak mematikan tema lama (Sesuai permintaan Anda)
+        QccTheme::create([
+            'qcc_circle_id' => $request->qcc_circle_id,
+            'qcc_period_id' => $request->qcc_period_id,
+            'theme_name' => $request->theme_name,
+            'status' => 'ACTIVE'
+        ]);
+
+        return redirect()->back()->with('success', 'Tema baru berhasil ditambahkan!');
+    }
+
+    public function updateTheme(Request $request, $id)
+    {
+        $request->validate([
+            'theme_name' => 'required|string|max:255',
+            'qcc_period_id' => 'required',
+        ]);
+
+        try {
+            $theme = QccTheme::findOrFail($id);
+            $theme->update([
+                'theme_name' => $request->theme_name,
+                'qcc_period_id' => $request->qcc_period_id,
+            ]);
+
+            return redirect()->back()->with('success', 'Tema berhasil diperbarui!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal memperbarui tema.');
+        }
+    }
+
+    public function deleteTheme($id)
+    {
+        try {
+            // Soft delete atau hard delete sesuai kebutuhan (t_qcc_circle_steps akan terhapus jika ada cascade)
+            QccTheme::destroy($id);
+            return redirect()->back()->with('success', 'Tema berhasil dihapus.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal menghapus tema.');
         }
     }
 

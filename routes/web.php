@@ -57,7 +57,8 @@ Route::middleware(['auth'])->group(function () {
     // Route Tema (Sub-menu baru)
     Route::get('/qcc/karyawan/themes', [KaryawanQccController::class, 'themes'])->name('qcc.karyawan.themes');
     Route::post('/qcc/karyawan/store-theme', [KaryawanQccController::class, 'storeTheme'])->name('qcc.karyawan.store_theme');
-
+    Route::put('/qcc/karyawan/update-theme/{id}', [KaryawanQccController::class, 'updateTheme'])->name('qcc.karyawan.update_theme');
+    Route::delete('/qcc/karyawan/delete-theme/{id}', [KaryawanQccController::class, 'deleteTheme'])->name('qcc.karyawan.delete_theme');
     Route::get('/qcc/karyawan/progress', [KaryawanQccController::class, 'progress'])->name('qcc.karyawan.progress');
     Route::post('/qcc/karyawan/upload-file', [KaryawanQccController::class, 'uploadFile'])->name('qcc.karyawan.upload_file');
     

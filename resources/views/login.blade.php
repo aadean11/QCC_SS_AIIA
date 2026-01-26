@@ -44,14 +44,14 @@
                 <form id="tempLoginForm">
                     @csrf
                     <div class="mb-5">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Username (Nama)</label>
-                        <input type="text" id="username" placeholder="Nama Lengkap" required
+                        <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Username (NPK)</label>
+                        <input type="text" id="username" placeholder="Masukkan NPK Anda" required
                             class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] text-gray-700 bg-gray-50/50">
                     </div>
 
                     <div class="mb-8 relative">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Password (NPK)</label>
-                        <input type="password" id="password" placeholder="NPK Anda" required
+                        <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Password</label>
+                        <input type="password" id="password" placeholder="Masukkan Password Anda" required
                             class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] text-gray-700 bg-gray-50/50 pr-12">
                         <div id="togglePassword" class="absolute bottom-4 right-4 cursor-pointer text-gray-300"><i id="eyeIcon" class="fa-solid fa-eye"></i></div>
                     </div>
