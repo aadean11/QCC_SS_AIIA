@@ -173,4 +173,59 @@ class AdminQccController extends Controller
         QccPeriod::destroy($id);
         return redirect()->back()->with('success', 'Periode berhasil dihapus!');
     }
+
+    // Master Employees (Karyawan)
+    public function masterEmployees(Request $request)
+    {
+        $user = Employee::with('job')->where('npk', session('auth_npk'))->first();
+        $perPage = $request->get('per_page', 10);
+        $search = $request->get('search');
+
+        $employees = Employee::with(['job', 'subSection.section.department'])
+            ->when($search, function($query) use ($search) {
+                $query->where('nama', 'like', "%{$search}%")
+                    ->orWhere('npk', 'like', "%{$search}%");
+            })
+            ->orderBy('nama', 'asc')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        // Data untuk Dropdown di Modal
+        $occupations = \App\Models\Occupation::all();
+        $subSections = \App\Models\SubSection::with('section.department')->get();
+
+        return view('qcc.admin.master_qcc_employees', compact('user', 'employees', 'perPage', 'occupations', 'subSections'));
+    }
+
+    public function storeEmployee(Request $request)
+    {
+        $request->validate([
+            'npk' => 'required|unique:m_employees,npk',
+            'nama' => 'required|string|max:255',
+            'line_code' => 'required',
+            'sub_section' => 'required',
+            'occupation' => 'required',
+        ]);
+
+        Employee::create($request->all());
+        return redirect()->back()->with('success', 'Karyawan baru berhasil ditambahkan!');
+    }
+
+    public function updateEmployee(Request $request, $id)
+    {
+        $emp = Employee::findOrFail($id);
+        $request->validate([
+            'npk' => 'required|unique:m_employees,npk,' . $id,
+            'nama' => 'required',
+        ]);
+
+        $emp->update($request->all());
+        return redirect()->back()->with('success', 'Data karyawan berhasil diperbarui!');
+    }
+
+    public function deleteEmployee($id)
+    {
+        Employee::destroy($id);
+        return redirect()->back()->with('success', 'Data karyawan telah dihapus.');
+    }
 }   

@@ -182,6 +182,15 @@
                             </div>
                             <span class="menu-text font-medium whitespace-nowrap text-sm">Monitoring SS</span>
                         </a>
+
+                        <!-- Menu Master Karyawan -->
+                        <a href="{{ route('admin.master_employee.index') }}" 
+                        class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl mt-2 {{ request()->is('admin/master-employee*') ? 'bg-white/20 border-l-4 border-yellow-400' : '' }}">
+                            <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg">
+                                <i class="fa-solid fa-users-gear text-blue-200 text-sm"></i>
+                            </div>
+                            <span class="menu-text font-medium whitespace-nowrap text-sm">Master Karyawan</span>
+                        </a>
                     @endif
 
                     <!-- 3. MENU KHUSUS KARYAWAN -->
