@@ -168,19 +168,33 @@ class KaryawanQccController extends Controller
         $user = $this->getAuthUser();
         $circleId = $request->get('circle_id');
 
-        // --- TAMBAHAN VALIDASI: CEK APAKAH PUNYA CIRCLE ---
+        // 1. VALIDASI: CEK APAKAH PUNYA CIRCLE
         $hasAnyCircle = QccCircleMember::where('employee_npk', $user->npk)->exists();
         if (!$hasAnyCircle) {
             return redirect()->route('qcc.karyawan.my_circle')->with('info', 'Silakan buat atau bergabung dengan Circle terlebih dahulu!');
         }
 
+        // 2. LOGIKA PENENTUAN CIRCLE ID
         if (!$circleId) {
             $firstMembership = QccCircleMember::where('employee_npk', $user->npk)->first();
-            if (!$firstMembership) return redirect()->route('qcc.karyawan.my_circle')->with('error', 'Buat Circle dulu!');
+            if (!$firstMembership) return redirect()->route('qcc.karyawan.my_circle')->with('error', 'Data keanggotaan tidak ditemukan!');
             return redirect()->route('qcc.karyawan.themes', ['circle_id' => $firstMembership->qcc_circle_id]);
         }
 
         $circle = QccCircle::findOrFail($circleId);
+
+        // 3. TAMBAHAN VALIDASI APPROVAL: Hanya status 'ACTIVE' yang boleh masuk ke menu Tema
+        if ($circle->status !== 'ACTIVE') {
+            $msg = "";
+            if (str_contains($circle->status, 'WAITING')) {
+                $msg = "Circle '{$circle->circle_name}' sedang menunggu persetujuan atasan. Anda baru bisa mengelola Tema setelah status ACTIVE.";
+            } elseif (str_contains($circle->status, 'REJECTED')) {
+                $msg = "Pendaftaran Circle '{$circle->circle_name}' ditolak. Silakan cek alasan penolakan di menu Manajemen Circle.";
+            }
+            return redirect()->route('qcc.karyawan.my_circle')->with('warning', $msg);
+        }
+
+        // 4. LOGIKA PAGING & SEARCH TEMA
         $perPage = $request->get('per_page', 10);
         $search = $request->get('search');
 
@@ -259,6 +273,22 @@ class KaryawanQccController extends Controller
                 return redirect()->route('qcc.karyawan.my_circle')->with('warning', 'Anda tidak memiliki Tema yang sedang aktif. Silakan pilih/buat tema di Manajemen Tema.');
             }
             return redirect()->route('qcc.karyawan.progress', ['theme_id' => $activeTheme->id]);
+        }
+
+        foreach ($steps as $index => $step) {
+            if ($index === 0) {
+                $step->is_locked = false; // Step 1 selalu buka
+            } else {
+                $prevStepId = $steps[$index-1]->id;
+                $prevUpload = $uploads[$prevStepId] ?? null;
+
+                // Harus ada upload di step sebelumnya DAN statusnya harus APPROVED
+                if ($prevUpload && $prevUpload->status === 'APPROVED') {
+                    $step->is_locked = false;
+                } else {
+                    $step->is_locked = true;
+                }
+            }
         }
 
         $theme = QccTheme::with('circle')->findOrFail($themeId);

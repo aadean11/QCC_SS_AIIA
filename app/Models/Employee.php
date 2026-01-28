@@ -48,4 +48,16 @@ class Employee extends Authenticatable
         // Menghubungkan kolom sub_section di m_employees ke code di m_sub_sections
         return $this->belongsTo(SubSection::class, 'sub_section', 'code');
     }
+
+    public function isSpv()
+    {
+        // Menggunakan kode 'SPV' sesuai tabel m_occupations yang Anda berikan sebelumnya
+        return $this->occupation === 'SPV'; 
+    }
+
+    public function isKadept()
+    {
+        // Menggunakan kode 'KDP' untuk Kepala Departement
+        return $this->occupation === 'KDP';
+    }
 }

@@ -14,9 +14,9 @@
 
         <!-- Welcome Banner -->
         <div class="welcome-banner rounded-[2rem] p-8 md:p-12 mb-10 shadow-xl relative overflow-hidden">
-            <div class="relative z-10 max-w-2xl text-white">
+            <div class="relative z-10 max-w-1xl text-white">
                 <h4 class="text-blue-200 font-medium mb-2 uppercase tracking-widest text-sm text-white">Overview System</h4>
-                <h1 class="text-3xl md:text-5xl font-bold leading-tight mb-4">Halo, <span class="text-yellow-400">{{ $user->nama }}!</span></h1>
+                <h1 class="text-3xl md:text-6xl font-bold leading-tight mb-4">Halo, <span class="text-yellow-400">{{ $user->nama }}!</span></h1>
                 <p class="text-blue-100 text-lg opacity-90">Pantau kemajuan ide dan perubahan melalui sistem Monitoring QCC dan SS secara real-time.</p>
             </div>
             <div class="absolute -right-20 -top-20 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>

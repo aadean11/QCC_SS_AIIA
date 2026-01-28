@@ -7,6 +7,7 @@ use App\Http\Controllers\AdminQccController;
 use App\Http\Controllers\QccStepController;
 use App\Http\Controllers\KaryawanQccController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\QccApprovalController;
 
 // Redirect root ke login jika belum login, ke welcome jika sudah
 Route::get('/', function () {
@@ -69,5 +70,13 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/qcc/karyawan/delete-theme/{id}', [KaryawanQccController::class, 'deleteTheme'])->name('qcc.karyawan.delete_theme');
     Route::get('/qcc/karyawan/progress', [KaryawanQccController::class, 'progress'])->name('qcc.karyawan.progress');
     Route::post('/qcc/karyawan/upload-file', [KaryawanQccController::class, 'uploadFile'])->name('qcc.karyawan.upload_file');
+
+    // Approval Registrasi Circle Baru
+    Route::get('/qcc/approval/circle', [QccApprovalController::class, 'indexCircle'])->name('qcc.approval.circle');
+    Route::post('/qcc/approval/circle/process/{id}', [QccApprovalController::class, 'processCircle'])->name('qcc.approval.process_circle');
+
+    // Approval Progres PDCA (Step 1-8)
+    Route::get('/qcc/approval/progress', [QccApprovalController::class, 'index'])->name('qcc.approval.progress');
+    Route::post('/qcc/approval/progress/process/{id}', [QccApprovalController::class, 'process'])->name('qcc.approval.process');
 });
 
