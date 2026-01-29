@@ -50,6 +50,12 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/qcc/admin/master-periods/{id}', [AdminQccController::class, 'updatePeriod'])->name('qcc.admin.update_period');
     Route::delete('/qcc/admin/master-periods/{id}', [AdminQccController::class, 'deletePeriod'])->name('qcc.admin.delete_period');
 
+    // Master Target QCC
+    Route::get('/qcc/admin/master-targets', [AdminQccController::class, 'masterTargets'])->name('qcc.admin.master_targets');
+    Route::post('/qcc/admin/master-targets', [AdminQccController::class, 'storeTarget'])->name('qcc.admin.store_target');
+    Route::put('/qcc/admin/master-targets/{id}', [AdminQccController::class, 'updateTarget'])->name('qcc.admin.update_target');
+    Route::delete('/qcc/admin/master-targets/{id}', [AdminQccController::class, 'deleteTarget'])->name('qcc.admin.delete_target');
+
     // Master Circles & Members (Data Kelompok QCC)
     Route::get('/qcc/admin/master-circles', [AdminQccController::class, 'masterCircles'])->name('qcc.admin.master_circles');
     Route::post('/qcc/admin/master-circles', [AdminQccController::class, 'storeCircle'])->name('qcc.admin.store_circle');

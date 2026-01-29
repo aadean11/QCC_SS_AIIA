@@ -9,7 +9,11 @@ class QccStep extends Model
     protected $table = 'm_qcc_steps';
 
     protected $fillable = [
-        'step_number', 'step_name', 'description'
+        'step_number', 
+        'step_name', 
+        'description',
+        'template_file_name',
+        'template_file_path',
     ];
 
     // Relasi ke transaksi t_qcc_circle_steps

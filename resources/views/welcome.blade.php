@@ -157,6 +157,15 @@
         }
 
     </style>
+    <!-- SCRIPT CEK STATUS SIDEBAR SEBELUM HALAMAN DI-RENDER (Mencegah Kedip) -->
+    <script>
+        (function() {
+            const state = localStorage.getItem('sidebar-state');
+            if (state === 'collapsed') {
+                document.documentElement.classList.add('sidebar-is-collapsed');
+            }
+        })();
+    </script>
 </head>
 <body class="min-h-screen flex flex-col overflow-hidden text-sm">
 
@@ -261,9 +270,9 @@
                             <button onclick="toggleQccDropdown()" class="sidebar-link w-full flex items-center justify-between text-white p-4 rounded-xl focus:outline-none {{ request()->is('qcc/admin*') ? 'bg-white/10' : '' }}">
                                 <div class="flex items-center gap-4">
                                     <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg">
-                                        <i class="fa-solid fa-crosshairs text-blue-200"></i>
+                                        <i class="fa-solid fa-people-group text-blue-200"></i>
                                     </div>
-                                    <span class="menu-text font-medium whitespace-nowrap text-sm">Manajemen QCC</span>
+                                    <span class="menu-text font-medium whitespace-nowrap text-sm">Monitoring QCC</span>
                                 </div>
                                 <i id="qccArrow" class="fa-solid fa-chevron-down text-[10px] dropdown-arrow"></i>
                             </button>
@@ -277,6 +286,9 @@
                                 </a>
                                 <a href="{{ route('qcc.admin.master_periods') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/master-periods') ? 'text-white font-bold' : '' }}">
                                     <i class="fa-solid fa-calendar-days w-4"></i> <span class="menu-text">Master Periode</span>
+                                </a>
+                                <a href="{{ route('qcc.admin.master_targets') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/master-targets') ? 'text-white font-bold' : '' }}">
+                                    <i class="fa-solid fa-crosshairs w-4"></i> <span class="menu-text">Master Target</span>
                                 </a>
                             </div>
                         </div>
@@ -316,36 +328,51 @@
     <script>
         const sidebar = document.getElementById('sidebar');
         const sidebarToggle = document.getElementById('sidebarToggle');
+        const qccSubmenu = document.getElementById('qccSubmenu');
+        const qccArrow = document.getElementById('qccArrow');
+        const karyawanSubmenu = document.getElementById('karyawanSubmenu');
+        const karyawanArrow = document.getElementById('karyawanArrow');
 
-        sidebarToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('sidebar-collapsed');
-            if (sidebar.classList.contains('sidebar-collapsed')) {
-                document.querySelectorAll('.submenu').forEach(el => el.classList.remove('show'));
-                document.querySelectorAll('.dropdown-arrow').forEach(el => el.classList.remove('rotate-180'));
+        // LOGIKA SAAT HALAMAN DIMUAT (Restore State)
+        document.addEventListener('DOMContentLoaded', () => {
+            const state = localStorage.getItem('sidebar-state');
+            if (state === 'collapsed') {
+                sidebar.classList.add('sidebar-collapsed');
+                // Pastikan semua accordion tertutup saat mini
+                closeAllSubmenus();
             }
         });
 
+        // Toggle Sidebar & Simpan Status ke LocalStorage
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('sidebar-collapsed');
+            
+            if (sidebar.classList.contains('sidebar-collapsed')) {
+                localStorage.setItem('sidebar-state', 'collapsed');
+                closeAllSubmenus();
+            } else {
+                localStorage.setItem('sidebar-state', 'expanded');
+            }
+        });
+
+        function closeAllSubmenus() {
+            document.querySelectorAll('.submenu').forEach(el => el.classList.remove('show'));
+            document.querySelectorAll('.dropdown-arrow').forEach(el => el.classList.remove('rotate-180'));
+        }
+
         function toggleQccDropdown() {
             if (!sidebar.classList.contains('sidebar-collapsed')) {
-                document.getElementById('qccSubmenu').classList.toggle('show');
-                document.getElementById('qccArrow').classList.toggle('rotate-180');
+                if (qccSubmenu) qccSubmenu.classList.toggle('show');
+                if (qccArrow) qccArrow.classList.toggle('rotate-180');
             }
         }
 
         function toggleKaryawanDropdown() {
             if (!sidebar.classList.contains('sidebar-collapsed')) {
-                document.getElementById('karyawanSubmenu').classList.toggle('show');
-                document.getElementById('karyawanArrow').classList.toggle('rotate-180');
+                if (karyawanSubmenu) karyawanSubmenu.classList.toggle('show');
+                if (karyawanArrow) karyawanArrow.classList.toggle('rotate-180');
             }
         }
-
-        @if(Session::has('success'))
-            Swal.fire({
-                icon: 'success', title: 'Berhasil', text: "{{ Session::get('success') }}",
-                showConfirmButton: false, timer: 2000, background: '#ffffff',
-                iconColor: '#10B981', customClass: { title: 'text-[#091E6E] font-bold' }
-            });
-        @endif
     </script>
 </body>
 </html>

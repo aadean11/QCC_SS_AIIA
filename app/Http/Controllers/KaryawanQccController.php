@@ -13,6 +13,7 @@ use App\Models\QccPeriod;
 use App\Models\QccCircleStepTransaction;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class KaryawanQccController extends Controller
 {
@@ -304,17 +305,39 @@ class KaryawanQccController extends Controller
             'qcc_step_id' => 'required',
             'qcc_theme_id' => 'required',
             'qcc_circle_id' => 'required',
-            'file' => 'required|mimes:pdf,ppt,pptx,zip,rar|max:10240', // Max 10MB
+            'file' => 'required|mimes:pdf,ppt,pptx|max:10240',
         ]);
 
-        // Logika upload file (Simulasi)
-        // $path = $request->file('file')->store('qcc_uploads');
-        
-        // QccCircleStepTransaction::updateOrCreate(
-        //     ['qcc_circle_id' => $request->qcc_circle_id, 'qcc_step_id' => $request->qcc_step_id, 'qcc_theme_id' => $request->qcc_theme_id],
-        //     [...]
-        // );
+        $circleId = $request->qcc_circle_id;
+        $themeId = $request->qcc_theme_id;
+        $stepId = $request->qcc_step_id;
 
-        return redirect()->back()->with('success', 'Progress berhasil diperbarui!');
+        // Folder spesifik: qcc/progress/circle_1/theme_5/
+        $folderPath = "qcc/progress/circle_{$circleId}/theme_{$themeId}";
+
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $fileName = "Step_{$stepId}_" . time() . "." . $file->getClientOriginalExtension();
+            $path = $file->storeAs($folderPath, $fileName, 'public');
+
+            // Simpan atau Update Transaksi
+            QccCircleStepTransaction::updateOrCreate(
+                [
+                    'qcc_circle_id' => $circleId,
+                    'qcc_theme_id' => $themeId,
+                    'qcc_step_id' => $stepId,
+                ],
+                [
+                    'file_name' => $file->getClientOriginalName(),
+                    'file_path' => $path,
+                    'file_type' => $file->getClientOriginalExtension(),
+                    'upload_by' => session('auth_npk'),
+                    'status'    => 'WAITING SPV', // Reset status ke awal jika re-upload
+                    'upload_at' => now(),
+                ]
+            );
+        }
+
+        return redirect()->back()->with('success', 'Progres berhasil diunggah. Menunggu persetujuan SPV.');
     }
 }
