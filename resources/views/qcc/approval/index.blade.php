@@ -64,9 +64,23 @@
                             </div>
                         </td>
                         <td class="px-6 py-4 border-y text-center">
-                            <a href="{{ asset($ps->file_path) }}" target="_blank" class="inline-flex items-center gap-2 bg-gray-50 text-[#091E6E] px-4 py-2 rounded-xl text-[10px] font-bold hover:bg-[#091E6E] hover:text-white transition-all border border-gray-100 shadow-sm">
-                                <i class="fa-solid fa-file-pdf"></i> PREVIEW
-                            </a>
+                            @php
+                                $extension = pathinfo($ps->file_path, PATHINFO_EXTENSION);
+                                $fileUrl = asset('storage/' . $ps->file_path);
+                            @endphp
+
+                            @if(strtolower($extension) === 'pdf')
+                                <!-- Tombol Preview khusus PDF -->
+                                <button onclick="openFilePreview('{{ $fileUrl }}', '{{ $ps->file_name }}')" 
+                                    class="inline-flex items-center gap-2 bg-blue-50 text-[#091E6E] px-4 py-2 rounded-xl text-[10px] font-bold hover:bg-[#091E6E] hover:text-white transition-all border border-blue-100 shadow-sm active:scale-95">
+                                    <i class="fa-solid fa-eye"></i> PREVIEW
+                                </button>
+                            @else
+                                <!-- Tombol Download jika file PPTX/Excel -->
+                                <a href="{{ $fileUrl }}" download class="inline-flex items-center gap-2 bg-amber-50 text-amber-700 px-4 py-2 rounded-xl text-[10px] font-bold hover:bg-amber-600 hover:text-white transition-all border border-amber-100 shadow-sm active:scale-95">
+                                    <i class="fa-solid fa-download"></i> DOWNLOAD
+                                </a>
+                            @endif
                         </td>
                         <td class="px-6 py-4 rounded-r-xl border-y border-r text-center">
                             <div class="flex justify-center gap-2">
@@ -133,6 +147,38 @@
         </div>
     </div>
 </div>
+
+<!-- ================= MODAL PREVIEW PDF ================= -->
+<div id="modalFilePreview" class="fixed inset-0 z-[110] hidden overflow-y-auto bg-black/70 backdrop-blur-md">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-[2rem] w-full max-w-5xl h-[90vh] shadow-2xl animate-reveal overflow-hidden flex flex-col border border-white">
+            <!-- Header Modal -->
+            <div class="sidebar-gradient p-5 text-white flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-file-pdf text-xl"></i>
+                    <div>
+                        <h3 class="text-sm font-bold uppercase tracking-widest">Intip Dokumen Progres</h3>
+                        <p id="previewFileName" class="text-[10px] text-blue-200 truncate max-w-xs italic"></p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modalFilePreview')" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/20 transition-all text-2xl">&times;</button>
+            </div>
+            
+            <!-- Area Iframe (Isi File) -->
+            <div class="flex-1 bg-gray-100">
+                <iframe id="fileIframe" src="" class="w-full h-full border-none"></iframe>
+            </div>
+
+            <!-- Footer Modal -->
+            <div class="p-4 bg-white border-t flex justify-between items-center px-8">
+                <p class="text-[10px] text-gray-400 italic">* Gunakan menu di dalam preview jika ingin mencetak (print).</p>
+                <a id="btnDownloadInPreview" href="" download class="bg-[#091E6E] text-white px-6 py-2 rounded-xl text-[10px] font-bold uppercase shadow-lg hover:bg-[#130998] transition-all">
+                    Download File
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -148,7 +194,7 @@
         const displayCircle = document.getElementById('displayCircleName');
 
         // Reset & Setup
-        form.action = `/qcc/approval/process/${id}`;
+        form.action = `/qcc/approval/progress/process/${id}`;
         actionInput.value = action;
         displayCircle.innerText = circleName;
 
@@ -179,6 +225,29 @@
     }
 
     function closeModal(id) {
+        document.getElementById(id).classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+
+    function openFilePreview(url, fileName) {
+        const iframe = document.getElementById('fileIframe');
+        const nameDisplay = document.getElementById('previewFileName');
+        const downloadBtn = document.getElementById('btnDownloadInPreview');
+
+        // Masukkan URL file ke Iframe
+        iframe.src = url;
+        nameDisplay.innerText = fileName;
+        downloadBtn.href = url;
+
+        // Tampilkan Modal Preview
+        openModal('modalFilePreview');
+    }
+
+    // Tambahan: Reset Iframe saat modal ditutup agar tidak membebani memori
+    function closeModal(id) {
+        if (id === 'modalFilePreview') {
+            document.getElementById('fileIframe').src = '';
+        }
         document.getElementById(id).classList.add('hidden');
         document.body.style.overflow = 'auto';
     }

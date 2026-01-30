@@ -213,7 +213,7 @@
                     @if($user->occupation === 'SPV' || $user->occupation === 'KDP')
                         <a href="{{ route('qcc.approval.circle') }}" class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl {{ request()->is('*/approval/circle*') ? 'bg-white/10' : '' }}">
                             <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg relative">
-                                <i class="fa-solid fa-users-check text-blue-200"></i>
+                                <i class="fa-solid fa-user-check text-blue-200"></i>
                                 @if(isset($countCircle) && $countCircle > 0) <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-[#091E6E]"></span> @endif
                             </div>
                             <span class="menu-text font-medium whitespace-nowrap text-sm">Approve Circle</span>

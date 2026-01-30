@@ -12,9 +12,6 @@ use Illuminate\Support\Facades\DB;
 
 class QccApprovalController extends Controller
 {
-    /**
-     * Mendapatkan data user yang sedang login secara konsisten.
-     */
     private function getCurrentUser()
     {
         $npk = session('auth_npk');
@@ -25,86 +22,63 @@ class QccApprovalController extends Controller
     public function index()
     {
         $user = $this->getCurrentUser();
-
-        if (!$user) {
-            Auth::logout();
-            return redirect('/login');
-        }
+        if (!$user) return redirect('/login');
 
         $query = QccCircleStepTransaction::with(['circle', 'step', 'uploader']);
 
-        // LOGIC FILTER BERDASARKAN OCCUPATION
         if ($user->occupation === 'KDP') {
-            // Kepala Departemen melihat yang sudah lolos dari SPV
             $query->where('status', 'WAITING KADEPT');
         } elseif ($user->occupation === 'SPV') {
-            // Supervisor melihat data yang baru masuk
             $query->where('status', 'WAITING SPV');
         } else {
-            return redirect()->route('welcome')->with('warning', 'Menu ini hanya untuk SPV atau Kepala Departemen.');
+            return redirect()->route('welcome')->with('warning', 'Akses ditolak.');
         }
 
         $pendingSteps = $query->orderBy('created_at', 'asc')->get();
-
         return view('qcc.approval.index', compact('user', 'pendingSteps'));
     }
 
+    // Progres Approval (Step 1-8)
     public function process(Request $request, $id)
     {
         $request->validate([
             'action' => 'required|in:approve,reject',
             'note' => 'required_if:action,reject'
-        ], [
-            'note.required_if' => 'Alasan penolakan wajib diisi jika Anda menolak progres.'
         ]);
 
         $step = QccCircleStepTransaction::findOrFail($id);
         $user = $this->getCurrentUser();
-        $action = $request->action;
 
-        if ($action === 'approve') {
-            if ($user->isSpv()) {
-                // SPV Approve -> Naik ke KDP
+        if ($request->action === 'approve') {
+            if ($user->occupation === 'SPV') {
                 $step->update(['status' => 'WAITING KADEPT']);
-                return redirect()->back()->with('success', 'Dokumen disetujui Supervisor. Menunggu persetujuan Kepala Departemen.');
+                return redirect()->back()->with('success', 'Disetujui SPV. Menunggu KDP.');
             } 
-            
-            if ($user->isKadept()) {
-                // KDP Approve -> Final APPROVED
+            if ($user->occupation === 'KDP') {
                 $step->update(['status' => 'APPROVED']);
-                return redirect()->back()->with('success', 'Dokumen disetujui Kepala Departemen. Progres selesai.');
+                return redirect()->back()->with('success', 'Disetujui KDP. Status APPROVED.');
             }
         } else {
-            // LOGIKA REJECT
-            $newStatus = $user->isKadept() ? 'REJECTED BY KDP' : 'REJECTED BY SPV';
-            
+            $status = ($user->occupation === 'KDP') ? 'REJECTED BY KDP' : 'REJECTED BY SPV';
             $step->update([
-                'status' => $newStatus,
-                'spv_note' => $user->isSpv() ? $request->note : $step->spv_note,
-                'kadept_note' => $user->isKadept() ? $request->note : $step->kadept_note,
+                'status' => $status,
+                'spv_note' => ($user->occupation === 'SPV') ? $request->note : $step->spv_note,
+                'kadept_note' => ($user->occupation === 'KDP') ? $request->note : $step->kadept_note,
             ]);
-            
-            return redirect()->back()->with('success', 'Progres telah ditolak.');
+            return redirect()->back()->with('success', 'Progres ditolak.');
         }
-
-        return redirect()->back()->with('error', 'Tindakan tidak valid atau Anda tidak memiliki otoritas.');
+        return redirect()->back()->with('error', 'Otoritas tidak valid.');
     }
 
-
-    // --- Menampilkan Daftar Circle yang Butuh Approval ---
     public function indexCircle()
     {
         $user = $this->getCurrentUser();
         $status = ($user->occupation === 'KDP') ? 'WAITING KDP' : 'WAITING SPV';
-
-        $pendingCircles = QccCircle::with(['members.employee', 'department'])
-            ->where('status', $status)
-            ->get();
-
+        $pendingCircles = QccCircle::with(['members.employee', 'department'])->where('status', $status)->get();
         return view('qcc.approval.circle_index', compact('user', 'pendingCircles'));
     }
 
-    // --- Proses Approval/Reject Circle ---
+    // Circle Approval (Pendaftaran Awal)
     public function processCircle(Request $request, $id)
     {
         $request->validate([
@@ -116,22 +90,23 @@ class QccApprovalController extends Controller
         $user = $this->getCurrentUser();
 
         if ($request->action === 'approve') {
-            if ($user->isSpv()) {
+            if ($user->occupation === 'SPV') {
                 $circle->update(['status' => 'WAITING KDP']);
-                return redirect()->back()->with('success', 'Circle disetujui SPV. Menunggu Kepala Departemen.');
+                return redirect()->back()->with('success', 'Circle disetujui SPV. Menunggu KDP.');
             }
-            if ($user->isKadept()) {
+            if ($user->occupation === 'KDP') {
                 $circle->update(['status' => 'ACTIVE']);
-                return redirect()->back()->with('success', 'Circle telah ACTIVE. Karyawan sudah bisa membuat Tema.');
+                return redirect()->back()->with('success', 'Circle telah ACTIVE.');
             }
         } else {
-            $status = $user->isKadept() ? 'REJECTED BY KDP' : 'REJECTED BY SPV';
+            $status = ($user->occupation === 'KDP') ? 'REJECTED BY KDP' : 'REJECTED BY SPV';
             $circle->update([
                 'status' => $status,
-                'spv_note' => $user->isSpv() ? $request->note : $circle->spv_note,
-                'kdp_note' => $user->isKadept() ? $request->note : $circle->kdp_note,
+                'spv_note' => ($user->occupation === 'SPV') ? $request->note : $circle->spv_note,
+                'kdp_note' => ($user->occupation === 'KDP') ? $request->note : $circle->kdp_note,
             ]);
             return redirect()->back()->with('success', 'Pendaftaran Circle ditolak.');
         }
+        return redirect()->back()->with('error', 'Tindakan gagal.');
     }
 }

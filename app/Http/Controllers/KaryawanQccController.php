@@ -262,28 +262,37 @@ class KaryawanQccController extends Controller
     public function progress(Request $request)
     {
         $user = $this->getAuthUser();
-        
-        // --- TAMBAHAN VALIDASI: JIKA AKSES PROGRESS TANPA ID ---
         $themeId = $request->get('theme_id');
+
+        // Validasi jika masuk tanpa ID tema
         if (!$themeId) {
-            // Cari tema active milik user dari circle mana saja
             $myCircles = QccCircleMember::where('employee_npk', $user->npk)->pluck('qcc_circle_id');
             $activeTheme = QccTheme::whereIn('qcc_circle_id', $myCircles)->where('status', 'ACTIVE')->first();
             
             if (!$activeTheme) {
-                return redirect()->route('qcc.karyawan.my_circle')->with('warning', 'Anda tidak memiliki Tema yang sedang aktif. Silakan pilih/buat tema di Manajemen Tema.');
+                return redirect()->route('qcc.karyawan.my_circle')->with('warning', 'Anda tidak memiliki Tema yang sedang aktif.');
             }
             return redirect()->route('qcc.karyawan.progress', ['theme_id' => $activeTheme->id]);
         }
 
+        // 1. Ambil data tema dan step
+        $theme = QccTheme::with('circle')->findOrFail($themeId);
+        $steps = QccStep::orderBy('step_number', 'asc')->get();
+        
+        // 2. Ambil histori upload
+        $uploads = QccCircleStepTransaction::where('qcc_theme_id', $theme->id)
+                    ->get()
+                    ->keyBy('qcc_step_id');
+
+        // 3. Logika Gembok (Dihitung di Controller agar lebih aman)
         foreach ($steps as $index => $step) {
             if ($index === 0) {
-                $step->is_locked = false; // Step 1 selalu buka
+                $step->is_locked = false; // Step pertama (Step 0 atau 1) selalu terbuka
             } else {
-                $prevStepId = $steps[$index-1]->id;
+                $prevStepId = $steps[$index - 1]->id;
                 $prevUpload = $uploads[$prevStepId] ?? null;
 
-                // Harus ada upload di step sebelumnya DAN statusnya harus APPROVED
+                // KUNCI: Step ini terkunci jika Step sebelumnya belum "APPROVED"
                 if ($prevUpload && $prevUpload->status === 'APPROVED') {
                     $step->is_locked = false;
                 } else {
@@ -291,10 +300,6 @@ class KaryawanQccController extends Controller
                 }
             }
         }
-
-        $theme = QccTheme::with('circle')->findOrFail($themeId);
-        $steps = QccStep::orderBy('step_number', 'asc')->get();
-        $uploads = QccCircleStepTransaction::where('qcc_theme_id', $theme->id)->get()->keyBy('qcc_step_id');
 
         return view('qcc.karyawan.progress', compact('user', 'theme', 'steps', 'uploads'));
     }
@@ -305,22 +310,35 @@ class KaryawanQccController extends Controller
             'qcc_step_id' => 'required',
             'qcc_theme_id' => 'required',
             'qcc_circle_id' => 'required',
-            'file' => 'required|mimes:pdf,ppt,pptx|max:10240',
+            'file' => 'required|mimes:pdf,ppt,pptx|max:10240', // Max 10MB
         ]);
 
         $circleId = $request->qcc_circle_id;
         $themeId = $request->qcc_theme_id;
         $stepId = $request->qcc_step_id;
 
-        // Folder spesifik: qcc/progress/circle_1/theme_5/
+        // FOLDER SPESIFIK: storage/app/public/qcc/progress/circle_1/theme_5/
         $folderPath = "qcc/progress/circle_{$circleId}/theme_{$themeId}";
 
         if ($request->hasFile('file')) {
             $file = $request->file('file');
+            
+            // Ambil data transaksi lama jika ada untuk hapus file lama
+            $oldTrans = QccCircleStepTransaction::where([
+                'qcc_circle_id' => $circleId,
+                'qcc_theme_id' => $themeId,
+                'qcc_step_id' => $stepId
+            ])->first();
+
+            if ($oldTrans && Storage::disk('public')->exists($oldTrans->file_path)) {
+                Storage::disk('public')->delete($oldTrans->file_path);
+            }
+
+            // Simpan file baru
             $fileName = "Step_{$stepId}_" . time() . "." . $file->getClientOriginalExtension();
             $path = $file->storeAs($folderPath, $fileName, 'public');
 
-            // Simpan atau Update Transaksi
+            // Simpan ke Database
             QccCircleStepTransaction::updateOrCreate(
                 [
                     'qcc_circle_id' => $circleId,
@@ -332,12 +350,14 @@ class KaryawanQccController extends Controller
                     'file_path' => $path,
                     'file_type' => $file->getClientOriginalExtension(),
                     'upload_by' => session('auth_npk'),
-                    'status'    => 'WAITING SPV', // Reset status ke awal jika re-upload
+                    'status'    => 'WAITING SPV', // Status kembali ke awal saat re-upload
                     'upload_at' => now(),
                 ]
             );
+
+            return redirect()->back()->with('success', 'File berhasil diunggah! Menunggu approval SPV.');
         }
 
-        return redirect()->back()->with('success', 'Progres berhasil diunggah. Menunggu persetujuan SPV.');
+        return redirect()->back()->with('error', 'Gagal mengunggah file.');
     }
 }

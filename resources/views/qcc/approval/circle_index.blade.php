@@ -22,7 +22,7 @@
         
         <div class="bg-white px-6 py-3 rounded-2xl shadow-sm border border-blue-100 flex items-center gap-3">
             <div class="w-10 h-10 bg-indigo-50 text-[#130998] rounded-xl flex items-center justify-center">
-                <i class="fa-solid fa-users-check"></i>
+                <i class="fa-solid fa-user-check"></i>
             </div>
             <div>
                 <p class="text-[10px] text-gray-400 font-bold uppercase">Antrean</p>
