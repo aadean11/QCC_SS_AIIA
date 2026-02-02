@@ -17,22 +17,31 @@
     <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
         <div>
             <h2 class="text-3xl font-bold text-[#091E6E]">Persetujuan Progres QCC</h2>
-            <p class="text-sm text-gray-400 italic">
-                Mode Akses: <span class="font-bold text-[#1035D1] uppercase">{{ $user->occupation == 'KDP' ? 'Kepala Departemen' : 'Supervisor' }}</span>
+            <p class="text-sm text-gray-400 italic font-medium">
+                Departemen: <span class="text-[#1035D1] uppercase">{{ $user->subSection->section->department->name ?? 'Tidak Terdeteksi' }}</span>
             </p>
         </div>
         
-        <!-- Quick Stats Mini -->
-        <div class="flex gap-4">
-            <div class="bg-white px-6 py-3 rounded-2xl shadow-sm border border-blue-100 flex items-center gap-3">
-                <div class="w-10 h-10 bg-blue-50 text-[#091E6E] rounded-xl flex items-center justify-center">
-                    <i class="fa-solid fa-file-signature"></i>
+        <div class="flex flex-wrap gap-3 w-full md:w-auto justify-end items-center">
+            <!-- Form Per Page & Search -->
+            <form action="{{ route('qcc.approval.progress') }}" method="GET" id="filterForm" class="flex items-center gap-3">
+                <!-- Dropdown Show Entries -->
+                <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-[#091E6E]">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase">Show</span>
+                    <select name="per_page" onchange="this.form.submit()" class="text-xs font-bold text-[#091E6E] outline-none cursor-pointer bg-transparent">
+                        <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
+                        <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
+                    </select>
                 </div>
-                <div>
-                    <p class="text-[10px] text-gray-400 font-bold uppercase">Menunggu</p>
-                    <p class="text-lg font-black text-[#091E6E]">{{ $pendingSteps->count() }} <span class="text-[10px] font-normal text-gray-400">Berkas</span></p>
+
+                <!-- Search Input -->
+                <div class="relative w-full md:w-64">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari Circle atau Nama..." 
+                        class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] shadow-sm transition-all text-sm font-medium">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
 
@@ -50,63 +59,87 @@
                 </thead>
                 <tbody>
                     @forelse($pendingSteps as $ps)
-                    <tr class="bg-white hover:bg-blue-50/50 transition-all shadow-sm border border-gray-100">
-                        <td class="px-6 py-4 rounded-l-xl border-y border-l">
+                    <tr class="bg-white hover:bg-blue-50/50 transition-all shadow-sm border border-gray-100 group">
+                        <td class="px-6 py-3 rounded-l-xl border-y border-l border-gray-100">
                             <p class="font-bold text-[#091E6E] text-sm uppercase tracking-tight">{{ $ps->circle->circle_name }}</p>
                             <p class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Leader: {{ $ps->uploader->nama }} ({{ $ps->upload_by }})</p>
                         </td>
-                        <td class="px-6 py-4 border-y">
+                        <td class="px-6 py-3 border-y border-gray-100">
                             <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 bg-blue-50 text-[#091E6E] rounded-lg flex items-center justify-center font-black text-xs border border-blue-100">
+                                <div class="w-8 h-8 bg-blue-50 text-[#091E6E] rounded-lg flex items-center justify-center font-black text-xs border border-blue-100 group-hover:bg-[#091E6E] group-hover:text-white transition-all">
                                     {{ $ps->step->step_number }}
                                 </div>
                                 <span class="text-xs font-bold text-gray-600 uppercase">{{ $ps->step->step_name }}</span>
                             </div>
                         </td>
-                        <td class="px-6 py-4 border-y text-center">
+                        <td class="px-6 py-3 border-y border-gray-100 text-center">
                             @php
                                 $extension = pathinfo($ps->file_path, PATHINFO_EXTENSION);
                                 $fileUrl = asset('storage/' . $ps->file_path);
                             @endphp
 
                             @if(strtolower($extension) === 'pdf')
-                                <!-- Tombol Preview khusus PDF -->
                                 <button onclick="openFilePreview('{{ $fileUrl }}', '{{ $ps->file_name }}')" 
                                     class="inline-flex items-center gap-2 bg-blue-50 text-[#091E6E] px-4 py-2 rounded-xl text-[10px] font-bold hover:bg-[#091E6E] hover:text-white transition-all border border-blue-100 shadow-sm active:scale-95">
                                     <i class="fa-solid fa-eye"></i> PREVIEW
                                 </button>
                             @else
-                                <!-- Tombol Download jika file PPTX/Excel -->
                                 <a href="{{ $fileUrl }}" download class="inline-flex items-center gap-2 bg-amber-50 text-amber-700 px-4 py-2 rounded-xl text-[10px] font-bold hover:bg-amber-600 hover:text-white transition-all border border-amber-100 shadow-sm active:scale-95">
                                     <i class="fa-solid fa-download"></i> DOWNLOAD
                                 </a>
                             @endif
                         </td>
-                        <td class="px-6 py-4 rounded-r-xl border-y border-r text-center">
-                            <div class="flex justify-center gap-2">
-                                <button onclick="openApprovalModal('approve', {{ $ps->id }}, '{{ $ps->circle->circle_name }}')" 
-                                    class="bg-emerald-500 text-white px-5 py-2 rounded-xl text-[10px] font-bold uppercase shadow-lg shadow-emerald-100 hover:bg-emerald-600 active:scale-95 transition-all">
-                                    Setujui
-                                </button>
-                                <button onclick="openApprovalModal('reject', {{ $ps->id }}, '{{ $ps->circle->circle_name }}')" 
-                                    class="bg-red-500 text-white px-5 py-2 rounded-xl text-[10px] font-bold uppercase shadow-lg shadow-red-100 hover:bg-red-600 active:scale-95 transition-all">
-                                    Tolak
-                                </button>
-                            </div>
+                        <td class="px-6 py-3 rounded-r-xl border-y border-r border-gray-100 text-center">
+                            @php
+                                $canProcess = false;
+                                if($user->occupation === 'SPV' && $ps->status === 'WAITING SPV') $canProcess = true;
+                                if($user->occupation === 'KDP' && $ps->status === 'WAITING KADEPT') $canProcess = true;
+                            @endphp
+
+                            @if($canProcess)
+                                <div class="flex justify-center gap-2">
+                                    <button onclick="openApprovalModal('approve', {{ $ps->id }}, '{{ $ps->circle->circle_name }}')" 
+                                        class="bg-emerald-500 text-white px-5 py-2 rounded-xl text-[10px] font-bold uppercase shadow-lg shadow-emerald-100 hover:bg-emerald-600 active:scale-95 transition-all">
+                                        Setujui
+                                    </button>
+                                    <button onclick="openApprovalModal('reject', {{ $ps->id }}, '{{ $ps->circle->circle_name }}')" 
+                                        class="bg-red-500 text-white px-5 py-2 rounded-xl text-[10px] font-bold uppercase shadow-lg shadow-red-100 hover:bg-red-600 active:scale-95 transition-all">
+                                        Tolak
+                                    </button>
+                                </div>
+                            @else
+                                @php
+                                    $badgeColor = 'bg-gray-100 text-gray-500';
+                                    if($ps->status === 'APPROVED') $badgeColor = 'bg-emerald-100 text-emerald-600 border-emerald-200';
+                                    if($ps->status === 'WAITING KADEPT') $badgeColor = 'bg-blue-100 text-blue-600 border-blue-200';
+                                    if(str_contains($ps->status, 'REJECTED')) $badgeColor = 'bg-red-100 text-red-600 border-red-200';
+                                @endphp
+                                <span class="px-4 py-2 rounded-xl text-[10px] font-black uppercase border {{ $badgeColor }}">
+                                    {{ $ps->status }}
+                                </span>
+                            @endif
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="4" class="text-center py-20">
-                            <div class="flex flex-col items-center gap-3 text-gray-300">
-                                <i class="fa-solid fa-clipboard-check text-6xl"></i>
-                                <p class="italic text-sm font-medium">Semua tugas sudah selesai. Tidak ada antrean permohonan.</p>
-                            </div>
+                        <td colspan="4" class="text-center py-20 text-gray-300 italic text-sm">
+                            <i class="fa-solid fa-folder-open text-4xl block mb-2"></i>
+                            Tidak ada data permohonan ditemukan.
                         </td>
                     </tr>
                     @endforelse
                 </tbody>
             </table>
+        </div>
+
+        <!-- PAGINATION AREA -->
+        <div class="mt-6 flex flex-col md:flex-row justify-between items-center gap-4 border-t border-gray-50 pt-6">
+            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">
+                Showing {{ $pendingSteps->firstItem() ?? 0 }} to {{ $pendingSteps->lastItem() ?? 0 }} of {{ $pendingSteps->total() }} entries
+            </div>
+            <div class="custom-pagination">
+                {{ $pendingSteps->links('pagination::tailwind') }}
+            </div>
         </div>
     </div>
 </div>
@@ -157,7 +190,7 @@
                 <div class="flex items-center gap-3">
                     <i class="fa-solid fa-file-pdf text-xl"></i>
                     <div>
-                        <h3 class="text-sm font-bold uppercase tracking-widest">Intip Dokumen Progres</h3>
+                        <h3 class="text-sm font-bold uppercase tracking-widest">Preview Dokumen Progres</h3>
                         <p id="previewFileName" class="text-[10px] text-blue-200 truncate max-w-xs italic"></p>
                     </div>
                 </div>
@@ -182,6 +215,20 @@
 @endsection
 
 @push('scripts')
+<style>
+    /* Styling Paging Horizontal */
+    .custom-pagination nav { display: flex; align-items: center; justify-content: center; gap: 4px; }
+    .custom-pagination nav svg { width: 1rem; height: 1rem; }
+    .custom-pagination span[aria-current="page"] > span { 
+        background-color: #091E6E !important; color: white !important; border: none !important;
+        border-radius: 8px !important; padding: 6px 12px !important; font-size: 11px !important; font-weight: 800;
+    }
+    .custom-pagination a, .custom-pagination span { 
+        border-radius: 8px !important; padding: 6px 12px !important; font-size: 11px !important;
+        font-weight: 700 !important; border: 1px solid #edf2f7 !important; color: #64748b;
+        transition: all 0.2s ease;
+    }
+</style>
 <script>
     function openApprovalModal(action, id, circleName) {
         const form = document.getElementById('formApproval');

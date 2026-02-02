@@ -33,31 +33,22 @@ class AppServiceProvider extends ServiceProvider
         View::composer('welcome', function ($view) {
             if (Auth::check()) {
                 $npk = session('auth_npk');
-                
-                // Ambil data user lengkap agar tahu jabatannya (occupation)
-                $user = Employee::where('npk', $npk)->first() ?? User::where('npk', $npk)->first();
+                $user = Employee::with('subSection.section')->where('npk', $npk)->first() ?? User::where('npk', $npk)->first();
 
-                if ($user) {
-                    // Logic penentuan status yang harus di-approve berdasarkan jabatan
-                    if ($user->occupation === 'KDP') {
-                        $statusCircle = 'WAITING KDP';
-                        $statusProgress = 'WAITING KADEPT';
-                    } else {
-                        $statusCircle = 'WAITING SPV';
-                        $statusProgress = 'WAITING SPV';
-                    }
+                if ($user && ($user->occupation === 'SPV' || $user->occupation === 'KDP')) {
+                    $myDept = $user->getDeptCode();
+                    
+                    // Penentuan Status WAITING
+                    $stCircle = ($user->occupation === 'KDP') ? 'WAITING KDP' : 'WAITING SPV';
+                    $stProgress = ($user->occupation === 'KDP') ? 'WAITING KADEPT' : 'WAITING SPV';
 
-                    $countCircle = QccCircle::where('status', $statusCircle)->count();
-                    $countProgress = QccCircleStepTransaction::where('status', $statusProgress)->count();
+                    // HITUNG HANYA DEPARTEMEN SENDIRI
+                    $countCircle = QccCircle::where('department_code', $myDept)->where('status', $stCircle)->count();
+                    $countProgress = QccCircleStepTransaction::whereHas('circle', fn($q) => $q->where('department_code', $myDept))
+                                    ->where('status', $stProgress)->count();
 
-                    $view->with([
-                        'countCircle' => $countCircle,
-                        'countProgress' => $countProgress
-                    ]);
+                    $view->with(['countCircle' => $countCircle, 'countProgress' => $countProgress]);
                 }
-            } else {
-                // Jika belum login, set default 0 agar tidak error
-                $view->with(['countCircle' => 0, 'countProgress' => 0]);
             }
         });
     }

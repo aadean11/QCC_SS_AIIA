@@ -43,12 +43,6 @@ class Employee extends Authenticatable
                             ->exists();
     }
 
-    public function subSection()
-    {
-        // Menghubungkan kolom sub_section di m_employees ke code di m_sub_sections
-        return $this->belongsTo(SubSection::class, 'sub_section', 'code');
-    }
-
     public function isSpv()
     {
         // Menggunakan kode 'SPV' sesuai tabel m_occupations yang Anda berikan sebelumnya
@@ -59,5 +53,28 @@ class Employee extends Authenticatable
     {
         // Menggunakan kode 'KDP' untuk Kepala Departement
         return $this->occupation === 'KDP';
+    }
+
+    public function subSection()
+    {
+        // Relasi ke tabel m_sub_sections
+        return $this->belongsTo(SubSection::class, 'sub_section', 'code');
+    }
+
+    public function getDeptCode()
+    {
+        // 1. Ambil objek SubSection (misal: PP31)
+        $sub = $this->subSection;
+        
+        // 2. Ambil objek Section dari SubSection (misal: PP3)
+        $section = $sub ? $sub->section : null;
+        
+        // 3. Ambil kode Department dari Section (misal: PPC)
+        if ($section) {
+            return $section->code_department;
+        }
+
+        // Jika semua gagal, gunakan line_code sebagai cadangan terakhir
+        return $this->line_code;
     }
 }

@@ -15,27 +15,45 @@ class QccApprovalController extends Controller
     private function getCurrentUser()
     {
         $npk = session('auth_npk');
-        return Employee::with('job')->where('npk', $npk)->first() 
+        // PENTING: Harus muat relasi subSection dan section
+        return Employee::with(['subSection.section', 'job'])->where('npk', $npk)->first() 
                ?? User::where('npk', $npk)->first();
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $user = $this->getCurrentUser();
-        if (!$user) return redirect('/login');
+        $myDept = $user->getDeptCode(); // Contoh: 'PPC'
 
-        $query = QccCircleStepTransaction::with(['circle', 'step', 'uploader']);
+        $perPage = $request->get('per_page', 10);
+        $search = $request->get('search');
 
+        // Query: Filter Transaksi berdasarkan department_code milik Circle
+        $query = QccCircleStepTransaction::with(['circle.department', 'step', 'uploader'])
+            ->whereHas('circle', function($q) use ($myDept) {
+                $q->where('department_code', $myDept);
+            });
+
+        // Logika Role
         if ($user->occupation === 'KDP') {
-            $query->where('status', 'WAITING KADEPT');
+            $query->whereIn('status', ['WAITING KADEPT', 'APPROVED', 'REJECTED BY KDP']);
         } elseif ($user->occupation === 'SPV') {
-            $query->where('status', 'WAITING SPV');
+            $query->whereIn('status', ['WAITING SPV', 'WAITING KADEPT', 'REJECTED BY SPV', 'APPROVED']);
         } else {
-            return redirect()->route('welcome')->with('warning', 'Akses ditolak.');
+            return redirect()->route('welcome')->with('error', 'Akses ditolak.');
         }
 
-        $pendingSteps = $query->orderBy('created_at', 'asc')->get();
-        return view('qcc.approval.index', compact('user', 'pendingSteps'));
+        // Search logic
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->whereHas('circle', fn($sq) => $sq->where('circle_name', 'like', "%{$search}%"))
+                  ->orWhereHas('uploader', fn($sq) => $sq->where('nama', 'like', "%{$search}%"));
+            });
+        }
+
+        $pendingSteps = $query->orderBy('updated_at', 'desc')->paginate($perPage)->withQueryString();
+
+        return view('qcc.approval.index', compact('user', 'pendingSteps', 'perPage'));
     }
 
     // Progres Approval (Step 1-8)
@@ -70,12 +88,32 @@ class QccApprovalController extends Controller
         return redirect()->back()->with('error', 'Otoritas tidak valid.');
     }
 
-    public function indexCircle()
+    public function indexCircle(Request $request)
     {
         $user = $this->getCurrentUser();
-        $status = ($user->occupation === 'KDP') ? 'WAITING KDP' : 'WAITING SPV';
-        $pendingCircles = QccCircle::with(['members.employee', 'department'])->where('status', $status)->get();
-        return view('qcc.approval.circle_index', compact('user', 'pendingCircles'));
+        $myDept = $user->getDeptCode();
+
+        $perPage = $request->get('per_page', 10);
+        $search = $request->get('search');
+
+        // Query: Filter Pendaftaran Circle berdasarkan department_code
+        $query = QccCircle::with(['members.employee', 'department'])
+            ->where('department_code', $myDept);
+
+        if ($user->occupation === 'KDP') {
+            $query->whereIn('status', ['WAITING KDP', 'ACTIVE', 'REJECTED BY KDP']);
+        } elseif ($user->occupation === 'SPV') {
+            $query->whereIn('status', ['WAITING SPV', 'WAITING KDP', 'REJECTED BY SPV', 'ACTIVE']);
+        }
+
+        if ($search) {
+            $query->where('circle_name', 'like', "%{$search}%")
+                  ->orWhere('circle_code', 'like', "%{$search}%");
+        }
+
+        $pendingCircles = $query->orderBy('updated_at', 'desc')->paginate($perPage)->withQueryString();
+
+        return view('qcc.approval.circle_index', compact('user', 'pendingCircles', 'perPage'));
     }
 
     // Circle Approval (Pendaftaran Awal)
