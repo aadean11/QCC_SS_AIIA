@@ -22,9 +22,9 @@ class QccCircle extends Model
         return $this->belongsTo(QccPeriod::class, 'qcc_period_id');
     }
 
-    public function department()
+   public function department()
     {
-        // Berasumsi Anda punya model Department dengan FK 'code'
+        // Menghubungkan department_code di m_qcc_circles ke code di m_departments
         return $this->belongsTo(Department::class, 'department_code', 'code');
     }
 

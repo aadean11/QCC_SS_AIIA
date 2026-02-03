@@ -16,9 +16,17 @@
     <!-- Header Section -->
     <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
         <div>
-            <h2 class="text-3xl font-bold text-[#091E6E]">Persetujuan Progres QCC</h2>
+            <h2 class="text-3xl font-bold text-[#091E6E]">Persetujuan Pendaftaran Circle Baru</h2>
             <p class="text-sm text-gray-400 italic font-medium">
-                Departemen: <span class="text-[#1035D1] uppercase">{{ $user->subSection->section->department->name ?? 'Tidak Terdeteksi' }}</span>
+                Departemen: 
+                <span class="text-[#1035D1] uppercase font-bold">
+                    @php $myDept = $user->getDepartment(); @endphp
+                    @if($myDept)
+                        {{ $myDept->name }}
+                    @else
+                        {{ $user->getDeptCode() ?: 'TIDAK TERDETEKSI' }}
+                    @endif
+                </span>
             </p>
         </div>
         
@@ -66,7 +74,7 @@
                             <div class="flex items-center gap-2">
                                 <div class="flex -space-x-2 overflow-hidden">
                                     @foreach($pc->members->take(3) as $m)
-                                        <div class="inline-block h-8 w-8 rounded-full ring-2 ring-white bg-blue-100 flex items-center justify-center text-[10px] font-black text-[#091E6E] border border-blue-200" title="{{ $m->employee->nama }}">
+                                        <div class="inline-block h-8 w-8 rounded-full ring-2 ring-white bg-blue-100 flex items-center justify-center text-[10px] font-black text-[#091E6E] border border-blue-200" title="{{ $m->employee->nama ?? 'N/A' }}">
                                             {{ substr($m->employee->nama ?? '?', 0, 1) }}
                                         </div>
                                     @endforeach
@@ -81,6 +89,7 @@
                                 $statusColor = 'text-amber-500 bg-amber-50 border-amber-100';
                                 if($pc->status === 'ACTIVE') $statusColor = 'text-emerald-500 bg-emerald-50 border-emerald-100';
                                 if($pc->status === 'WAITING KDP') $statusColor = 'text-blue-500 bg-blue-50 border-blue-100';
+                                if($pc->status === 'WAITING SPV') $statusColor = 'text-yellow-500 bg-yellow-50 border-yellow-100';
                                 if(str_contains($pc->status, 'REJECTED')) $statusColor = 'text-red-500 bg-red-50 border-red-100';
                             @endphp
                             <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase border {{ $statusColor }}">

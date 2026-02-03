@@ -17,18 +17,27 @@ use Illuminate\Support\Facades\Storage;
 
 class KaryawanQccController extends Controller
 {
-   private function getAuthUser() {
+   /**
+     * Mengambil user yang sedang login dengan eager loading relasi departemen
+     */
+    private function getAuthUser() {
         $npk = session('auth_npk');
-        return Employee::with('job')->where('npk', $npk)->first() ?? User::where('npk', $npk)->first();
+        // Eager load relasi hirarki departemen agar getDeptCode() tidak berat (N+1)
+        return Employee::with(['job', 'subSection.section', 'section'])
+                ->where('npk', $npk)
+                ->first();
     }
 
     // --- MASTER CIRCLE & MEMBER ---
     public function myCircle(Request $request)
     {
         $user = $this->getAuthUser();
+        if (!$user) return redirect('/login');
+
         $perPage = $request->get('per_page', 10);
         $search = $request->get('search');
 
+        // 1. Ambil Circle yang diikuti user
         $circleIds = QccCircleMember::where('employee_npk', $user->npk)->pluck('qcc_circle_id');
 
         $circles = QccCircle::with(['members.employee', 'department'])
@@ -41,12 +50,13 @@ class KaryawanQccController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        $myInfo = Employee::with(['subSection.section.department'])->where('npk', $user->npk)->first();
+        // 2. LOGIKA BARU: Cari teman satu DEPARTEMEN (Bukan cuma sub-section)
+        $deptCode = $user->getDeptCode(); // Mengambil kode Dept via Model Helper
 
-        if ($myInfo && $myInfo->subSection) {
-            $colleagues = Employee::where('line_code', $myInfo->line_code)
-                ->where('sub_section', $myInfo->sub_section)
-                ->where('npk', '!=', $user->npk)
+        if ($deptCode) {
+            // Menggunakan scopeInDepartment yang kita buat di Model Employee
+            $colleagues = Employee::inDepartment($deptCode)
+                // ->where('npk', '!=', $user->npk)
                 ->orderBy('nama', 'asc')
                 ->get();
         } else {
@@ -55,19 +65,17 @@ class KaryawanQccController extends Controller
 
         $activePeriods = QccPeriod::where('status', 'ACTIVE')->get();
 
-        return view('qcc.karyawan.my_circle', compact('user', 'circles', 'colleagues', 'myInfo', 'activePeriods', 'perPage'));
+        return view('qcc.karyawan.my_circle', compact('user', 'circles', 'colleagues', 'deptCode', 'activePeriods', 'perPage'));
     }
 
     public function storeCircle(Request $request)
     {
         $user = $this->getAuthUser();
-        $myInfo = Employee::with('subSection.section')->where('npk', $user->npk)->first();
+        $deptCode = $user->getDeptCode(); // Ambil kode Dept user
 
-        if (!$myInfo || !$myInfo->subSection) {
-            return redirect()->back()->with('error', 'Data Departemen/Section tidak ditemukan.');
+        if (!$deptCode) {
+            return redirect()->back()->with('error', 'Gagal membuat circle: Departemen Anda tidak terdeteksi.');
         }
-
-        $deptCode = $myInfo->subSection->section->code_department;
 
         $request->validate([
             'circle_name' => 'required|string|max:255',
@@ -76,14 +84,16 @@ class KaryawanQccController extends Controller
 
         try {
             DB::transaction(function () use ($request, $user, $deptCode) {
+                // Simpan Circle dengan kode departemen user
                 $circle = QccCircle::create([
                     'circle_code' => 'C-' . strtoupper(bin2hex(random_bytes(3))),
                     'circle_name' => $request->circle_name,
                     'department_code' => $deptCode, 
                     'qcc_period_id' => QccPeriod::where('status', 'ACTIVE')->value('id') ?? 1,
-                    'status' => 'ACTIVE'
+                    'status' => 'WAITING SPV' // Biasanya saat daftar statusnya menunggu approval
                 ]);
 
+                // Simpan Pembuat sebagai LEADER
                 QccCircleMember::create([
                     'qcc_circle_id' => $circle->id,
                     'employee_npk' => $user->npk,
@@ -91,6 +101,7 @@ class KaryawanQccController extends Controller
                     'is_active' => 1, 'joined_at' => now()
                 ]);
 
+                // Simpan Anggota lainnya
                 foreach ($request->members as $npk) {
                     QccCircleMember::create([
                         'qcc_circle_id' => $circle->id,
@@ -100,7 +111,7 @@ class KaryawanQccController extends Controller
                     ]);
                 }
             });
-            return redirect()->back()->with('success', 'Circle baru berhasil dibuat!');
+            return redirect()->back()->with('success', 'Circle baru berhasil didaftarkan! Menunggu persetujuan atasan.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal: ' . $e->getMessage());
         }
@@ -108,34 +119,31 @@ class KaryawanQccController extends Controller
 
     public function updateCircle(Request $request, $id)
     {
+        $user = $this->getAuthUser();
         $request->validate([
             'circle_name' => 'required|string|max:255',
             'members'     => 'required|array|min:1', 
         ]);
 
         try {
-            DB::transaction(function () use ($request, $id) {
+            DB::transaction(function () use ($request, $id, $user) {
                 $circle = QccCircle::findOrFail($id);
                 $circle->update(['circle_name' => $request->circle_name]);
 
-                // Ambil NPK pembuat (yang sedang login) agar tetap jadi LEADER
-                $authNpk = session('auth_npk');
-
-                // Hapus member lama kecuali Leader (untuk menjaga integritas data)
-                // Atau lebih aman: Sync ulang semua member
+                // Update Member: Hapus member lama dan masukkan yang baru
+                // (Leader tetap dijaga agar tidak berubah NPK-nya)
                 QccCircleMember::where('qcc_circle_id', $id)->delete();
 
-                // Masukkan kembali Leader
+                // Masukkan kembali Leader (User yang sedang edit/login)
                 QccCircleMember::create([
                     'qcc_circle_id' => $id,
-                    'employee_npk' => $authNpk,
+                    'employee_npk' => $user->npk,
                     'role' => 'LEADER',
                     'is_active' => 1, 'joined_at' => now()
                 ]);
 
-                // Masukkan member baru lainnya
                 foreach ($request->members as $npk) {
-                    if ($npk != $authNpk) { // Cegah duplikasi leader di list member
+                    if ($npk != $user->npk) { 
                         QccCircleMember::create([
                             'qcc_circle_id' => $id,
                             'employee_npk' => $npk,

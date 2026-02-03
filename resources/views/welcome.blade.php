@@ -52,42 +52,6 @@
             margin-bottom: 0.5rem; 
         }
 
-        /* FLOATING MENU (Mode Mini - Hover) */
-        .sidebar-collapsed .group:hover .submenu {
-            display: block !important;
-            position: absolute;
-            left: 100%;
-            top: 0;
-            width: 240px;
-            background: #091E6E;
-            border-radius: 0 1rem 1rem 0;
-            padding: 1rem;
-            box-shadow: 10px 5px 20px rgba(0,0,0,0.3);
-            opacity: 1;
-            max-height: none;
-            z-index: 999;
-            margin: 0;
-        }
-
-        .sidebar-collapsed .group:hover .submenu .menu-text {
-            display: inline-block !important;
-            opacity: 1 !important;
-            color: white;
-        }
-
-        .sidebar-collapsed .group:hover .submenu a {
-            padding: 0.6rem 1rem;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: all 0.2s;
-        }
-        
-        .sidebar-collapsed .group:hover .submenu a:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 0.75rem;
-        }
-
         /* UTILS */
         .dropdown-arrow { transition: transform 0.3s ease; }
         .rotate-180 { transform: rotate(180deg); }
@@ -103,57 +67,95 @@
         .animate-reveal { animation: fadeInUp 0.6s ease-out forwards; }
 
         /* ========================= */
-        /*  FIX: floating submenu keluar dari parent yang overflow-hidden */
-        /*  (hanya tambah/override CSS, tidak ubah HTML/JS) */
+        /* FIXED FLOATING SUBMENU - REVISI BUG */
         /* ========================= */
 
-        /* anchor untuk submenu (aman walau posisi fixed/absolute digunakan) */
-        .group {
+        /* Parent group untuk floating menu */
+        .sidebar-collapsed .group {
             position: relative;
         }
 
-        /* pastikan sidebar sendiri mengijinkan overflow visible saat mini */
-        aside#sidebar {
-            overflow: visible !important;
-        }
-
-        /* jika wrapper utama punya overflow-hidden, kita hindari pemotongan
-           dengan menjadikan submenu fixed saat sidebar mini */
-        .sidebar-collapsed .group:hover .submenu {
-            /* override sebelumnya: gunakan fixed supaya lepas dari parent overflow */
+        /* Floating submenu yang stabil */
+        .floating-submenu {
             position: fixed !important;
-            left: 5rem; /* sesuai width sidebar-collapsed */
-            /* top: kita set sedikit di bawah header agar submenu tidak nempel di top viewport.
-               Header tinggi = h-20 (5rem = 80px), jadi top 80px set sebagai default.
-               Ini memastikan submenu terlihat meskipun parent wrapper memiliki overflow-hidden. */
-            top: 5rem; /* 5rem = 80px */
-            
-            /* keep visual styles */
             display: block !important;
-            max-height: none !important;
-            opacity: 1 !important;
-            overflow: visible !important;
-
+            visibility: hidden;
+            opacity: 0;
             width: 240px;
             background: #091E6E;
             border-radius: 0 1rem 1rem 0;
             padding: 1rem;
-            box-shadow: 12px 0 25px rgba(0,0,0,0.3);
+            box-shadow: 15px 5px 30px rgba(0, 0, 0, 0.4);
             z-index: 99999;
-            margin: 0;
-            border-left: 1px solid rgba(255,255,255,0.08);
+            border-left: 3px solid #FBBF24;
+            max-height: 80vh !important;
+            overflow-y: auto !important;
+            transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+            transform: translateX(-10px);
         }
 
-        /* tunjukkan teks menu di floating */
-        .sidebar-collapsed .group:hover .submenu .menu-text {
+        .floating-submenu.active {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .floating-submenu .menu-text {
             display: inline-block !important;
-            color: #fff;
+            color: #fff !important;
             white-space: nowrap;
         }
 
-        /* sedikit safety agar floating menu tidak terpotong oleh layer lain */
-        .sidebar-collapsed .group:hover {
-            z-index: 99999;
+        /* Styling untuk submenu items di floating menu */
+        .floating-submenu a {
+            padding: 0.75rem 1rem !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            transition: all 0.2s !important;
+            border-radius: 0.5rem !important;
+            margin-bottom: 0.25rem !important;
+            color: #93C5FD !important;
+        }
+
+        .floating-submenu a:hover {
+            background: rgba(255, 255, 255, 0.15) !important;
+            transform: translateX(5px) !important;
+            color: white !important;
+        }
+
+        /* Pastikan icon visible */
+        .floating-submenu i {
+            color: #93C5FD !important;
+            width: 1.25rem !important;
+            text-align: center !important;
+            transition: color 0.2s;
+        }
+
+        .floating-submenu a:hover i {
+            color: white !important;
+        }
+
+        /* Styling untuk submenu items di floating menu */
+        .floating-submenu .text-xs {
+            font-size: 0.8125rem !important;
+            line-height: 1.5 !important;
+        }
+
+        /* Hover effect untuk parent button saat sidebar collapsed */
+        .sidebar-collapsed .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-left: 4px solid #FBBF24 !important;
+        }
+
+        /* Gap antara tombol dan floating menu (toleransi untuk mencegah kehilangan hover) */
+        .menu-gap {
+            position: absolute;
+            left: 100%;
+            top: 0;
+            width: 20px;
+            height: 100%;
+            z-index: 99998;
         }
 
     </style>
@@ -232,7 +234,7 @@
 
                     <!-- 3. KARYAWAN QCC ACTIVITY (Conditional) -->
                     @if(session('active_role') === 'employee')
-                        <div class="relative group">
+                        <div class="relative group" data-submenu="karyawanSubmenu">
                             <button onclick="toggleKaryawanDropdown()" class="sidebar-link w-full flex items-center justify-between text-white p-4 rounded-xl focus:outline-none {{ request()->is('qcc/karyawan*') ? 'bg-white/10' : '' }}">
                                 <div class="flex items-center gap-4">
                                     <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg">
@@ -242,6 +244,8 @@
                                 </div>
                                 <i id="karyawanArrow" class="fa-solid fa-chevron-down text-[10px] dropdown-arrow"></i>
                             </button>
+                            <!-- Invisible gap untuk menghubungkan tombol dengan floating menu -->
+                            <div class="menu-gap"></div>
 
                             <div id="karyawanSubmenu" class="submenu pl-12 space-y-1 {{ request()->is('qcc/karyawan*') ? 'show' : '' }}">
                                 <a href="{{ route('qcc.karyawan.my_circle') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/my-circle') ? 'text-white font-bold' : '' }}">
@@ -266,7 +270,7 @@
 
                     <!-- 4. ADMIN SYSTEM MANAGEMENT (Conditional) -->
                     @if(session('active_role') === 'admin')
-                        <div class="relative group">
+                        <div class="relative group" data-submenu="qccSubmenu">
                             <button onclick="toggleQccDropdown()" class="sidebar-link w-full flex items-center justify-between text-white p-4 rounded-xl focus:outline-none {{ request()->is('qcc/admin*') ? 'bg-white/10' : '' }}">
                                 <div class="flex items-center gap-4">
                                     <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg">
@@ -276,6 +280,8 @@
                                 </div>
                                 <i id="qccArrow" class="fa-solid fa-chevron-down text-[10px] dropdown-arrow"></i>
                             </button>
+                            <!-- Invisible gap untuk menghubungkan tombol dengan floating menu -->
+                            <div class="menu-gap"></div>
 
                             <div id="qccSubmenu" class="submenu pl-12 space-y-1 {{ request()->is('qcc/admin*') ? 'show' : '' }}">
                                 <a href="{{ route('qcc.admin.dashboard') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/dashboard') ? 'text-white font-bold' : '' }}">
@@ -333,25 +339,254 @@
         const karyawanSubmenu = document.getElementById('karyawanSubmenu');
         const karyawanArrow = document.getElementById('karyawanArrow');
 
+        // Variabel global untuk kontrol floating menu
+        let hoverTimeout = null;
+        let activeFloatingMenu = null;
+        let isSidebarCollapsed = false;
+        let isMouseInFloatingMenu = false;
+
         // LOGIKA SAAT HALAMAN DIMUAT (Restore State)
         document.addEventListener('DOMContentLoaded', () => {
             const state = localStorage.getItem('sidebar-state');
             if (state === 'collapsed') {
                 sidebar.classList.add('sidebar-collapsed');
-                // Pastikan semua accordion tertutup saat mini
+                isSidebarCollapsed = true;
                 closeAllSubmenus();
+                setupFloatingMenuListeners();
             }
         });
+
+        // Fungsi untuk membuat floating submenu
+        function createFloatingSubmenu(parentButton, submenuId) {
+            // Hapus floating menu yang sudah ada
+            const existingFloating = document.querySelector('.floating-submenu');
+            if (existingFloating) {
+                existingFloating.remove();
+                activeFloatingMenu = null;
+            }
+            
+            // Clone submenu yang asli
+            const originalSubmenu = document.getElementById(submenuId);
+            if (!originalSubmenu) return null;
+            
+            const floatingMenu = originalSubmenu.cloneNode(true);
+            floatingMenu.id = 'floating-' + submenuId;
+            floatingMenu.classList.add('floating-submenu');
+            floatingMenu.classList.remove('submenu');
+            floatingMenu.classList.remove('show');
+            
+            // Tambahkan event listener untuk floating menu
+            floatingMenu.addEventListener('mouseenter', () => {
+                isMouseInFloatingMenu = true;
+                if (hoverTimeout) {
+                    clearTimeout(hoverTimeout);
+                }
+            });
+            
+            floatingMenu.addEventListener('mouseleave', (e) => {
+                isMouseInFloatingMenu = false;
+                // Cek apakah mouse benar-benar meninggalkan floating menu
+                if (!floatingMenu.contains(e.relatedTarget)) {
+                    hoverTimeout = setTimeout(() => {
+                        if (!isMouseInFloatingMenu) {
+                            hideFloatingSubmenu();
+                        }
+                    }, 300); // Delay lebih lama untuk memberi waktu ke floating menu
+                }
+            });
+            
+            // Tambahkan ke body
+            document.body.appendChild(floatingMenu);
+            
+            // Hitung posisi
+            const parentRect = parentButton.getBoundingClientRect();
+            const sidebarWidth = 80; // 5rem = 80px
+            
+            // Pastikan posisi tidak melebihi tinggi layar
+            let topPosition = parentRect.top - 10;
+            const maxTop = window.innerHeight - 300;
+            
+            if (topPosition > maxTop) {
+                topPosition = maxTop;
+            }
+            
+            floatingMenu.style.left = (sidebarWidth + 5) + 'px';
+            floatingMenu.style.top = topPosition + 'px';
+            
+            return floatingMenu;
+        }
+
+        // Fungsi untuk menampilkan floating submenu
+        function showFloatingSubmenu(button, submenuId) {
+            if (!isSidebarCollapsed) return;
+            
+            // Clear timeout sebelumnya
+            if (hoverTimeout) {
+                clearTimeout(hoverTimeout);
+            }
+            
+            // Tutup menu aktif sebelumnya
+            if (activeFloatingMenu) {
+                hideFloatingSubmenu();
+            }
+            
+            // Buat dan tampilkan menu baru
+            const floatingMenu = createFloatingSubmenu(button, submenuId);
+            if (floatingMenu) {
+                // Small delay untuk memastikan DOM sudah siap
+                setTimeout(() => {
+                    floatingMenu.classList.add('active');
+                    activeFloatingMenu = floatingMenu;
+                }, 50);
+            }
+        }
+
+        // Fungsi untuk menyembunyikan floating submenu
+        function hideFloatingSubmenu() {
+            if (activeFloatingMenu) {
+                activeFloatingMenu.classList.remove('active');
+                setTimeout(() => {
+                    if (activeFloatingMenu && !activeFloatingMenu.classList.contains('active')) {
+                        activeFloatingMenu.remove();
+                        activeFloatingMenu = null;
+                        isMouseInFloatingMenu = false;
+                    }
+                }, 300); // Match dengan CSS transition
+            }
+        }
+
+        // Setup event listeners untuk floating menu
+        function setupFloatingMenuListeners() {
+            const groups = document.querySelectorAll('.group[data-submenu]');
+            
+            groups.forEach(group => {
+                const button = group.querySelector('button');
+                const menuGap = group.querySelector('.menu-gap');
+                const submenuId = group.getAttribute('data-submenu');
+                
+                if (!button || !submenuId) return;
+                
+                // Event untuk tombol utama
+                button.addEventListener('mouseenter', () => {
+                    if (!isSidebarCollapsed) return;
+                    
+                    hoverTimeout = setTimeout(() => {
+                        showFloatingSubmenu(button, submenuId);
+                    }, 200); // Delay sedikit untuk mencegah flash
+                });
+                
+                button.addEventListener('mouseleave', (e) => {
+                    if (!isSidebarCollapsed) return;
+                    
+                    if (hoverTimeout) {
+                        clearTimeout(hoverTimeout);
+                    }
+                    
+                    // Cek apakah cursor pindah ke menu gap atau floating menu
+                    const floatingMenu = document.querySelector('.floating-submenu.active');
+                    const isMovingToGap = menuGap && menuGap.contains(e.relatedTarget);
+                    const isMovingToFloatingMenu = floatingMenu && floatingMenu.contains(e.relatedTarget);
+                    
+                    if (!isMovingToGap && !isMovingToFloatingMenu) {
+                        hoverTimeout = setTimeout(() => {
+                            if (!isMouseInFloatingMenu) {
+                                hideFloatingSubmenu();
+                            }
+                        }, 200);
+                    }
+                });
+                
+                // Event untuk menu gap (area transisi antara tombol dan floating menu)
+                if (menuGap) {
+                    menuGap.addEventListener('mouseenter', () => {
+                        if (!isSidebarCollapsed) return;
+                        
+                        if (hoverTimeout) {
+                            clearTimeout(hoverTimeout);
+                        }
+                        
+                        // Tampilkan floating menu jika belum tampil
+                        if (!activeFloatingMenu) {
+                            showFloatingSubmenu(button, submenuId);
+                        }
+                    });
+                    
+                    menuGap.addEventListener('mouseleave', (e) => {
+                        if (!isSidebarCollapsed) return;
+                        
+                        const floatingMenu = document.querySelector('.floating-submenu.active');
+                        const isMovingToFloatingMenu = floatingMenu && floatingMenu.contains(e.relatedTarget);
+                        
+                        if (!isMovingToFloatingMenu) {
+                            hoverTimeout = setTimeout(() => {
+                                if (!isMouseInFloatingMenu) {
+                                    hideFloatingSubmenu();
+                                }
+                            }, 200);
+                        }
+                    });
+                }
+                
+                // Event untuk group parent
+                group.addEventListener('mouseleave', (e) => {
+                    if (!isSidebarCollapsed) return;
+                    
+                    const floatingMenu = document.querySelector('.floating-submenu.active');
+                    const isMovingToGap = menuGap && menuGap.contains(e.relatedTarget);
+                    const isMovingToFloatingMenu = floatingMenu && floatingMenu.contains(e.relatedTarget);
+                    
+                    if (!isMovingToGap && !isMovingToFloatingMenu) {
+                        hoverTimeout = setTimeout(() => {
+                            if (!isMouseInFloatingMenu) {
+                                hideFloatingSubmenu();
+                            }
+                        }, 200);
+                    }
+                });
+            });
+            
+            // Tutup floating menu saat klik di luar
+            document.addEventListener('click', (e) => {
+                const floatingMenu = document.querySelector('.floating-submenu.active');
+                if (floatingMenu && !floatingMenu.contains(e.target) && 
+                    !e.target.closest('.group')) {
+                    hideFloatingSubmenu();
+                }
+            });
+            
+            // Update posisi floating menu saat scroll
+            window.addEventListener('scroll', () => {
+                if (activeFloatingMenu && isSidebarCollapsed) {
+                    const button = document.querySelector('.group:hover button');
+                    if (button) {
+                        const parentRect = button.getBoundingClientRect();
+                        const sidebarWidth = 80;
+                        let topPosition = parentRect.top - 10;
+                        const maxTop = window.innerHeight - 300;
+                        
+                        if (topPosition > maxTop) {
+                            topPosition = maxTop;
+                        }
+                        
+                        activeFloatingMenu.style.top = topPosition + 'px';
+                    }
+                }
+            });
+        }
 
         // Toggle Sidebar & Simpan Status ke LocalStorage
         sidebarToggle.addEventListener('click', () => {
             sidebar.classList.toggle('sidebar-collapsed');
+            isSidebarCollapsed = sidebar.classList.contains('sidebar-collapsed');
             
-            if (sidebar.classList.contains('sidebar-collapsed')) {
+            if (isSidebarCollapsed) {
                 localStorage.setItem('sidebar-state', 'collapsed');
                 closeAllSubmenus();
+                hideFloatingSubmenu();
+                setTimeout(setupFloatingMenuListeners, 100);
             } else {
                 localStorage.setItem('sidebar-state', 'expanded');
+                hideFloatingSubmenu();
             }
         });
 
@@ -361,18 +596,52 @@
         }
 
         function toggleQccDropdown() {
-            if (!sidebar.classList.contains('sidebar-collapsed')) {
+            // Hanya toggle jika sidebar tidak collapsed
+            if (!isSidebarCollapsed) {
                 if (qccSubmenu) qccSubmenu.classList.toggle('show');
                 if (qccArrow) qccArrow.classList.toggle('rotate-180');
             }
         }
 
         function toggleKaryawanDropdown() {
-            if (!sidebar.classList.contains('sidebar-collapsed')) {
+            // Hanya toggle jika sidebar tidak collapsed
+            if (!isSidebarCollapsed) {
                 if (karyawanSubmenu) karyawanSubmenu.classList.toggle('show');
                 if (karyawanArrow) karyawanArrow.classList.toggle('rotate-180');
             }
         }
+
+        // GLOBAL FLASH MESSAGE HANDLER
+        document.addEventListener('DOMContentLoaded', function() {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            });
+
+            @if(session('success'))
+                Swal.fire({ icon: 'success', title: 'Berhasil!', text: "{{ session('success') }}", confirmButtonColor: '#091E6E' });
+            @endif
+
+            @if(session('error'))
+                Swal.fire({ icon: 'error', title: 'Gagal!', text: "{{ session('error') }}", confirmButtonColor: '#091E6E' });
+            @endif
+
+            @if(session('warning'))
+                Swal.fire({ icon: 'warning', title: 'Perhatian!', text: "{{ session('warning') }}", confirmButtonColor: '#091E6E' });
+            @endif
+
+            @if(session('info'))
+                Swal.fire({ 
+                    icon: 'info', 
+                    title: 'Informasi', 
+                    text: "{{ session('info') }}", 
+                    confirmButtonColor: '#091E6E' 
+                });
+            @endif
+        });
     </script>
 </body>
 </html>

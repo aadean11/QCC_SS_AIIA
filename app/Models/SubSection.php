@@ -12,9 +12,9 @@ class SubSection extends Model
         'code', 'name', 'alias', 'code_section', 'npk'
     ];
 
-    // Relasi balik ke Section
     public function section()
     {
+        // Menghubungkan m_sub_sections.code_section ke m_sections.code
         return $this->belongsTo(Section::class, 'code_section', 'code');
     }
 }

@@ -12,9 +12,9 @@ class Section extends Model
         'code', 'name', 'alias', 'code_department', 'npk', 'npk_admin'
     ];
 
-    // Relasi balik ke Department
     public function department()
     {
+        // Menghubungkan m_sections.code_department ke m_departments.code
         return $this->belongsTo(Department::class, 'code_department', 'code');
     }
 

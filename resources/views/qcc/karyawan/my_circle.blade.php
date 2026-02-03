@@ -15,13 +15,17 @@
     <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
         <div>
             <h2 class="text-3xl font-bold text-[#091E6E]">Daftar Circle QCC Saya</h2>
-            <p class="text-sm text-gray-400">Kelola kelompok QCC dimana Anda bergabung</p>
+            <p class="text-sm text-gray-400">
+                Departemen Anda: 
+                <span class="font-bold text-[#1035D1]">
+                    {{ $user->getDepartment()->name ?? $user->getDeptCode() }}
+                </span>
+            </p>
         </div>
         
         <div class="flex flex-wrap gap-3 w-full md:w-auto justify-end items-center">
             <!-- Form Per Page & Search -->
             <form action="{{ route('qcc.karyawan.my_circle') }}" method="GET" id="filterForm" class="flex items-center gap-3">
-                <!-- Dropdown Show Entries -->
                 <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-[#091E6E]">
                     <span class="text-[10px] font-bold text-gray-400 uppercase">Show</span>
                     <select name="per_page" onchange="this.form.submit()" class="text-xs font-bold text-[#091E6E] outline-none cursor-pointer bg-transparent">
@@ -31,7 +35,6 @@
                     </select>
                 </div>
 
-                <!-- Search Input -->
                 <div class="relative w-full md:w-64">
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama atau kode circle..." 
                         class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] shadow-sm transition-all text-sm font-medium">
@@ -64,9 +67,16 @@
                             <p class="font-bold text-[#091E6E] text-sm group-hover:text-[#130998]">{{ $c->circle_name }}</p>
                             <p class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">{{ $c->circle_code }}</p>
                         </td>
-                        <td class="px-6 py-3 border-y border-gray-100 text-gray-600 text-xs font-medium">{{ $c->department->name ?? $c->department_code }}</td>
+                        <td class="px-6 py-3 border-y border-gray-100 text-gray-600 text-xs font-medium">
+                            {{ $c->department->name ?? $c->department_code }}
+                        </td>
                         <td class="px-6 py-3 border-y border-gray-100 text-center">
-                            <span class="px-3 py-1 rounded-full text-[9px] font-bold border {{ $c->status == 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100' }}">
+                            @php
+                                $badgeColor = 'bg-amber-50 text-amber-600 border-amber-100';
+                                if($c->status == 'ACTIVE') $badgeColor = 'bg-emerald-50 text-emerald-600 border-emerald-100';
+                                if(str_contains($c->status, 'REJECTED')) $badgeColor = 'bg-red-50 text-red-600 border-red-100';
+                            @endphp
+                            <span class="px-3 py-1 rounded-full text-[9px] font-bold border {{ $badgeColor }}">
                                 {{ $c->status }}
                             </span>
                         </td>
@@ -151,25 +161,27 @@
                         <input type="text" name="circle_name" required placeholder="Masukkan nama unik..." class="w-full mt-2 px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#091E6E] outline-none font-medium text-[#091E6E]">
                     </div>
 
-                    @if($myInfo && $myInfo->subSection)
+                    <!-- BOX INFORMASI HIERARKI USER -->
                     <div class="bg-blue-50/50 p-5 rounded-[1.5rem] border border-blue-100 relative overflow-hidden">
                         <p class="text-[9px] font-bold text-blue-400 uppercase mb-3 tracking-widest italic">Lingkup Area Rekan Kerja</p>
                         <div class="space-y-1 relative z-10 text-[10px] font-bold text-[#091E6E]">
-                            <p class="uppercase italic">{{ $myInfo->subSection->section->department->name ?? 'Dept N/A' }}</p>
-                            <p class="text-blue-700">Section: {{ $myInfo->subSection->section->name ?? 'N/A' }}</p>
-                            <p class="text-blue-500">Sub: {{ $myInfo->subSection->name ?? 'N/A' }}</p>
+                            <p class="uppercase italic">{{ $user->getDepartment()->name ?? 'DEPARTEMEN N/A' }}</p>
+                            @if($user->occupation !== 'KDP')
+                                <p class="text-blue-700">Section: {{ $user->subSection->section->name ?? ($user->section->name ?? 'N/A') }}</p>
+                                <p class="text-blue-500">Sub Section: {{ $user->subSection->name ?? 'N/A' }}</p>
+                            @else
+                                <p class="text-blue-700 font-black">OTORITAS: KEPALA DEPARTEMEN</p>
+                            @endif
                         </div>
                         <i class="fa-solid fa-sitemap absolute -right-2 -bottom-2 text-5xl text-blue-100 opacity-50"></i>
                     </div>
-                    @endif
                 </div>
 
                 <div class="space-y-4">
                     <div class="flex justify-between items-center">
-                        <h4 class="text-xs font-bold text-[#091E6E] uppercase border-b pb-2 flex-1">2. Pilih Anggota</h4>
+                        <h4 class="text-xs font-bold text-[#091E6E] uppercase border-b pb-2 flex-1">2. Pilih Anggota Satu Departemen</h4>
                     </div>
                     
-                    <!-- Search Member Khusus Modal Create -->
                     <div class="relative">
                         <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
                         <input type="text" id="memberSearchCreate" placeholder="Cari Nama atau NPK rekan..." class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#091E6E] outline-none">
@@ -185,7 +197,7 @@
                             </div>
                         </label>
                         @empty
-                        <p class="text-center text-gray-400 text-[10px] italic py-10">Tidak ada rekan di tim yang sama.</p>
+                        <p class="text-center text-gray-400 text-[10px] italic py-10">Tidak ada rekan dalam Departemen yang sama.</p>
                         @endforelse
                     </div>
                 </div>
@@ -218,7 +230,6 @@
                 <div class="space-y-4">
                     <h4 class="text-xs font-bold text-[#091E6E] uppercase border-b pb-2">Pilih Ulang Anggota</h4>
                     
-                    <!-- Search Member Khusus Modal Edit -->
                     <div class="relative">
                         <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
                         <input type="text" id="memberSearchEdit" placeholder="Cari Nama atau NPK rekan..." class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none">
@@ -247,36 +258,7 @@
 @endsection
 
 @push('scripts')
-<style>
-    /* Styling Paging Horizontal */
-    .custom-pagination nav { display: flex; align-items: center; justify-content: center; gap: 4px; }
-    .custom-pagination nav svg { width: 1rem; height: 1rem; }
-    .custom-pagination span[aria-current="page"] > span { 
-        background-color: #091E6E !important; 
-        color: white !important; 
-        border: none !important;
-        border-radius: 8px !important; 
-        padding: 6px 12px !important;
-        font-size: 11px !important;
-        font-weight: 800;
-        box-shadow: 0 4px 6px -1px rgba(9, 30, 110, 0.2);
-    }
-    .custom-pagination a, .custom-pagination span { 
-        border-radius: 8px !important; 
-        padding: 6px 12px !important; 
-        font-size: 11px !important;
-        font-weight: 700 !important;
-        border: 1px solid #edf2f7 !important;
-        color: #64748b;
-        transition: all 0.2s ease;
-    }
-    .custom-pagination a:hover { 
-        background-color: #f8fafc !important; 
-        border-color: #091E6E !important; 
-        color: #091E6E !important; 
-    }
-</style>
-
+{{-- SCRIPT TETAP SAMA SEPERTI SEBELUMNYA --}}
 <script>
     function openModal(id) { 
         const modal = document.getElementById(id);
@@ -293,7 +275,6 @@
         }
     }
 
-    // --- FUNGSI DETAIL MEMBER ---
     function openDetailCircle(circle) {
         document.getElementById('detailCircleName').innerText = circle.circle_name;
         document.getElementById('detailCircleCode').innerText = "Circle Code: " + circle.circle_code;
@@ -318,7 +299,6 @@
         openModal('modalDetailCircle');
     }
 
-    // --- FUNGSI EDIT CIRCLE ---
     function openEditCircle(circle, currentMemberNpks) {
         document.getElementById('formUpdateCircle').action = `/qcc/karyawan/update-circle/${circle.id}`;
         document.getElementById('edit_circle_name').value = circle.circle_name;
@@ -327,7 +307,6 @@
         openModal('modalEditCircle');
     }
 
-    // --- FUNGSI DELETE CIRCLE ---
     function confirmDeleteCircle(id, name) {
         Swal.fire({
             title: 'Hapus Circle?',
@@ -340,7 +319,6 @@
         }).then((result) => { if (result.isConfirmed) document.getElementById('delete-circle-' + id).submit(); });
     }
 
-    // --- LIVE SEARCH MEMBER (Modal Create) ---
     document.getElementById('memberSearchCreate')?.addEventListener('input', function() {
         const keyword = this.value.toLowerCase();
         document.querySelectorAll('.member-card-create').forEach(card => {
@@ -349,7 +327,6 @@
         });
     });
 
-    // --- LIVE SEARCH MEMBER (Modal Edit) ---
     document.getElementById('memberSearchEdit')?.addEventListener('input', function() {
         const keyword = this.value.toLowerCase();
         document.querySelectorAll('.member-card-edit').forEach(card => {
@@ -358,7 +335,6 @@
         });
     });
 
-    // --- SWEETALERT KONFIRMASI SIMPAN/UPDATE ---
     document.getElementById('formStoreCircle')?.addEventListener('submit', function(e) {
         e.preventDefault();
         Swal.fire({ title: 'Buat Circle Baru?', text: "Data akan disimpan sebagai kelompok QCC resmi.", icon: 'question', showCancelButton: true, confirmButtonColor: '#091E6E', confirmButtonText: 'Ya, Buat!' }).then((result) => { if (result.isConfirmed) this.submit(); });
@@ -369,28 +345,12 @@
         Swal.fire({ title: 'Simpan Perubahan?', text: "Data anggota akan disinkronkan ulang.", icon: 'question', showCancelButton: true, confirmButtonColor: '#F59E0B', confirmButtonText: 'Ya, Update!' }).then((result) => { if (result.isConfirmed) this.submit(); });
     });
 
-    // --- ALERT SUKSES ---
     @if(Session::has('success'))
         Swal.fire({ icon: 'success', title: 'Berhasil!', text: "{{ Session::get('success') }}", timer: 2000, showConfirmButton: false });
+    @elseif(Session::has('error'))
+        Swal.fire({ icon: 'error', title: 'Gagal!', text: "{{ Session::get('error') }}", confirmButtonColor: '#091E6E' });
+    @elseif(Session::has('warning'))
+        Swal.fire({ icon: 'warning', title: 'Perhatian', text: "{{ Session::get('warning') }}", confirmButtonColor: '#091E6E' });
     @endif
-
-    // --- GLOBAL SWEETALERT HANDLER ---
-    // Menangani semua flash data dari controller
-    const alerts = {
-        success: "{{ Session::get('success') }}",
-        error: "{{ Session::get('error') }}",
-        warning: "{{ Session::get('warning') }}",
-        info: "{{ Session::get('info') }}"
-    };
-
-    if (alerts.success) {
-        Swal.fire({ icon: 'success', title: 'Berhasil!', text: alerts.success, timer: 3000, showConfirmButton: false });
-    } else if (alerts.error) {
-        Swal.fire({ icon: 'error', title: 'Gagal!', text: alerts.error, confirmButtonColor: '#091E6E' });
-    } else if (alerts.warning) {
-        Swal.fire({ icon: 'warning', title: 'Perhatian', text: alerts.warning, confirmButtonColor: '#091E6E' });
-    } else if (alerts.info) {
-        Swal.fire({ icon: 'info', title: 'Informasi', text: alerts.info, confirmButtonColor: '#091E6E' });
-    }
 </script>
 @endpush

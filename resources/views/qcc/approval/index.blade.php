@@ -18,7 +18,15 @@
         <div>
             <h2 class="text-3xl font-bold text-[#091E6E]">Persetujuan Progres QCC</h2>
             <p class="text-sm text-gray-400 italic font-medium">
-                Departemen: <span class="text-[#1035D1] uppercase">{{ $user->subSection->section->department->name ?? 'Tidak Terdeteksi' }}</span>
+                Departemen: 
+                <span class="text-[#1035D1] uppercase font-bold">
+                    @php $myDept = $user->getDepartment(); @endphp
+                    @if($myDept)
+                        {{ $myDept->name }}
+                    @else
+                        {{ $user->getDeptCode() ?: 'DEPARTEMEN TIDAK TERDETEKSI' }}
+                    @endif
+                </span>
             </p>
         </div>
         
@@ -61,57 +69,62 @@
                     @forelse($pendingSteps as $ps)
                     <tr class="bg-white hover:bg-blue-50/50 transition-all shadow-sm border border-gray-100 group">
                         <td class="px-6 py-3 rounded-l-xl border-y border-l border-gray-100">
-                            <p class="font-bold text-[#091E6E] text-sm uppercase tracking-tight">{{ $ps->circle->circle_name }}</p>
-                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Leader: {{ $ps->uploader->nama }} ({{ $ps->upload_by }})</p>
+                            <p class="font-bold text-[#091E6E] text-sm uppercase tracking-tight">{{ $ps->circle->circle_name ?? 'N/A' }}</p>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Leader: {{ $ps->uploader->nama ?? 'N/A' }} ({{ $ps->upload_by ?? 'N/A' }})</p>
                         </td>
                         <td class="px-6 py-3 border-y border-gray-100">
                             <div class="flex items-center gap-3">
                                 <div class="w-8 h-8 bg-blue-50 text-[#091E6E] rounded-lg flex items-center justify-center font-black text-xs border border-blue-100 group-hover:bg-[#091E6E] group-hover:text-white transition-all">
-                                    {{ $ps->step->step_number }}
+                                    {{ $ps->step->step_number ?? 'N/A' }}
                                 </div>
-                                <span class="text-xs font-bold text-gray-600 uppercase">{{ $ps->step->step_name }}</span>
+                                <span class="text-xs font-bold text-gray-600 uppercase">{{ $ps->step->step_name ?? 'N/A' }}</span>
                             </div>
                         </td>
                         <td class="px-6 py-3 border-y border-gray-100 text-center">
-                            @php
-                                $extension = pathinfo($ps->file_path, PATHINFO_EXTENSION);
-                                $fileUrl = asset('storage/' . $ps->file_path);
-                            @endphp
+                            @if($ps->file_path)
+                                @php
+                                    $extension = pathinfo($ps->file_path, PATHINFO_EXTENSION);
+                                    $fileUrl = asset('storage/' . $ps->file_path);
+                                @endphp
 
-                            @if(strtolower($extension) === 'pdf')
-                                <button onclick="openFilePreview('{{ $fileUrl }}', '{{ $ps->file_name }}')" 
-                                    class="inline-flex items-center gap-2 bg-blue-50 text-[#091E6E] px-4 py-2 rounded-xl text-[10px] font-bold hover:bg-[#091E6E] hover:text-white transition-all border border-blue-100 shadow-sm active:scale-95">
-                                    <i class="fa-solid fa-eye"></i> PREVIEW
-                                </button>
+                                @if(strtolower($extension) === 'pdf')
+                                    <button onclick="openFilePreview('{{ $fileUrl }}', '{{ $ps->file_name ?? 'Document' }}')" 
+                                        class="inline-flex items-center gap-2 bg-blue-50 text-[#091E6E] px-4 py-2 rounded-xl text-[10px] font-bold hover:bg-[#091E6E] hover:text-white transition-all border border-blue-100 shadow-sm active:scale-95">
+                                        <i class="fa-solid fa-eye"></i> PREVIEW
+                                    </button>
+                                @else
+                                    <a href="{{ $fileUrl }}" download class="inline-flex items-center gap-2 bg-amber-50 text-amber-700 px-4 py-2 rounded-xl text-[10px] font-bold hover:bg-amber-600 hover:text-white transition-all border border-amber-100 shadow-sm active:scale-95">
+                                        <i class="fa-solid fa-download"></i> DOWNLOAD
+                                    </a>
+                                @endif
                             @else
-                                <a href="{{ $fileUrl }}" download class="inline-flex items-center gap-2 bg-amber-50 text-amber-700 px-4 py-2 rounded-xl text-[10px] font-bold hover:bg-amber-600 hover:text-white transition-all border border-amber-100 shadow-sm active:scale-95">
-                                    <i class="fa-solid fa-download"></i> DOWNLOAD
-                                </a>
+                                <span class="text-xs text-gray-400 italic">No file</span>
                             @endif
                         </td>
                         <td class="px-6 py-3 rounded-r-xl border-y border-r border-gray-100 text-center">
                             @php
                                 $canProcess = false;
                                 if($user->occupation === 'SPV' && $ps->status === 'WAITING SPV') $canProcess = true;
-                                if($user->occupation === 'KDP' && $ps->status === 'WAITING KADEPT') $canProcess = true;
+                                if($user->occupation === 'KDP' && $ps->status === 'WAITING KDP') $canProcess = true;
                             @endphp
 
                             @if($canProcess)
                                 <div class="flex justify-center gap-2">
-                                    <button onclick="openApprovalModal('approve', {{ $ps->id }}, '{{ $ps->circle->circle_name }}')" 
+                                    <button onclick="openApprovalModal('approve', {{ $ps->id }}, '{{ $ps->circle->circle_name ?? "Circle" }}')" 
                                         class="bg-emerald-500 text-white px-5 py-2 rounded-xl text-[10px] font-bold uppercase shadow-lg shadow-emerald-100 hover:bg-emerald-600 active:scale-95 transition-all">
                                         Setujui
                                     </button>
-                                    <button onclick="openApprovalModal('reject', {{ $ps->id }}, '{{ $ps->circle->circle_name }}')" 
+                                    <button onclick="openApprovalModal('reject', {{ $ps->id }}, '{{ $ps->circle->circle_name ?? "Circle" }}')" 
                                         class="bg-red-500 text-white px-5 py-2 rounded-xl text-[10px] font-bold uppercase shadow-lg shadow-red-100 hover:bg-red-600 active:scale-95 transition-all">
                                         Tolak
                                     </button>
                                 </div>
                             @else
                                 @php
-                                    $badgeColor = 'bg-gray-100 text-gray-500';
+                                    $badgeColor = 'bg-gray-100 text-gray-500 border-gray-200';
                                     if($ps->status === 'APPROVED') $badgeColor = 'bg-emerald-100 text-emerald-600 border-emerald-200';
-                                    if($ps->status === 'WAITING KADEPT') $badgeColor = 'bg-blue-100 text-blue-600 border-blue-200';
+                                    if($ps->status === 'WAITING KDP') $badgeColor = 'bg-blue-100 text-blue-600 border-blue-200';
+                                    if($ps->status === 'WAITING SPV') $badgeColor = 'bg-yellow-100 text-yellow-600 border-yellow-200';
                                     if(str_contains($ps->status, 'REJECTED')) $badgeColor = 'bg-red-100 text-red-600 border-red-200';
                                 @endphp
                                 <span class="px-4 py-2 rounded-xl text-[10px] font-black uppercase border {{ $badgeColor }}">
