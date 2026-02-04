@@ -40,7 +40,7 @@ class AppServiceProvider extends ServiceProvider
                     
                     // Penentuan Status WAITING
                     $stCircle = ($user->occupation === 'KDP') ? 'WAITING KDP' : 'WAITING SPV';
-                    $stProgress = ($user->occupation === 'KDP') ? 'WAITING KADEPT' : 'WAITING SPV';
+                    $stProgress = ($user->occupation === 'KDP') ? 'WAITING KDP' : 'WAITING SPV';
 
                     // HITUNG HANYA DEPARTEMEN SENDIRI
                     $countCircle = QccCircle::where('department_code', $myDept)->where('status', $stCircle)->count();

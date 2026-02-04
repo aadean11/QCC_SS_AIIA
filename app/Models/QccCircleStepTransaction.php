@@ -16,7 +16,9 @@ class QccCircleStepTransaction extends Model
         'file_path', 
         'file_type', 
         'upload_by', 
-        'status'
+        'status',
+        'spv_note',
+        'kdp_note'
     ];
 
     public function circle()

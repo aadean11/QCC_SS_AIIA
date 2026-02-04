@@ -196,9 +196,9 @@ class KaryawanQccController extends Controller
         if ($circle->status !== 'ACTIVE') {
             $msg = "";
             if (str_contains($circle->status, 'WAITING')) {
-                $msg = "Circle '{$circle->circle_name}' sedang menunggu persetujuan atasan. Anda baru bisa mengelola Tema setelah status ACTIVE.";
+                $msg = "Circle $circle->circle_name sedang menunggu persetujuan atasan. Anda baru bisa mengelola Tema setelah status ACTIVE.";
             } elseif (str_contains($circle->status, 'REJECTED')) {
-                $msg = "Pendaftaran Circle '{$circle->circle_name}' ditolak. Silakan cek alasan penolakan di menu Manajemen Circle.";
+                $msg = "Pendaftaran Circle $circle->circle_name ditolak. Silakan cek alasan penolakan di menu Manajemen Circle.";
             }
             return redirect()->route('qcc.karyawan.my_circle')->with('warning', $msg);
         }
@@ -272,44 +272,43 @@ class KaryawanQccController extends Controller
         $user = $this->getAuthUser();
         $themeId = $request->get('theme_id');
 
-        // Validasi jika masuk tanpa ID tema
+        // 1. Ambil SEMUA ID Circle yang diikuti user
+        $myCircleIds = QccCircleMember::where('employee_npk', $user->npk)->pluck('qcc_circle_id');
+
+        // 2. Ambil SEMUA Tema dari circle-circle tersebut untuk isi Dropdown
+        $myThemes = QccTheme::with('circle')
+                    ->whereIn('qcc_circle_id', $myCircleIds)
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+
+        // 3. Jika tidak ada theme_id di URL, cari tema yang berstatus ACTIVE
         if (!$themeId) {
-            $myCircles = QccCircleMember::where('employee_npk', $user->npk)->pluck('qcc_circle_id');
-            $activeTheme = QccTheme::whereIn('qcc_circle_id', $myCircles)->where('status', 'ACTIVE')->first();
-            
+            $activeTheme = $myThemes->where('status', 'ACTIVE')->first() ?? $myThemes->first();
+
             if (!$activeTheme) {
-                return redirect()->route('qcc.karyawan.my_circle')->with('warning', 'Anda tidak memiliki Tema yang sedang aktif.');
+                return redirect()->route('qcc.karyawan.my_circle')->with('warning', 'Anda belum memiliki Tema. Silakan buat tema di Manajemen Tema.');
             }
             return redirect()->route('qcc.karyawan.progress', ['theme_id' => $activeTheme->id]);
         }
 
-        // 1. Ambil data tema dan step
+        // 4. Ambil data tema yang sedang dipilih
         $theme = QccTheme::with('circle')->findOrFail($themeId);
         $steps = QccStep::orderBy('step_number', 'asc')->get();
-        
-        // 2. Ambil histori upload
-        $uploads = QccCircleStepTransaction::where('qcc_theme_id', $theme->id)
-                    ->get()
-                    ->keyBy('qcc_step_id');
+        $uploads = QccCircleStepTransaction::where('qcc_theme_id', $theme->id)->get()->keyBy('qcc_step_id');
 
-        // 3. Logika Gembok (Dihitung di Controller agar lebih aman)
-        foreach ($steps as $index => $step) {
+        // 5. Logika Gembok
+        $actualSteps = $steps->where('step_number', '>', 0)->values();
+        foreach ($actualSteps as $index => $step) {
             if ($index === 0) {
-                $step->is_locked = false; // Step pertama (Step 0 atau 1) selalu terbuka
+                $step->is_locked = false;
             } else {
-                $prevStepId = $steps[$index - 1]->id;
-                $prevUpload = $uploads[$prevStepId] ?? null;
-
-                // KUNCI: Step ini terkunci jika Step sebelumnya belum "APPROVED"
-                if ($prevUpload && $prevUpload->status === 'APPROVED') {
-                    $step->is_locked = false;
-                } else {
-                    $step->is_locked = true;
-                }
+                $prevStep = $actualSteps[$index - 1];
+                $prevUpload = $uploads[$prevStep->id] ?? null;
+                $step->is_locked = !($prevUpload && $prevUpload->status === 'APPROVED');
             }
         }
 
-        return view('qcc.karyawan.progress', compact('user', 'theme', 'steps', 'uploads'));
+        return view('qcc.karyawan.progress', compact('user', 'theme', 'actualSteps', 'uploads', 'myThemes'));
     }
 
     public function uploadFile(Request $request)

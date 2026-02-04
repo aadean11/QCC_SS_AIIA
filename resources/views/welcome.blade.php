@@ -25,6 +25,24 @@
             overflow: visible !important; 
         }
 
+        /* HIDE NUMBER BADGE WHEN COLLAPSED */
+        .sidebar-collapsed .badge-number {
+            display: none !important;
+        }
+
+        /* ADJUST ICON CONTAINER WHEN COLLAPSED */
+        .sidebar-collapsed .sidebar-link .relative {
+            margin-right: 0 !important;
+        }
+
+        /* FIX POSITION OF RED DOT WHEN COLLAPSED */
+        .sidebar-collapsed .sidebar-link .relative span.bg-red-500 {
+            top: -2px !important;
+            right: -2px !important;
+            width: 10px !important; /* Ukuran titik merah sedikit dipertegas */
+            height: 10px !important;
+        }
+
         .sidebar-collapsed .menu-text, 
         .sidebar-collapsed .sidebar-header-text, 
         .sidebar-collapsed .sidebar-footer, 
@@ -60,7 +78,7 @@
         
         .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #707070; border-radius: 10px;}
         
         .welcome-banner { background: linear-gradient(90deg, #091E6E 0%, #1035D1 100%); }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -169,7 +187,7 @@
         })();
     </script>
 </head>
-<body class="min-h-screen flex flex-col overflow-hidden text-sm">
+<body class="h-screen flex flex-col overflow-hidden text-sm">
 
     <!-- TOPBAR -->
     <header class="bg-white h-20 px-8 flex justify-between items-center shadow-sm sticky top-0 z-50">
@@ -200,7 +218,7 @@
     <div class="flex flex-1 overflow-hidden">
         <!-- SIDEBAR -->
         <aside id="sidebar" class="w-72 sidebar-gradient hidden md:flex flex-col p-4 shadow-2xl relative">
-            <div class="flex-1 mt-4 overflow-y-auto custom-scrollbar pr-2">
+            <div class="flex-1 mt-1 overflow-y-auto custom-scrollbar pr-2">
                 
                 <nav class="space-y-1">
                     <!-- 1. DASHBOARD (Universal) -->
@@ -216,19 +234,31 @@
                         <a href="{{ route('qcc.approval.circle') }}" class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl {{ request()->is('*/approval/circle*') ? 'bg-white/10' : '' }}">
                             <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg relative">
                                 <i class="fa-solid fa-user-check text-blue-200"></i>
-                                @if(isset($countCircle) && $countCircle > 0) <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-[#091E6E]"></span> @endif
+                                <!-- Ini adalah Titik Merah (Indikator) - Tetap Tampil -->
+                                @if(isset($countCircle) && $countCircle > 0) 
+                                    <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-[#091E6E]"></span> 
+                                @endif
                             </div>
                             <span class="menu-text font-medium whitespace-nowrap text-sm">Approve Circle</span>
-                            @if(isset($countCircle) && $countCircle > 0) <span class="ml-auto bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-black">{{ $countCircle }}</span> @endif
+                            <!-- Tambahkan class 'badge-number' di sini -->
+                            @if(isset($countCircle) && $countCircle > 0) 
+                                <span class="badge-number ml-auto bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-black">{{ $countCircle }}</span> 
+                            @endif
                         </a>
 
                         <a href="{{ route('qcc.approval.progress') }}" class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl {{ request()->is('*/approval/progress*') ? 'bg-white/10' : '' }}">
                             <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg relative">
                                 <i class="fa-solid fa-file-signature text-blue-200"></i>
-                                @if(isset($countProgress) && $countProgress > 0) <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-[#091E6E]"></span> @endif
+                                <!-- Titik Merah -->
+                                @if(isset($countProgress) && $countProgress > 0) 
+                                    <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-[#091E6E]"></span> 
+                                @endif
                             </div>
                             <span class="menu-text font-medium whitespace-nowrap text-sm">Approve Progres</span>
-                            @if(isset($countProgress) && $countProgress > 0) <span class="ml-auto bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-black">{{ $countProgress }}</span> @endif
+                            <!-- Tambahkan class 'badge-number' di sini -->
+                            @if(isset($countProgress) && $countProgress > 0) 
+                                <span class="badge-number ml-auto bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-black">{{ $countProgress }}</span> 
+                            @endif
                         </a>
                     @endif
 
