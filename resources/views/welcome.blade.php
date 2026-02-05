@@ -229,6 +229,16 @@
                         <span class="menu-text font-medium whitespace-nowrap">Dashboard Overview</span>
                     </a>
 
+                    <!-- MONITORING DASHBOARD (Conditional for GMR, KDP, SPV) -->
+                    @if(in_array($user->occupation, ['GMR', 'KDP', 'SPV']))
+                        <a href="{{ route('qcc.admin.dashboard') }}" class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl {{ request()->is('*/dashboard*') ? 'bg-white/20 border-l-4 border-yellow-400' : '' }}">
+                            <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg">
+                                <i class="fa-solid fa-chart-line text-blue-200"></i>
+                            </div>
+                            <span class="menu-text font-medium whitespace-nowrap text-sm">Monitoring Progres QCC</span>
+                        </a>
+                    @endif
+
                     <!-- 2. APPROVAL CIRCLE (Conditional) -->
                     @if($user->occupation === 'SPV' || $user->occupation === 'KDP')
                         <a href="{{ route('qcc.approval.circle') }}" class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl {{ request()->is('*/approval/circle*') ? 'bg-white/10' : '' }}">
