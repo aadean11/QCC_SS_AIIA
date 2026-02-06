@@ -28,13 +28,17 @@ class EmployeeController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        // --- LOGIKA GENERATE NPK OTOMATIS ---
-        $lastEmployee = \App\Models\Employee::orderBy('npk', 'desc')->first();
+        // --- LOGIKA GENERATE NPK OTOMATIS (Perbaikan Sorting Numerik) ---
+        $lastEmployee = \App\Models\Employee::where('npk', 'like', '0%')
+            ->orderByRaw('CAST(npk AS UNSIGNED) DESC') // Paksa urutkan sebagai angka
+            ->first();
+
         if ($lastEmployee) {
-            // Ambil angka dari NPK terakhir, tambah 1, lalu beri padding nol di depan (misal: 000011 -> 000012)
-            $nextNpk = str_pad((int)$lastEmployee->npk + 1, 6, '0', STR_PAD_LEFT);
+            // Ambil nilai numeriknya, tambah 1, lalu pad lagi jadi 6 digit
+            $currentMax = (int)$lastEmployee->npk;
+            $nextNpk = str_pad($currentMax + 1, 6, '0', STR_PAD_LEFT);
         } else {
-            $nextNpk = '000001'; // Default jika tabel kosong
+            $nextNpk = '000001';
         }
 
         $occupations = \App\Models\Occupation::all();
