@@ -122,9 +122,11 @@
 <!-- ================= MODAL DETAIL MEMBER ================= -->
 <div id="modalDetailCircle" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
     <div class="flex items-center justify-center min-h-screen p-4 text-left">
-        <div class="bg-white rounded-[2rem] w-full max-w-2xl shadow-2xl animate-reveal overflow-hidden border border-white">
+        <div class="bg-white rounded-[2rem] w-full max-w-2xl shadow-2xl animate-reveal overflow-hidden">
             <div class="sidebar-gradient p-6 text-white flex justify-between items-center">
-                <h3 class="text-xl font-bold uppercase tracking-widest">Detail & Anggota Kelompok</h3>
+                <h3 class="text-xl font-bold"><i class="fa-solid fa-users-rectangle mr-2"></i>
+                    Detail & Anggota Kelompok
+                </h3>
                 <button onclick="closeModal('modalDetailCircle')" class="text-white/70 hover:text-white text-2xl">&times;</button>
             </div>
             <div class="p-8">
@@ -146,9 +148,11 @@
 <!-- ================= MODAL CREATE CIRCLE ================= -->
 <div id="modalCreateCircle" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
     <div class="flex items-center justify-center min-h-screen p-4 text-left">
-        <div class="bg-white rounded-[2.5rem] w-full max-w-4xl shadow-2xl animate-reveal overflow-hidden border border-white">
+        <div class="bg-white rounded-[2.5rem] w-full max-w-4xl shadow-2xl animate-reveal overflow-hidden">
             <div class="sidebar-gradient p-6 text-white flex justify-between items-center">
-                <h3 class="text-xl font-bold uppercase tracking-widest">Buat Circle QCC Baru</h3>
+                <h3 class="text-xl font-bold"><i class="fa-solid fa-user-group mr-2"></i>
+                    Buat Circle QCC Baru
+                </h3>
                 <button onclick="closeModal('modalCreateCircle')" class="text-white/70 hover:text-white text-2xl">&times;</button>
             </div>
 
@@ -213,9 +217,11 @@
 <!-- ================= MODAL EDIT CIRCLE ================= -->
 <div id="modalEditCircle" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
     <div class="flex items-center justify-center min-h-screen p-4 text-left">
-        <div class="bg-white rounded-[2.5rem] w-full max-w-4xl shadow-2xl animate-reveal overflow-hidden border border-white">
+        <div class="bg-white rounded-[2.5rem] w-full max-w-4xl shadow-2xl animate-reveal overflow-hidden">
             <div class="sidebar-gradient p-6 text-white flex justify-between items-center">
-                <h3 class="text-xl font-bold uppercase tracking-widest">Update Data Circle</h3>
+                <h3 class="text-xl font-bold"><i class="fa-solid fa-pen-to-square mr-2"></i>
+                    Update Data Circle
+                </h3>
                 <button onclick="closeModal('modalEditCircle')" class="text-white/70 hover:text-white text-2xl">&times;</button>
             </div>
             <form id="formUpdateCircle" method="POST" class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">

@@ -150,9 +150,11 @@
 <!-- ================= MODAL VIEW DETAIL MEMBER ================= -->
 <div id="modalViewDetail" class="fixed inset-0 z-[110] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
     <div class="flex items-center justify-center min-h-screen p-4 text-left">
-        <div class="bg-white rounded-[2rem] w-full max-w-2xl shadow-2xl animate-reveal overflow-hidden border border-white">
+        <div class="bg-white rounded-[2rem] w-full max-w-2xl shadow-2xl animate-reveal overflow-hidden">
             <div class="sidebar-gradient p-6 text-white flex justify-between items-center">
-                <h3 class="text-xl font-bold uppercase tracking-widest">Detail Informasi Kelompok</h3>
+                <h3 class="text-xl font-bold"><i class="fa-solid fa-users-viewfinder mr-2"></i>
+                    Detail Informasi Circle
+                </h3>
                 <button onclick="closeModal('modalViewDetail')" class="text-white/70 hover:text-white text-2xl">&times;</button>
             </div>
             <div class="p-8 space-y-6">
@@ -187,7 +189,7 @@
 <!-- ================= MODAL KONFIRMASI APPROVAL/REJECT (STAY SAME) ================= -->
 <div id="modalCircleAction" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
     <div class="flex items-center justify-center min-h-screen p-4 text-left">
-        <div class="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden border border-white">
+        <div class="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden">
             <div id="circleHeader" class="p-6 text-white flex justify-between items-center transition-colors duration-500">
                 <h3 id="circleTitle" class="text-lg font-bold uppercase tracking-widest">Konfirmasi</h3>
                 <button onclick="closeModal('modalCircleAction')" class="text-white/70 hover:text-white text-2xl">&times;</button>

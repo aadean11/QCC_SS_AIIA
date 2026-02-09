@@ -151,10 +151,12 @@
 <!-- ================= MODAL UPLOAD ================= -->
 <div id="modalUpload" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
     <div class="flex items-center justify-center min-h-screen p-4 text-left">
-        <div class="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden border border-white">
+        <div class="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden">
             <div class="sidebar-gradient p-6 text-white flex justify-between items-center">
                 <div>
-                    <h3 class="text-lg font-bold uppercase tracking-widest text-white">Upload Progres</h3>
+                    <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-cloud-arrow-up mr-2"></i>
+                        Upload Progres
+                    </h3>
                     <p id="modalStepName" class="text-[10px] text-blue-200 font-medium uppercase mt-1"></p>
                 </div>
                 <button onclick="closeModal('modalUpload')" class="text-white/70 hover:text-white text-2xl">&times;</button>

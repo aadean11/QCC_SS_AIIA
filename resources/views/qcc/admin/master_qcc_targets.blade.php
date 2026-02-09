@@ -84,9 +84,11 @@
 <!-- ================= MODAL ADD ================= -->
 <div id="modalAdd" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
     <div class="flex items-center justify-center min-h-screen p-4 text-left">
-        <div class="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden border border-white">  
+        <div class="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden">  
             <div class="sidebar-gradient p-6 text-white flex justify-between items-center">
-                <h3 class="text-xl font-bold uppercase tracking-widest">Set Target Departemen</h3>
+                <h3 class="text-xl font-bold"><i class="fa-solid fa-bullseye mr-2"></i>
+                    Set Target Departemen
+                </h3>
                 <button onclick="closeModal('modalAdd')" class="text-white/70 hover:text-white text-2xl">&times;</button>
             </div>
             <form id="formAdd" action="{{ route('qcc.admin.store_target') }}" method="POST" class="p-8 space-y-5">
@@ -118,9 +120,11 @@
 <!-- ================= MODAL EDIT ================= -->
 <div id="modalEdit" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
     <div class="flex items-center justify-center min-h-screen p-4 text-left">
-        <div class="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden border border-white">
+        <div class="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden">
             <div class="sidebar-gradient p-6 text-white flex justify-between items-center">
-                <h3 class="text-xl font-bold uppercase tracking-widest text-white">Update Target</h3>
+                <h3 class="text-xl font-bold text-white"><i class="fa-solid fa-pen-to-square mr-2"></i>
+                    Update Target
+                </h3>
                 <button onclick="closeModal('modalEdit')" class="text-white/70 hover:text-white text-2xl">&times;</button>
             </div>
             <form id="formEdit" method="POST" class="p-8 space-y-5">

@@ -120,9 +120,11 @@
 <!-- ================= MODAL DETAIL ================= -->
 <div id="modalDetail" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
     <div class="flex items-center justify-center min-h-screen p-4 text-left">
-        <div class="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden border border-white">
+        <div class="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden">
             <div class="sidebar-gradient p-6 text-white flex justify-between items-center">
-                <h3 class="text-xl font-bold uppercase tracking-widest">Detail Langkah QCC</h3>
+                <h3 class="text-xl font-bold"><i class="fa-solid fa-circle-info mr-2"></i>
+                    Detail Langkah QCC
+                </h3>
                 <button onclick="closeModal('modalDetail')" class="text-white/70 hover:text-white text-2xl">&times;</button>
             </div>
             <div class="p-8 space-y-6">
@@ -153,9 +155,12 @@
 <!-- ================= MODAL ADD ================= -->
 <div id="modalAdd" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
     <div class="flex items-center justify-center min-h-screen p-4 text-left">
-        <div class="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden border border-white">  
+        <div class="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden">  
             <div class="sidebar-gradient p-6 text-white flex justify-between items-center">
-                <h3 class="text-xl font-bold uppercase tracking-widest">Tambah Step QCC</h3>
+                <h3 class="text-xl font-bold"> 
+                    <i class="fa-solid fa-list-check mr-2"></i>
+                    Tambah Step QCC
+                </h3>
                 <button onclick="closeModal('modalAdd')" class="text-white/70 hover:text-white text-2xl">&times;</button>
             </div>
             <form id="formAdd" action="{{ route('qcc.admin.store_step') }}" method="POST" enctype="multipart/form-data" class="p-8 space-y-6">
@@ -185,9 +190,12 @@
 <!-- ================= MODAL EDIT ================= -->
 <div id="modalEdit" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
     <div class="flex items-center justify-center min-h-screen p-4 text-left">
-        <div class="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden border border-white">
+        <div class="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden">
             <div class="sidebar-gradient p-6 text-white flex justify-between items-center">
-                <h3 class="text-xl font-bold uppercase tracking-widest">Edit Step QCC</h3>
+                <h3 class="text-xl font-bold">
+                    <i class="fa-solid fa-pen-to-square mr-2"></i>
+                    Edit Step QCC
+                </h3>
                 <button onclick="closeModal('modalEdit')" class="text-white/70 hover:text-white text-2xl">&times;</button>
             </div>
             <form id="formEdit" method="POST" enctype="multipart/form-data" class="p-8 space-y-6">

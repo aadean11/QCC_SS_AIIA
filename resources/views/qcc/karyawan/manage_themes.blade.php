@@ -134,9 +134,11 @@
 <!-- ================= MODAL ADD THEME ================= -->
 <div id="modalAddTheme" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm transition-all">
     <div class="flex items-center justify-center min-h-screen p-4 text-left">
-        <div class="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden border border-white">
+        <div class="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden">
             <div class="sidebar-gradient p-6 text-white flex justify-between items-center">
-                <h3 class="text-lg font-bold uppercase tracking-widest">Tambah Tema QCC</h3>
+                <h3 class="text-lg font-bold"><i class="fa-solid fa-lightbulb mr-2"></i>
+                    Tambah Tema QCC
+                </h3>
                 <button onclick="closeModal('modalAddTheme')" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 transition-all text-xl">&times;</button>
             </div>
             <form id="formStoreTheme" action="{{ route('qcc.karyawan.store_theme') }}" method="POST" class="p-10 space-y-6 text-left">
@@ -167,9 +169,11 @@
 <!-- ================= MODAL EDIT THEME ================= -->
 <div id="modalEditTheme" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm transition-all">
     <div class="flex items-center justify-center min-h-screen p-4 text-left">
-        <div class="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden border border-white">
+        <div class="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden">
             <div class="sidebar-gradient p-6 text-white flex justify-between items-center">
-                <h3 class="text-lg font-bold uppercase tracking-widest">Update Data Tema</h3>
+                <h3 class="text-lg font-bold"><i class="fa-solid fa-pen-to-square mr-2"></i>
+                    Update Data Tema
+                </h3>
                 <button onclick="closeModal('modalEditTheme')" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 transition-all text-xl">&times;</button>
             </div>
             <form id="formUpdateTheme" method="POST" class="p-10 space-y-6 text-left">

@@ -119,9 +119,11 @@
 <!-- ================= MODAL DETAIL ================= -->
 <div id="modalDetail" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
     <div class="flex items-center justify-center min-h-screen p-4 text-left">
-        <div class="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden border border-white">
+        <div class="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden">
             <div class="sidebar-gradient p-6 text-white flex justify-between items-center">
-                <h3 class="text-xl font-bold uppercase tracking-widest">Profil Karyawan</h3>
+                <h3 class="text-xl font-bold"><i class="fa-solid fa-id-card mr-2"></i>
+                    Profil Karyawan
+                </h3>
                 <button onclick="closeModal('modalDetail')" class="text-white/70 hover:text-white text-2xl">&times;</button>
             </div>
             <div class="p-8 space-y-6">
@@ -157,9 +159,11 @@
 <!-- ================= MODAL ADD ================= -->
 <div id="modalAdd" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
     <div class="flex items-center justify-center min-h-screen p-4 text-left">
-        <div class="bg-white rounded-[2rem] w-full max-w-xl shadow-2xl animate-reveal overflow-hidden border border-white">  
+        <div class="bg-white rounded-[2rem] w-full max-w-xl shadow-2xl animate-reveal overflow-hidden">  
             <div class="sidebar-gradient p-6 text-white flex justify-between items-center">
-                <h3 class="text-xl font-bold uppercase tracking-widest">Registrasi Karyawan</h3>
+                <h3 class="text-xl font-bold"><i class="fa-solid fa-user-plus mr-2"></i>
+                    Registrasi Karyawan
+                </h3>
                 <button onclick="closeModal('modalAdd')" class="text-white/70 hover:text-white text-2xl">&times;</button>
             </div>
             <form id="formAdd" action="{{ route('admin.master_employee.store') }}" method="POST" class="p-8 grid grid-cols-2 gap-5 text-left">
@@ -198,9 +202,11 @@
 <!-- ================= MODAL EDIT ================= -->
 <div id="modalEdit" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
     <div class="flex items-center justify-center min-h-screen p-4 text-left">
-        <div class="bg-white rounded-[2.5rem] w-full max-w-xl shadow-2xl animate-reveal overflow-hidden border border-white">
+        <div class="bg-white rounded-[2.5rem] w-full max-w-xl shadow-2xl animate-reveal overflow-hidden">
             <div class="sidebar-gradient p-6 text-white flex justify-between items-center">
-                <h3 class="text-xl font-bold uppercase tracking-widest text-white">Update Data Karyawan</h3>
+                <h3 class="text-xl font-bold text-white"><i class="fa-solid fa-pen-to-square mr-2"></i>
+                    Update Data Karyawan
+                </h3>
                 <button onclick="closeModal('modalEdit')" class="text-white/70 hover:text-white text-2xl">&times;</button>
             </div>
             <form id="formEdit" method="POST" class="p-8 grid grid-cols-2 gap-5 text-left">

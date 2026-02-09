@@ -160,7 +160,7 @@
 <!-- ================= MODAL APPROVAL / REJECT ================= -->
 <div id="modalApproval" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
     <div class="flex items-center justify-center min-h-screen p-4 text-left">
-        <div class="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden border border-white">
+        <div class="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden">
             <!-- Header Modal Dinamis -->
             <div id="modalHeader" class="p-6 text-white flex justify-between items-center transition-colors duration-500">
                 <h3 id="modalTitle" class="text-lg font-bold uppercase tracking-widest">Konfirmasi</h3>
@@ -197,7 +197,7 @@
 <!-- ================= MODAL PREVIEW PDF ================= -->
 <div id="modalFilePreview" class="fixed inset-0 z-[110] hidden overflow-y-auto bg-black/70 backdrop-blur-md">
     <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-[2rem] w-full max-w-5xl h-[90vh] shadow-2xl animate-reveal overflow-hidden flex flex-col border border-white">
+        <div class="bg-white rounded-[2rem] w-full max-w-5xl h-[90vh] shadow-2xl animate-reveal overflow-hidden flex flex-col">
             <!-- Header Modal -->
             <div class="sidebar-gradient p-5 text-white flex justify-between items-center">
                 <div class="flex items-center gap-3">
