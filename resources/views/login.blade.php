@@ -3,80 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Satu AISIN</title>
+    <title>Login - SIGIT-A</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: 'Poppins', sans-serif; overflow-x: hidden; }
         .bg-custom-gradient { background: linear-gradient(180deg, #FFFFFF 0%, #130998 100%); }
         .btn-gradient { background: linear-gradient(90deg, #091E6E 0%, #1035D1 100%); transition: all 0.3s ease; }
-        .sidebar-gradient { background: linear-gradient(180deg, #091E6E 0%, #130998 100%); }
         
+        /* Branding Style */
+        .text-brand {
+            background: linear-gradient(to right, #091E6E, #130998);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
         @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0px); } }
         .animate-float { animation: float 4s ease-in-out infinite; }
 
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-reveal { animation: fadeInUp 0.8s ease-out forwards; }
+        .animate-reveal { opacity: 0; animation: fadeInUp 0.8s ease-out forwards; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
 
-    <header class="bg-white h-20 px-10 shadow-md flex items-center shrink-0 relative z-50">
+    <header class="bg-white h-20 px-10 shadow-md flex justify-between items-center shrink-0 relative z-50">
         <img src="{{ asset('assets/images/logo-aisin.png') }}" alt="Satu AISIN Logo" class="h-12">
+        <!-- Badge Nama Aplikasi di Header -->
+        <div class="hidden md:flex flex-col items-end leading-none">
+            <span class="text-xl font-extrabold text-[#091E6E]">SIGIT<span class="text-blue-500">-A</span></span>
+            <!-- <span class="text-[9px] text-gray-400 font-medium">Sistem Integrasi Gagasan, Inovasi & Tindak lanjut AIIA</span> -->
+        </div>
     </header>
 
     <main class="flex-1 bg-custom-gradient flex items-center justify-center p-6">
         <div class="container mx-auto flex flex-col md:flex-row items-center justify-around gap-12">
             
             <div class="hidden md:flex flex-col items-center text-white max-w-sm">
-                <div class="animate-reveal"><img src="{{ asset('assets/images/In progress-amico.png') }}" class="w-full mb-6 animate-float"></div>
-                <h1 class="text-1xl font-semibold text-center leading-relaxed">Satu ide, Satu Perubahan, Satu Kemajuan!</h1>
+                <div class="animate-reveal">
+                    <img src="{{ asset('assets/images/In progress-amico.png') }}" class="w-full mb-6 animate-float">
+                </div>
+                <h1 class="text-2xl font-extrabold text-center leading-tight mb-2 uppercase">SIGIT-A</h1>
+                <p class="text-white-400 text-[13px] leading-relaxed px-4">
+                        <span class="font-bold text-white-900">S</span>istem
+                        <span class="font-bold text-white-900">I</span>ntegrasi
+                        <span class="font-bold text-white-900">G</span>agasan,
+                        <span class="font-bold text-white-900">I</span>novasi &
+                        <span class="font-bold text-white-900">T</span>indak lanjut
+                        <span class="font-bold text-white-900">AIIA</span>
+                </p>
+                <br>
+                <p class="text-sm font-light text-center opacity-90 italic">"Satu ide, Satu Perubahan, Satu Kemajuan!"</p>
             </div>
 
             <!-- Login Card -->
             <div class="bg-white rounded-[2.5rem] shadow-2xl p-10 max-w-md w-full animate-reveal relative">
                 <div class="text-center mb-10">
-                    <h2 class="text-3xl font-bold text-[#162299] mb-2">Selamat Datang</h2>
-                    <p class="text-gray-400 text-sm font-medium">Masukkan kredensial Anda</p>
+                    <!-- Desain Nama Aplikasi yang Menarik -->
+                    <div class="mb-4 inline-block">
+                        <h2 class="text-5xl font-extrabold text-brand tracking-tighter">SIGIT<span class="text-blue-500">-A</span></h2>
+                        <div class="h-1.5 w-12 bg-blue-500 mx-auto rounded-full mt-1"></div>
+                    </div>
+                    
+                    <!-- <h3 class="text-sm font-bold text-gray-700 uppercase tracking-widest mb-1">Selamat Datang</h3> -->
+                    <p class="text-gray-400 text-[16px] leading-relaxed px-4">
+                        <span class="font-bold text-blue-900">S</span>istem
+                        <span class="font-bold text-blue-900">I</span>ntegrasi
+                        <span class="font-bold text-blue-900">G</span>agasan,
+                        <span class="font-bold text-blue-900">I</span>novasi &
+                        <span class="font-bold text-blue-900">T</span>indak lanjut
+                        <span class="font-bold text-blue-900">AIIA</span>
+                    </p>
                 </div>
 
                 <form id="tempLoginForm">
                     @csrf
                     <div class="mb-5">
                         <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Username (NPK)</label>
-                        <input type="text" id="username" placeholder="Masukkan NPK Anda" required
-                            class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] text-gray-700 bg-gray-50/50">
+                        <input type="text" id="username" placeholder="Masukkan NPK Anda" autofocus required
+                            class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] text-gray-700 bg-gray-50/50 transition-all">
                     </div>
 
                     <div class="mb-8 relative">
                         <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Password</label>
                         <input type="password" id="password" placeholder="Masukkan Password Anda" required
-                            class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] text-gray-700 bg-gray-50/50 pr-12">
-                        <div id="togglePassword" class="absolute bottom-4 right-4 cursor-pointer text-gray-300"><i id="eyeIcon" class="fa-solid fa-eye"></i></div>
+                            class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] text-gray-700 bg-gray-50/50 pr-12 transition-all">
+                        <div id="togglePassword" class="absolute bottom-4 right-4 cursor-pointer text-gray-300 hover:text-blue-900 transition-colors">
+                            <i id="eyeIcon" class="fa-solid fa-eye"></i>
+                        </div>
                     </div>
 
                     <button type="submit" id="btnCheck" class="w-full btn-gradient flex items-center justify-center gap-3
                                 text-white font-black py-4 rounded-2xl shadow-lg
                                 active:scale-95 uppercase tracking-widest text-sm">
                         <i class="fa-solid fa-right-to-bracket"></i>
-                        Login
-                        </button>
+                        Masuk Ke Sistem
+                    </button>
                 </form>
+                
+                <div class="mt-8 text-center">
+                    <p class="text-[10px] text-gray-400 font-medium italic">PT Aisin Indonesia Automotive &copy; {{ date('Y') }}</p>
+                </div>
             </div>
         </div>
     </main>
 
-    <!-- MODAL PILIH AKSES (SESUAI DESAIN MASTER ANDA) -->
+    <!-- MODAL PILIH AKSES -->
     <div id="modalRole" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden">
                 <div class="sidebar-gradient p-6 text-white flex justify-between items-center">
-                    <h3 class="text-xl font-bold">Pilih Akses Masuk</h3>
+                    <h3 class="text-xl font-bold uppercase tracking-widest">Pilih Akses Masuk</h3>
                     <button onclick="closeModal()" class="text-white/70 hover:text-white text-2xl">&times;</button>
                 </div>
                 <div class="p-8 space-y-6">
-                    <p class="text-center text-gray-500 text-sm">Akun Anda terdeteksi memiliki akses Administrator. Silakan pilih mode masuk:</p>
+                    <div class="text-center mb-2">
+                        <h4 class="text-2xl font-black text-[#091E6E]">SIGIT<span class="text-blue-500">-A</span></h4>
+                        <p class="text-gray-500 text-xs">Pilih mode akses untuk melanjutkan</p>
+                    </div>
                     
                     <div class="grid gap-4">
                         <button onclick="finalSubmit('admin')" class="flex items-center gap-5 p-5 border-2 border-gray-100 rounded-3xl hover:border-[#130998] hover:bg-indigo-50 transition-all text-left group">
@@ -138,10 +184,8 @@
 
                 if (data.status === 'success') {
                     if (data.is_admin) {
-                        // Munculkan Modal jika dia Admin
                         document.getElementById('modalRole').classList.remove('hidden');
                     } else {
-                        // Langsung masuk sebagai Karyawan jika bukan Admin
                         finalSubmit('employee');
                     }
                 } else {
@@ -149,6 +193,7 @@
                 }
             } catch (err) {
                 console.error(err);
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Terjadi kesalahan pada server.' });
             } finally {
                 btn.disabled = false;
                 btn.innerText = 'Masuk Ke Sistem';
@@ -162,7 +207,6 @@
             document.getElementById('realLoginForm').submit();
         }
 
-        // Toggle Password
         document.getElementById('togglePassword').addEventListener('click', function () {
             const passwordInput = document.getElementById('password');
             const eyeIcon = document.getElementById('eyeIcon');
