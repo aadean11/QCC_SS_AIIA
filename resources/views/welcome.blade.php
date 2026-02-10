@@ -10,6 +10,11 @@
     
     <style>
         body { font-family: 'Poppins', sans-serif; background-color: #F3F4F6; }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
         
         /* SIDEBAR BASE */
         .sidebar-gradient { 
@@ -176,6 +181,22 @@
             z-index: 99998;
         }
 
+        .swal2-shown {
+            padding-right: 0 !important;
+        }
+
+        body.swal2-height-auto {
+            height: 100vh !important;
+        }
+
+        .swal2-container {
+            position: fixed !important;
+            inset: 0 !important;
+        }
+
+        .sidebar-collapsed ~ main {
+            margin-left: 5rem !important;
+        }
     </style>
     <!-- SCRIPT CEK STATUS SIDEBAR SEBELUM HALAMAN DI-RENDER (Mencegah Kedip) -->
     <script>
@@ -187,8 +208,7 @@
         })();
     </script>
 </head>
-<body class="h-screen flex flex-col overflow-hidden text-sm">
-
+<body class="h-screen flex flex-col text-sm">
     <!-- TOPBAR -->
     <header class="bg-white h-20 px-8 flex justify-between items-center shadow-sm sticky top-0 z-50">
         <div class="flex items-center gap-8">
@@ -215,11 +235,10 @@
         </div>
     </header>
 
-    <div class="flex flex-1 overflow-hidden">
+    <div class="flex flex-1 h-full">
         <!-- SIDEBAR -->
-        <aside id="sidebar" class="w-72 sidebar-gradient hidden md:flex flex-col p-4 shadow-2xl relative">
+        <aside id="sidebar" class="w-72 sidebar-gradient hidden md:flex flex-col p-4 shadow-2xl fixed top-20 left-0 h-[calc(100vh-5rem)] z-40">
             <div class="flex-1 mt-1 overflow-y-auto custom-scrollbar pr-2">
-                
                 <nav class="space-y-1">
                     <!-- 1. DASHBOARD (Universal) -->
                     <a href="{{ route('welcome') }}" class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl {{ request()->is('welcome') ? 'bg-white/20 border-l-4 border-yellow-400' : '' }}">
@@ -361,7 +380,7 @@
             </div>
         </aside>
 
-        <main class="flex-1 p-8 overflow-y-auto custom-scrollbar">
+        <main class="flex-1 ml-72 p-8 overflow-y-auto custom-scrollbar h-[calc(100vh-5rem)]">
             @yield('content')
         </main>
     </div>
@@ -662,15 +681,15 @@
             });
 
             @if(session('success'))
-                Swal.fire({ icon: 'success', title: 'Berhasil!', text: "{{ session('success') }}", confirmButtonColor: '#091E6E' });
+                Swal.fire({ icon: 'success', title: 'Berhasil!', text: "{{ session('success') }}", confirmButtonColor: '#091E6E', scrollbarPadding: false });
             @endif
 
             @if(session('error'))
-                Swal.fire({ icon: 'error', title: 'Gagal!', text: "{{ session('error') }}", confirmButtonColor: '#091E6E' });
+                Swal.fire({ icon: 'error', title: 'Gagal!', text: "{{ session('error') }}", confirmButtonColor: '#091E6E', scrollbarPadding: false });
             @endif
 
             @if(session('warning'))
-                Swal.fire({ icon: 'warning', title: 'Perhatian!', text: "{{ session('warning') }}", confirmButtonColor: '#091E6E' });
+                Swal.fire({ icon: 'warning', title: 'Perhatian!', text: "{{ session('warning') }}", confirmButtonColor: '#091E6E', scrollbarPadding: false });
             @endif
 
             @if(session('info'))
@@ -678,7 +697,8 @@
                     icon: 'info', 
                     title: 'Informasi', 
                     text: "{{ session('info') }}", 
-                    confirmButtonColor: '#091E6E' 
+                    confirmButtonColor: '#091E6E',
+                    scrollbarPadding: false 
                 });
             @endif
         });
