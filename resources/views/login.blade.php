@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - SIGIT-A</title>
+    <title>Login - SIGITA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -33,7 +33,7 @@
         <img src="{{ asset('assets/images/logo-aisin.png') }}" alt="Satu AISIN Logo" class="h-12">
         <!-- Badge Nama Aplikasi di Header -->
         <div class="hidden md:flex flex-col items-end leading-none">
-            <span class="text-xl font-extrabold text-[#091E6E]">SIGIT<span class="text-blue-500">-A</span></span>
+            <span class="text-xl font-extrabold text-[#091E6E]">SIGIT<span class="text-blue-500">A</span></span>
             <!-- <span class="text-[9px] text-gray-400 font-medium">Sistem Integrasi Gagasan, Inovasi & Tindak lanjut AIIA</span> -->
         </div>
     </header>
@@ -45,14 +45,14 @@
                 <div class="animate-reveal">
                     <img src="{{ asset('assets/images/In progress-amico.png') }}" class="w-full mb-6 animate-float">
                 </div>
-                <h1 class="text-2xl font-extrabold text-center leading-tight mb-2 uppercase">SIGIT-A</h1>
+                <h1 class="text-2xl font-extrabold text-center leading-tight mb-2 uppercase">SIGITA</h1>
                 <p class="text-white-400 text-[13px] leading-relaxed px-4">
                         <span class="font-bold text-white-900">S</span>istem
                         <span class="font-bold text-white-900">I</span>ntegrasi
                         <span class="font-bold text-white-900">G</span>agasan,
                         <span class="font-bold text-white-900">I</span>novasi &
                         <span class="font-bold text-white-900">T</span>indak lanjut
-                        <span class="font-bold text-white-900">AIIA</span>
+                        <span class="font-bold text-white-900">A</span>IIA
                 </p>
                 <br>
                 <p class="text-sm font-light text-center opacity-90 italic">"Satu ide, Satu Perubahan, Satu Kemajuan!"</p>
@@ -63,7 +63,9 @@
                 <div class="text-center mb-10">
                     <!-- Desain Nama Aplikasi yang Menarik -->
                     <div class="mb-4 inline-block">
-                        <h2 class="text-5xl font-extrabold text-brand tracking-tighter">SIGIT<span class="text-blue-500">-A</span></h2>
+                        <h2 class="text-5xl font-extrabold tracking-tighter">
+                            <span class="text-brand">SIGIT</span><span class="text-blue-500">A</span>
+                        </h2>
                         <div class="h-1.5 w-12 bg-blue-500 mx-auto rounded-full mt-1"></div>
                     </div>
                     
@@ -74,7 +76,7 @@
                         <span class="font-bold text-blue-900">G</span>agasan,
                         <span class="font-bold text-blue-900">I</span>novasi &
                         <span class="font-bold text-blue-900">T</span>indak lanjut
-                        <span class="font-bold text-blue-900">AIIA</span>
+                        <span class="font-bold text-blue-900">A</span>IIA
                     </p>
                 </div>
 
@@ -120,7 +122,7 @@
                 </div>
                 <div class="p-8 space-y-6">
                     <div class="text-center mb-2">
-                        <h4 class="text-2xl font-black text-[#091E6E]">SIGIT<span class="text-blue-500">-A</span></h4>
+                        <h4 class="text-2xl font-black text-[#091E6E]">SIGIT<span class="text-blue-500">A</span></h4>
                         <p class="text-gray-500 text-xs">Pilih mode akses untuk melanjutkan</p>
                     </div>
                     

@@ -15,12 +15,12 @@ use App\Models\Division;
 use App\Models\QccCircleStepTransaction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class AdminQccController extends Controller
 {
     public function index(Request $request)
     {
-        // Mengambil user dengan relasi hirarki yang lengkap
         $user = Employee::with(['subSection.section.department.division', 'section.department.division'])->find(Auth::id());
         
         $viewLevel = $request->get('view_level', 'company'); 
@@ -28,139 +28,198 @@ class AdminQccController extends Controller
         $selectedDiv = $request->get('division_code');
         $isAdmin = (session('active_role') === 'admin');
 
-        // Ambil Periode Aktif
         $periods = QccPeriod::orderBy('year', 'desc')->get();
         if (!$selectedPeriod) {
             $selectedPeriod = QccPeriod::where('status', 'ACTIVE')->value('id') ?? QccPeriod::orderBy('id', 'desc')->value('id');
         }
 
-        // --- LOGIKA OTORITAS DATA (Penentu Filter) ---
+        // --- LOGIKA OTORITAS DATA ---
         $selectedDept = null;
-
         if ($isAdmin) {
-            // Admin bebas melihat apa saja, biarkan $viewLevel sesuai request
             $selectedDept = $request->get('department_code');
-        } 
-        elseif ($user->occupation === 'GMR') {
-            // GMR dipaksa ke level Division unitnya jika mencoba akses Company
+        } elseif ($user->occupation === 'GMR') {
             if ($viewLevel === 'company') $viewLevel = 'division';
-            
-            // Cari Divisi si GMR
             $myDept = Department::where('code', $user->getDeptCode())->first();
             $selectedDiv = $myDept ? $myDept->code_division : null;
-        } 
-        elseif (in_array($user->occupation, ['KDP', 'SPV'])) {
-            // KDP/SPV dipaksa hanya melihat Departemennya
-            $viewLevel = 'department';
+        } elseif (in_array($user->occupation, ['KDP', 'SPV'])) {
+            // SPV & KDP diizinkan akses tab department atau tab circle
+            if (!in_array($viewLevel, ['department', 'circle'])) {
+                $viewLevel = 'department';
+            }
             $selectedDept = $user->getDeptCode();
             $deptData = Department::where('code', $selectedDept)->first();
             $selectedDiv = $deptData ? $deptData->code_division : null;
         }
 
-        // 1. STATS (Data kotak angka di atas)
-        $stats = $this->calculateStats($selectedPeriod, $viewLevel, $selectedDiv, $selectedDept);
+        // --- LOGIKA PROGRESS LINE (Garis Merah) ---
+        $today = Carbon::now();
+        $progressLineX = null;
+        $todayDate = $today->format('d/m/Y');
+        $period = QccPeriod::find($selectedPeriod);
+        $periodSteps = QccPeriodStep::where('qcc_period_id', $selectedPeriod)
+            ->join('m_qcc_steps', 'm_qcc_period_steps.qcc_step_id', '=', 'm_qcc_steps.id')
+            ->orderBy('m_qcc_steps.step_number', 'asc')
+            ->get(['m_qcc_period_steps.deadline_date', 'm_qcc_steps.step_number', 'm_qcc_steps.id as step_id']);
 
-        // 2. LOGIKA MULTI-CHART (Populasi data grafik)
+        if ($period && $periodSteps->count() > 0) {
+            $startDate = Carbon::parse($period->start_date);
+            $lastDeadline = Carbon::parse($periodSteps->last()->deadline_date);
+
+            if ($today->lt($startDate)) {
+                $progressLineX = 0;
+            } elseif ($today->gt($lastDeadline)) {
+                $progressLineX = 8;
+            } else {
+                $points = [$startDate];
+                foreach($periodSteps as $ps) { $points[] = Carbon::parse($ps->deadline_date); }
+
+                for ($i = 0; $i < count($points) - 1; $i++) {
+                    $start = $points[$i]; $end = $points[$i+1];
+                    if ($today->between($start, $end)) {
+                        $totalSecs = $start->diffInSeconds($end);
+                        $currentSecs = $start->diffInSeconds($today);
+                        $progressLineX = $i + ($currentSecs / ($totalSecs ?: 1));
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Tentukan Filter Departemen
+        $selectedDept = null;
+        if ($isAdmin) {
+            $selectedDept = $request->get('department_code');
+        } elseif ($user->occupation === 'GMR') {
+            $myDept = Department::where('code', $user->getDeptCode())->first();
+            $selectedDiv = $myDept ? $myDept->code_division : null;
+        } elseif (in_array($user->occupation, ['KDP', 'SPV'])) {
+            $selectedDept = $user->getDeptCode();
+        }
+
+        // --- HITUNG STATS DENGAN LOGIKA BARU ---
+        // Kita kirim progressLineX ke calculateStats
+        $stats = $this->calculateStats($selectedPeriod, $viewLevel, $selectedDiv, $selectedDept, $progressLineX, $periodSteps);
+
+        // 2. LOGIKA MULTI-CHART
         $charts = [];
-
         if ($viewLevel == 'company' && $isAdmin) {
-            $charts[] = [
-                'title' => 'All Company Overview', 
-                'data' => $this->getChartData($selectedPeriod)
-            ];
-        } 
-        elseif ($viewLevel == 'division') {
+            $charts[] = ['title' => 'All Company Overview', 'data' => $this->getChartData($selectedPeriod)];
+        } elseif ($viewLevel == 'division') {
             $divQuery = Division::query();
-            if (!$isAdmin) $divQuery->where('code', $selectedDiv); // GMR hanya liat divisinya
-            
+            if (!$isAdmin) $divQuery->where('code', $selectedDiv);
             foreach ($divQuery->get() as $div) {
                 $deptCodes = Department::where('code_division', $div->code)->pluck('code');
-                $charts[] = [
-                    'title' => 'Division: ' . $div->name,
-                    'data' => $this->getChartData($selectedPeriod, $deptCodes)
-                ];
+                $charts[] = ['title' => 'Division: ' . $div->name, 'data' => $this->getChartData($selectedPeriod, $deptCodes)];
+            }
+        } elseif ($viewLevel == 'department') {
+            $deptQuery = Department::query();
+            if (!$isAdmin && in_array($user->occupation, ['KDP', 'SPV'])) { $deptQuery->where('code', $selectedDept); }
+            elseif (!$isAdmin && $user->occupation === 'GMR') { $deptQuery->where('code_division', $selectedDiv); }
+            else { if ($selectedDiv) $deptQuery->where('code_division', $selectedDiv); }
+            foreach ($deptQuery->orderBy('name', 'asc')->get() as $dept) {
+                $charts[] = ['title' => 'Dept: ' . $dept->name, 'data' => $this->getChartData($selectedPeriod, [$dept->code])];
             }
         } 
-        elseif ($viewLevel == 'department') {
-            $deptQuery = Department::query();
-            
-            if (!$isAdmin && in_array($user->occupation, ['KDP', 'SPV'])) {
-                $deptQuery->where('code', $selectedDept);
-            } elseif (!$isAdmin && $user->occupation === 'GMR') {
-                $deptQuery->where('code_division', $selectedDiv);
-            } else {
-                // Admin: filter berdasarkan pilihan dropdown divisi
-                if ($selectedDiv) $deptQuery->where('code_division', $selectedDiv);
-            }
+        // --- TAB BARU: PER CIRCLE ---
+        elseif ($viewLevel == 'circle') {
+            $circles = QccCircle::where('department_code', $selectedDept)
+                        ->where('qcc_period_id', $selectedPeriod)
+                        ->orderBy('circle_name', 'asc')->get();
 
-            foreach ($deptQuery->orderBy('name', 'asc')->get() as $dept) {
+            foreach ($circles as $circle) {
                 $charts[] = [
-                    'title' => 'Dept: ' . $dept->name,
-                    'data' => $this->getChartData($selectedPeriod, [$dept->code])
+                    'title' => 'Circle: ' . $circle->circle_name,
+                    'data' => $this->getChartDataPerCircle($circle->id)
                 ];
             }
         }
 
         $divisions = Division::all();
-
         return view('qcc.admin.dashboard', compact(
             'user', 'stats', 'periods', 'divisions', 
-            'selectedPeriod', 'viewLevel', 'selectedDiv', 'selectedDept', 'charts'
+            'selectedPeriod', 'viewLevel', 'selectedDiv', 'selectedDept', 'charts', 'progressLineX', 'todayDate'
         ));
     }
 
-    // Helper untuk hitung data chart (Step 0 - 8)
-    private function getChartData($periodId, $deptCodes = null)
+    /**
+     * Helper khusus untuk mengambil data 1 Circle saja
+     */
+    private function getChartDataPerCircle($circleId)
     {
-        $submitted = [];
-        $approved = [];
+        $submitted = []; $approved = [];
         
-        // Ambil Target (Sum)
-        $targetValue = QccTarget::where('qcc_period_id', $periodId)
-            ->when($deptCodes, fn($q) => $q->whereIn('department_code', $deptCodes))
-            ->sum('target_amount');
-
-        // Step 0 (Registrasi)
-        $step0Query = QccCircle::where('qcc_period_id', $periodId)
-            ->when($deptCodes, fn($q) => $q->whereIn('department_code', $deptCodes));
-        
-        $submitted[] = (clone $step0Query)->count();
-        $approved[] = (clone $step0Query)->where('status', 'ACTIVE')->count();
+        // Step 0 (Registration)
+        $circle = QccCircle::find($circleId);
+        $submitted[] = 1; // Karena circle ini sudah ada
+        $approved[] = ($circle->status === 'ACTIVE') ? 1 : 0;
 
         // Step 1 - 8
         for ($i = 1; $i <= 8; $i++) {
-            $baseQuery = QccCircleStepTransaction::where('qcc_step_id', $i)
-                ->whereHas('circle', function($q) use ($periodId, $deptCodes) {
-                    $q->where('qcc_period_id', $periodId);
-                    if ($deptCodes) $q->whereIn('department_code', $deptCodes);
-                });
-
-            $submitted[] = (clone $baseQuery)->count();
-            $approved[] = (clone $baseQuery)->where('status', 'APPROVED')->count();
+            $trans = QccCircleStepTransaction::where('qcc_circle_id', $circleId)
+                        ->where('qcc_step_id', $i)->first();
+            
+            $submitted[] = ($trans) ? 1 : 0;
+            $approved[] = ($trans && $trans->status === 'APPROVED') ? 1 : 0;
         }
 
         return [
             'submitted' => $submitted,
             'approved' => $approved,
-            'target' => array_fill(0, 9, (int)$targetValue)
+            'target' => array_fill(0, 9, 1) // Target per circle selalu 1 project
         ];
     }
 
-    private function calculateStats($periodId, $level, $divCode)
+    private function getChartData($periodId, $deptCodes = null)
     {
-        // Logika card stats mengikuti context (jika div dipilih, card hanya hitung div itu)
-        $deptCodes = null;
-        if($level == 'department' && $divCode) {
-            $deptCodes = Department::where('code_division', $divCode)->pluck('code');
+        $submitted = []; $approved = [];
+        $targetValue = QccTarget::where('qcc_period_id', $periodId)->when($deptCodes, fn($q) => $q->whereIn('department_code', $deptCodes))->sum('target_amount');
+        $step0Query = QccCircle::where('qcc_period_id', $periodId)->when($deptCodes, fn($q) => $q->whereIn('department_code', $deptCodes));
+        $submitted[] = (clone $step0Query)->count();
+        $approved[] = (clone $step0Query)->where('status', 'ACTIVE')->count();
+        for ($i = 1; $i <= 8; $i++) {
+            $baseQuery = QccCircleStepTransaction::where('qcc_step_id', $i)->whereHas('circle', function($q) use ($periodId, $deptCodes) {
+                $q->where('qcc_period_id', $periodId);
+                if ($deptCodes) $q->whereIn('department_code', $deptCodes);
+            });
+            $submitted[] = (clone $baseQuery)->count();
+            $approved[] = (clone $baseQuery)->where('status', 'APPROVED')->count();
         }
+        return ['submitted' => $submitted, 'approved' => $approved, 'target' => array_fill(0, 9, (int)$targetValue)];
+    }
 
-        $target = QccTarget::where('qcc_period_id', $periodId)
-                ->when($deptCodes, fn($q) => $q->whereIn('department_code', $deptCodes))
-                ->sum('target_amount');
+    private function calculateStats($periodId, $level, $divCode, $deptCode, $progressLineX, $periodSteps)
+    {
+        $deptCodes = $deptCode ? [$deptCode] : null;
+        if(!$deptCodes && $divCode) { $deptCodes = Department::where('code_division', $divCode)->pluck('code'); }
 
-        $actual = QccCircle::where('qcc_period_id', $periodId)
+        // Target dan Total Circle
+        $target = QccTarget::where('qcc_period_id', $periodId)->when($deptCodes, fn($q) => $q->whereIn('department_code', $deptCodes))->sum('target_amount');
+        $actual = QccCircle::where('qcc_period_id', $periodId)->when($deptCodes, fn($q) => $q->whereIn('department_code', $deptCodes))->count();
+
+        // Logika Circle Selesai berdasarkan Garis Merah
+        $completedCount = 0;
+        $targetStepNumber = floor($progressLineX ?? 0); // Contoh: 2.5 -> Berarti targetnya harus sudah selesai Step 2
+
+        if ($targetStepNumber == 0) {
+            // Jika masih di area Step 0, yang dihitung selesai adalah yang statusnya sudah ACTIVE
+            $completedCount = QccCircle::where('qcc_period_id', $periodId)
+                ->where('status', 'ACTIVE')
                 ->when($deptCodes, fn($q) => $q->whereIn('department_code', $deptCodes))
                 ->count();
+        } else {
+            // Jika sudah masuk ke Step 1-8
+            // Ambil ID step yang dimaksud dari koleksi $periodSteps
+            $targetStep = $periodSteps->where('step_number', $targetStepNumber)->first();
+            
+            if ($targetStep) {
+                $completedCount = QccCircleStepTransaction::where('qcc_step_id', $targetStep->step_id)
+                    ->where('status', 'APPROVED') // APPROVED berarti sudah diapprove KDP
+                    ->whereHas('circle', function($q) use ($periodId, $deptCodes) {
+                        $q->where('qcc_period_id', $periodId);
+                        if ($deptCodes) $q->whereIn('department_code', $deptCodes);
+                    })->count();
+            }
+        }
 
         return [
             'total_circles' => $actual,
@@ -170,12 +229,7 @@ class AdminQccController extends Controller
                     $q->where('qcc_period_id', $periodId);
                     if ($deptCodes) $q->whereIn('department_code', $deptCodes);
                 })->count(),
-            'completed' => QccCircleStepTransaction::where('qcc_step_id', 8)
-                ->where('status', 'APPROVED')
-                ->whereHas('circle', function($q) use ($periodId, $deptCodes) {
-                    $q->where('qcc_period_id', $periodId);
-                    if ($deptCodes) $q->whereIn('department_code', $deptCodes);
-                })->count(),
+            'completed' => $completedCount, // Hasil hitungan logika garis merah
         ];
     }
 

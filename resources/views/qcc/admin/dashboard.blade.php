@@ -4,8 +4,7 @@
 
 @section('content')
 <div class="animate-reveal pb-20">
-    
-    <!-- Header & Breadcrumbs -->
+    <!-- Breadcrumbs -->
     <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-1 gap-4">
         <nav class="flex text-sm text-gray-400">
             <ol class="inline-flex items-center space-x-1 md:space-x-3">
@@ -16,37 +15,33 @@
         </nav>
     </div>
 
-    <!-- Header & TAB NAVIGATION -->
+    <!-- TAB NAVIGATION & FILTERS -->
     <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-6">
         <div>
-            <!-- <h2 class="text-3xl font-bold text-[#091E6E]">QCC Monitoring Hub</h2> -->
             <div class="flex bg-gray-200/50 p-1 rounded-2xl w-fit mt-4 border border-gray-100 shadow-inner">
-    
-                <!-- Tab Company Hanya untuk Admin -->
                 @if(session('active_role') === 'admin')
-                    <button onclick="switchTab('company')" class="px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all {{ $viewLevel == 'company' ? 'bg-white text-[#091E6E] shadow-sm' : 'text-gray-500 hover:text-[#091E6E]' }}">
-                        Company
-                    </button>
+                    <button onclick="switchTab('company')" class="px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all {{ $viewLevel == 'company' ? 'bg-white text-[#091E6E] shadow-sm' : 'text-gray-500 hover:text-[#091E6E]' }}">Company</button>
                 @endif
 
-                <!-- Tab Division untuk Admin & GMR -->
                 @if(session('active_role') === 'admin' || $user->occupation === 'GMR')
-                    <button onclick="switchTab('division')" class="px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all {{ $viewLevel == 'division' ? 'bg-white text-[#091E6E] shadow-sm' : 'text-gray-500 hover:text-[#091E6E]' }}">
-                        Division
-                    </button>
+                    <button onclick="switchTab('division')" class="px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all {{ $viewLevel == 'division' ? 'bg-white text-[#091E6E] shadow-sm' : 'text-gray-500 hover:text-[#091E6E]' }}">Division</button>
                 @endif
 
-                <!-- Tab Department untuk Semua (Admin, GMR, KDP, SPV) -->
-                <button onclick="switchTab('department')" class="px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all {{ $viewLevel == 'department' ? 'bg-white text-[#091E6E] shadow-sm' : 'text-gray-500 hover:text-[#091E6E]' }}">
-                    Department
-                </button>
+                <!-- Tab Department -->
+                <button onclick="switchTab('department')" class="px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all {{ $viewLevel == 'department' ? 'bg-white text-[#091E6E] shadow-sm' : 'text-gray-500 hover:text-[#091E6E]' }}">Department</button>
+
+                <!-- TAB CIRCLE (Hanya untuk KDP & SPV) -->
+                @if(in_array($user->occupation, ['KDP', 'SPV']))
+                    <button onclick="switchTab('circle')" class="px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all {{ $viewLevel == 'circle' ? 'bg-white text-[#091E6E] shadow-sm' : 'text-gray-500 hover:text-[#091E6E]' }}">
+                       Circle
+                    </button>
+                @endif
             </div>
         </div>
 
         <form action="{{ route('qcc.admin.dashboard') }}" method="GET" id="filterForm" class="flex flex-col md:flex-row gap-3">
             <input type="hidden" name="view_level" id="view_level" value="{{ $viewLevel }}">
-            
-            @if($viewLevel == 'department')
+            @if($viewLevel == 'department' && session('active_role') === 'admin')
             <div class="flex items-center gap-3 bg-white p-2 px-4 rounded-2xl shadow-sm border border-gray-100 transition-all hover:border-[#091E6E]">
                 <i class="fa-solid fa-layer-group text-amber-500 text-xs"></i>
                 <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Division:</span>
@@ -58,7 +53,6 @@
                 </select>
             </div>
             @endif
-
             <div class="flex items-center gap-3 bg-white p-2 px-4 rounded-2xl shadow-sm border border-gray-100 transition-all hover:border-[#091E6E]">
                 <i class="fa-solid fa-calendar-check text-blue-400 text-xs"></i>
                 <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Periode:</span>
@@ -71,126 +65,160 @@
         </form>
     </div>
 
-    <!-- Stat Cards (Desain Hidup & Beranimasi) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        
-        <!-- Total Circle Card -->
-        <div class="glass-card p-6 rounded-[2rem] shadow-sm border-l-4 border-blue-600 transition-all duration-300 hover:scale-[1.05] hover:shadow-xl group relative overflow-hidden text-left">
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 text-left">
+        <div class="glass-card p-6 rounded-[2rem] shadow-sm border-l-4 border-blue-600 transition-all duration-300 hover:scale-[1.05] hover:shadow-xl group relative overflow-hidden">
             <div class="flex items-center justify-between relative z-10">
                 <div>
                     <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Circle Terdaftar</p>
-                    <div class="flex items-baseline gap-1">
-                        <h3 class="text-3xl font-black text-[#091E6E]">{{ $stats['total_circles'] }}</h3>
-                        <span class="text-gray-400 font-bold text-sm">/ {{ $stats['target_circles'] }}</span>
-                    </div>
+                    <div class="flex items-baseline gap-1"><h3 class="text-3xl font-black text-[#091E6E]">{{ $stats['total_circles'] }}</h3><span class="text-gray-400 font-bold text-sm">/ {{ $stats['target_circles'] }}</span></div>
                     <div class="w-full bg-gray-100 h-1.5 rounded-full mt-3 overflow-hidden">
-                        @php $percentReg = $stats['target_circles'] > 0 ? ($stats['total_circles'] / $stats['target_circles']) * 100 : 0; @endphp
-                        <div class="bg-blue-600 h-full rounded-full transition-all duration-1000" style="width: {{ min($percentReg, 100) }}%"></div>
+                        <div class="bg-blue-600 h-full rounded-full transition-all duration-1000" style="width: {{ $stats['target_circles'] > 0 ? min(($stats['total_circles'] / $stats['target_circles']) * 100, 100) : 0 }}%"></div>
                     </div>
                 </div>
-                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-inner group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
-                    <i class="fa-solid fa-users text-xl"></i>
-                </div>
+                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-inner group-hover:bg-blue-600 group-hover:text-white transition-all duration-500"><i class="fa-solid fa-users text-xl"></i></div>
             </div>
             <i class="fa-solid fa-users absolute -right-2 -bottom-2 opacity-5 text-blue-600 text-6xl"></i>
         </div>
-
-        <!-- Need Review Card -->
-        <div class="glass-card p-6 rounded-[2rem] shadow-sm border-l-4 border-amber-500 transition-all duration-300 hover:scale-[1.05] hover:shadow-xl group relative overflow-hidden text-left">
+        <div class="glass-card p-6 rounded-[2rem] shadow-sm border-l-4 border-amber-500 transition-all duration-300 hover:scale-[1.05] hover:shadow-xl group relative overflow-hidden">
             <div class="flex items-center justify-between relative z-10">
-                <div>
-                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Need Review</p>
-                    <h3 class="text-3xl font-black text-amber-600">{{ $stats['need_review'] }}</h3>
-                    <p class="text-[9px] text-gray-400 mt-2 font-bold uppercase italic tracking-tighter">Menunggu Approval</p>
-                </div>
-                <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center shadow-inner group-hover:bg-amber-600 group-hover:text-white transition-all duration-500">
-                    <i class="fa-solid fa-clock-rotate-left text-xl"></i>
-                </div>
+                <div><p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Need Review</p><h3 class="text-3xl font-black text-amber-600">{{ $stats['need_review'] }}</h3><p class="text-[9px] text-gray-400 mt-2 font-bold uppercase italic tracking-tighter">Menunggu Approval</p></div>
+                <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center shadow-inner group-hover:bg-amber-600 group-hover:text-white transition-all duration-500"><i class="fa-solid fa-clock-rotate-left text-xl"></i></div>
             </div>
             <i class="fa-solid fa-clock-rotate-left absolute -right-2 -bottom-2 opacity-5 text-amber-600 text-6xl"></i>
         </div>
-
-        <!-- Completed Card (Actual vs Target) -->
-        <div class="glass-card p-6 rounded-[2rem] shadow-sm border-l-4 border-emerald-500 transition-all duration-300 hover:scale-[1.05] hover:shadow-xl group relative overflow-hidden text-left">
+        <div class="glass-card p-6 rounded-[2rem] shadow-sm border-l-4 border-emerald-500 transition-all duration-300 hover:scale-[1.05] hover:shadow-xl group relative overflow-hidden">
             <div class="flex items-center justify-between relative z-10">
                 <div>
                     <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Circle Selesai</p>
-                    <div class="flex items-baseline gap-1">
-                        <h3 class="text-3xl font-black text-emerald-600">{{ $stats['completed'] }}</h3>
-                        <span class="text-gray-400 font-bold text-sm">/ {{ $stats['target_circles'] }}</span>
-                    </div>
+                    <div class="flex items-baseline gap-1"><h3 class="text-3xl font-black text-emerald-600">{{ $stats['completed'] }}</h3><span class="text-gray-400 font-bold text-sm">/ {{ $stats['target_circles'] }}</span></div>
                     <div class="w-full bg-gray-100 h-1.5 rounded-full mt-3 overflow-hidden">
-                        @php $percentComp = $stats['target_circles'] > 0 ? ($stats['completed'] / $stats['target_circles']) * 100 : 0; @endphp
-                        <div class="bg-emerald-500 h-full rounded-full transition-all duration-1000" style="width: {{ min($percentComp, 100) }}%"></div>
+                        <div class="bg-emerald-500 h-full rounded-full transition-all duration-1000" style="width: {{ $stats['target_circles'] > 0 ? min(($stats['completed'] / $stats['target_circles']) * 100, 100) : 0 }}%"></div>
                     </div>
                 </div>
-                <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center shadow-inner group-hover:bg-emerald-600 group-hover:text-white transition-all duration-500">
-                    <i class="fa-solid fa-circle-check text-xl"></i>
-                </div>
+                <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center shadow-inner group-hover:bg-emerald-600 group-hover:text-white transition-all duration-500"><i class="fa-solid fa-circle-check text-xl"></i></div>
             </div>
             <i class="fa-solid fa-circle-check absolute -right-2 -bottom-2 opacity-5 text-emerald-600 text-6xl"></i>
         </div>
-
-        <!-- Viewing Mode Card -->
-        <div class="glass-card p-6 rounded-[2rem] shadow-sm border-l-4 border-indigo-500 transition-all duration-300 hover:scale-[1.05] hover:shadow-xl group relative overflow-hidden text-left">
+        <div class="glass-card p-6 rounded-[2rem] shadow-sm border-l-4 border-indigo-500 transition-all duration-300 hover:scale-[1.05] hover:shadow-xl group relative overflow-hidden">
             <div class="flex items-center justify-between relative z-10">
-                <div>
-                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Viewing Mode</p>
-                    <h3 class="text-2xl font-black text-indigo-600 uppercase">{{ $viewLevel }}</h3>
-                    <p class="text-[9px] text-gray-400 mt-2 font-bold uppercase italic tracking-tight">Satu AISIN AIIA</p>
-                </div>
-                <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shadow-inner group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500">
-                    <i class="fa-solid fa-layer-group text-xl"></i>
-                </div>
+                <div><p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Viewing Mode</p><h3 class="text-2xl font-black text-indigo-600 uppercase">{{ $viewLevel }}</h3><p class="text-[9px] text-gray-400 mt-2 font-bold uppercase italic tracking-tight">Satu AISIN AIIA</p></div>
+                <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shadow-inner group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500"><i class="fa-solid fa-layer-group text-xl"></i></div>
             </div>
             <i class="fa-solid fa-layer-group absolute -right-2 -bottom-2 opacity-5 text-indigo-600 text-6xl"></i>
         </div>
     </div>
 
     <!-- DYNAMIC CHARTS GRID -->
-    <div class="grid grid-cols-1 {{ count($charts) > 1 ? 'lg:grid-cols-2' : '' }} gap-8">
-        @foreach($charts as $index => $chart)
+    @php
+        $gridClass = count($charts) > 1 ? 'lg:grid-cols-2' : 'grid-cols-1';
+        $chartHeight = count($charts) > 1 ? '320px' : '450px';
+    @endphp
+
+    <div class="grid grid-cols-1 {{ $gridClass }} gap-8">
+        @forelse($charts as $index => $chart)
         <div class="glass-card rounded-[2.5rem] p-8 shadow-sm border border-white relative overflow-hidden">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 text-left relative z-10">
                 <div>
                     <h2 class="text-lg font-bold text-[#091E6E] uppercase tracking-tight">{{ $chart['title'] }}</h2>
                     <p class="text-xs text-gray-400 italic font-medium">Progress Activity Step 0 - 8</p>
                 </div>
-                <!-- Legend Mini -->
                 <div class="flex gap-3 text-[9px] font-black uppercase tracking-widest">
                     <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-100 shadow-sm"></span> Sub</div>
                     <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm"></span> App</div>
                     <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm"></span> Tgt</div>
                 </div>
             </div>
-
-            <div class="relative w-full" style="height: 320px;">
+            <div class="relative w-full" style="height: {{ $chartHeight }};">
                 <canvas id="chart-{{ $index }}"></canvas>
             </div>
         </div>
-        @endforeach
+        @empty
+        <div class="col-span-full py-20 text-center glass-card rounded-[2.5rem]"><i class="fa-solid fa-chart-area text-5xl text-gray-200 mb-4"></i><p class="text-gray-400 font-medium italic">Tidak ada data grafik yang dapat ditampilkan.</p></div>
+        @endforelse
     </div>
 </div>
 @endsection
 
 @push('scripts')
 <script>
-    // Tab Switching Logic
     function switchTab(level) {
         document.getElementById('view_level').value = level;
         document.getElementById('filterForm').submit();
     }
 
-    // Chart Initialization
     document.addEventListener('DOMContentLoaded', function() {
         const chartsData = @json($charts);
+        const progressLineX = {{ $progressLineX ?? 'null' }};
+        const todayLabel = "{{ $todayDate ?? '' }}"; // Ambil tanggal hari ini
         const labels = ['Step 0', 'Step 1', 'Step 2', 'Step 3', 'Step 4', 'Step 5', 'Step 6', 'Step 7', 'Step 8'];
 
-        chartsData.forEach((chart, index) => {
-            const canvasElement = document.getElementById(`chart-${index}`);
-            if (!canvasElement) return;
+         // Di dalam script Chart initialization
+        const verticalLinePlugin = {
+            id: 'verticalLine',
+            afterDraw: (chart) => {
+                if (progressLineX !== null) {
+                    const ctx = chart.ctx;
+                    const xAxis = chart.scales.x;
+                    const yAxis = chart.scales.y;
+                    
+                    const floorIndex = Math.floor(progressLineX);
+                    const ceilIndex = Math.min(floorIndex + 1, 8);
+                    const fraction = progressLineX % 1;
+                    const xStart = xAxis.getPixelForValue(labels[floorIndex]);
+                    const xEnd = xAxis.getPixelForValue(labels[ceilIndex]);
+                    const xPos = xStart + (fraction * (xEnd - xStart));
 
-            const ctx = canvasElement.getContext('2d');
+                    ctx.save();
+                    // Garis Merah
+                    ctx.beginPath();
+                    ctx.setLineDash([5, 5]);
+                    ctx.moveTo(xPos, yAxis.top);
+                    ctx.lineTo(xPos, yAxis.bottom);
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeStyle = 'rgba(239, 68, 68, 0.8)';
+                    ctx.stroke();
+
+                    // Label Kotak Vertikal
+                    const text = todayLabel;
+                    ctx.font = 'bold 10px Poppins';
+                    const textWidth = ctx.measureText(text).width;
+                    const boxWidth = textWidth + 10;
+                    const boxHeight = 18;
+                    const labelY = yAxis.top + 30;
+
+                    ctx.translate(xPos, labelY);
+                    ctx.rotate(-Math.PI / 2);
+
+                    ctx.setLineDash([]);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.strokeStyle = '#ef4444';
+                    ctx.lineWidth = 1;
+                    
+                    const rectX = -boxWidth / 2;
+                    const rectY = -boxHeight - 2;
+
+                    ctx.beginPath();
+                    if (ctx.roundRect) { ctx.roundRect(rectX, rectY, boxWidth, boxHeight, 4); } 
+                    else { ctx.rect(rectX, rectY, boxWidth, boxHeight); }
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#ef4444';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(text, 0, rectY + (boxHeight / 2));
+                    ctx.restore();
+                }
+            }
+        };
+
+        Chart.register(verticalLinePlugin);
+
+        chartsData.forEach((chart, index) => {
+            const canvas = document.getElementById(`chart-${index}`);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
             
             new Chart(ctx, {
                 type: 'bar',
@@ -216,7 +244,7 @@
                             data: chart.data.submitted,
                             backgroundColor: 'rgba(16, 53, 209, 0.2)',
                             borderRadius: 6,
-                            barThickness: 20,
+                            barThickness: countBarThickness(chartsData.length),
                             order: 2
                         },
                         {
@@ -224,7 +252,7 @@
                             data: chart.data.approved,
                             backgroundColor: '#1035D1',
                             borderRadius: 6,
-                            barThickness: 20,
+                            barThickness: countBarThickness(chartsData.length),
                             order: 2
                         }
                     ]
@@ -246,23 +274,20 @@
                         y: {
                             beginAtZero: true,
                             grid: { color: 'rgba(0, 0, 0, 0.05)', drawBorder: false },
-                            ticks: { 
-                                stepSize: 1, 
-                                font: { family: 'Poppins', size: 11, weight: '600' },
-                                color: '#94a3b8' 
-                            }
+                            ticks: { stepSize: 1, font: { family: 'Poppins', size: 11, weight: '600' }, color: '#94a3b8' }
                         },
                         x: {
                             grid: { display: false },
-                            ticks: { 
-                                font: { family: 'Poppins', size: 10, weight: '700' },
-                                color: '#64748b' 
-                            }
+                            ticks: { font: { family: 'Poppins', size: 10, weight: '700' }, color: '#64748b' }
                         }
                     }
                 }
             });
         });
+
+        function countBarThickness(count) {
+            return count > 1 ? 20 : 40;
+        }
     });
 </script>
 @endpush
