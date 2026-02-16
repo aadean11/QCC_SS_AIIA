@@ -56,7 +56,7 @@ class KaryawanQccController extends Controller
         if ($deptCode) {
             // Menggunakan scopeInDepartment yang kita buat di Model Employee
             $colleagues = Employee::inDepartment($deptCode)
-                // ->where('npk', '!=', $user->npk)
+                ->where('npk', '!=', $user->npk)
                 ->orderBy('nama', 'asc')
                 ->get();
         } else {
@@ -317,7 +317,8 @@ class KaryawanQccController extends Controller
             'qcc_step_id' => 'required',
             'qcc_theme_id' => 'required',
             'qcc_circle_id' => 'required',
-            'file' => 'required|mimes:pdf,ppt,pptx|max:10240', // Max 10MB
+            'file' => 'required|mimes:pdf|max:10240', // Max 10MB
+            
         ]);
 
         $circleId = $request->qcc_circle_id;

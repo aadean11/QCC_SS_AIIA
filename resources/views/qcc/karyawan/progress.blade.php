@@ -169,13 +169,15 @@
                 <input type="hidden" name="qcc_circle_id" value="{{ $theme->qcc_circle_id }}">
 
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1 text-left block">Pilih File (PDF/PPTX)</label>
+                    <!-- Label diubah -->
+                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1 text-left block">Pilih File (Wajib PDF)</label>
                     <div class="relative group">
-                        <input type="file" name="file" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="updateFileName(this)">
+                        <!-- Tambahkan accept=".pdf" -->
+                        <input type="file" name="file" id="fileInput" accept=".pdf" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="updateFileName(this)">
                         <div class="w-full p-8 border-2 border-dashed border-gray-200 rounded-3xl group-hover:border-[#091E6E] group-hover:bg-blue-50 transition-all text-center">
-                            <i class="fa-solid fa-cloud-arrow-up text-4xl text-gray-300 group-hover:text-[#091E6E] mb-3"></i>
+                            <i class="fa-solid fa-file-pdf text-4xl text-gray-300 group-hover:text-[#091E6E] mb-3"></i>
                             <p id="fileNameDisplay" class="text-xs text-gray-400 font-medium text-center">Klik atau drop file di sini</p>
-                            <p class="text-[9px] text-gray-300 mt-1 uppercase text-center">Maksimal 10MB</p>
+                            <p class="text-[9px] text-gray-300 mt-1 uppercase text-center">Maksimal 10MB (PDF Only)</p>
                         </div>
                     </div>
                 </div>
@@ -216,8 +218,41 @@
 
     function updateFileName(input) {
         const display = document.getElementById('fileNameDisplay');
+        
         if (input.files.length > 0) {
-            display.innerText = input.files[0].name;
+            const file = input.files[0];
+            const fileName = file.name;
+            const fileSize = file.size / 1024 / 1024; // Convert ke MB
+            const extension = fileName.split('.').pop().toLowerCase();
+
+            // VALIDASI EKSTENSI PDF
+            if (extension !== 'pdf') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Format File Tidak Sesuai',
+                    text: 'Maaf, file yang diunggah wajib berformat PDF!',
+                    confirmButtonColor: '#091E6E'
+                });
+                input.value = ''; // Reset input file
+                display.innerText = "Klik atau drop file di sini";
+                display.classList.remove('text-[#091E6E]', 'font-bold');
+                return;
+            }
+
+            // VALIDASI UKURAN (Opsional, agar user tahu sebelum upload)
+            if (fileSize > 10) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'File Terlalu Besar',
+                    text: 'Maksimal ukuran file adalah 10MB.',
+                    confirmButtonColor: '#091E6E'
+                });
+                input.value = '';
+                display.innerText = "Klik atau drop file di sini";
+                return;
+            }
+
+            display.innerText = fileName;
             display.classList.add('text-[#091E6E]', 'font-bold');
         }
     }

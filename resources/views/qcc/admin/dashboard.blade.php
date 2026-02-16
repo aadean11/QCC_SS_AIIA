@@ -27,10 +27,8 @@
                     <button onclick="switchTab('division')" class="px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all {{ $viewLevel == 'division' ? 'bg-white text-[#091E6E] shadow-sm' : 'text-gray-500 hover:text-[#091E6E]' }}">Division</button>
                 @endif
 
-                <!-- Tab Department -->
                 <button onclick="switchTab('department')" class="px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all {{ $viewLevel == 'department' ? 'bg-white text-[#091E6E] shadow-sm' : 'text-gray-500 hover:text-[#091E6E]' }}">Department</button>
 
-                <!-- TAB CIRCLE (Hanya untuk KDP & SPV) -->
                 @if(in_array($user->occupation, ['KDP', 'SPV']))
                     <button onclick="switchTab('circle')" class="px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all {{ $viewLevel == 'circle' ? 'bg-white text-[#091E6E] shadow-sm' : 'text-gray-500 hover:text-[#091E6E]' }}">
                        Circle
@@ -124,9 +122,9 @@
                     <p class="text-xs text-gray-400 italic font-medium">Progress Activity Step 0 - 8</p>
                 </div>
                 <div class="flex gap-3 text-[9px] font-black uppercase tracking-widest">
-                    <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-100 shadow-sm"></span> Sub</div>
-                    <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm"></span> App</div>
-                    <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm"></span> Tgt</div>
+                    <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-100 shadow-sm"></span> Submited</div>
+                    <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm"></span> Approved</div>
+                    <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm"></span> Target</div>
                 </div>
             </div>
             <div class="relative w-full" style="height: {{ $chartHeight }};">
@@ -141,6 +139,7 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 <script>
     function switchTab(level) {
         document.getElementById('view_level').value = level;
@@ -148,73 +147,97 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        // 1. Inisialisasi Data Dasar (URUTAN PENTING: stepMonths harus pertama)
         const chartsData = @json($charts);
-        const progressLineX = {{ $progressLineX ?? 'null' }};
-        const todayLabel = "{{ $todayDate ?? '' }}"; // Ambil tanggal hari ini
-        const labels = ['Step 0', 'Step 1', 'Step 2', 'Step 3', 'Step 4', 'Step 5', 'Step 6', 'Step 7', 'Step 8'];
+        const stepMonths = @json($stepMonths); 
+        const progressLineX = {{ $progressLineX ?? 0 }};
+        const todayLabel = "{{ $todayDate ?? '' }}";
+        
+        // 2. Buat label dua baris (Multi-line: Step & Bulan)
+        const labels = [
+            ['Step 0', stepMonths[0]],
+            ['Step 1', stepMonths[1]],
+            ['Step 2', stepMonths[2]],
+            ['Step 3', stepMonths[3]],
+            ['Step 4', stepMonths[4]],
+            ['Step 5', stepMonths[5]],
+            ['Step 6', stepMonths[6]],
+            ['Step 7', stepMonths[7]],
+            ['Step 8', stepMonths[8]]
+        ];
 
-         // Di dalam script Chart initialization
+        Chart.register(ChartDataLabels);
+
+        // 3. Plugin Garis Merah "Current Time" (Posisi: Menempel di Sisi Kanan Bar Approved)
         const verticalLinePlugin = {
             id: 'verticalLine',
             afterDraw: (chart) => {
-                if (progressLineX !== null) {
+                if (chart.config.type === 'bar') {
                     const ctx = chart.ctx;
-                    const xAxis = chart.scales.x;
                     const yAxis = chart.scales.y;
                     
-                    const floorIndex = Math.floor(progressLineX);
-                    const ceilIndex = Math.min(floorIndex + 1, 8);
-                    const fraction = progressLineX % 1;
-                    const xStart = xAxis.getPixelForValue(labels[floorIndex]);
-                    const xEnd = xAxis.getPixelForValue(labels[ceilIndex]);
-                    const xPos = xStart + (fraction * (xEnd - xStart));
-
-                    ctx.save();
-                    // Garis Merah
-                    ctx.beginPath();
-                    ctx.setLineDash([5, 5]);
-                    ctx.moveTo(xPos, yAxis.top);
-                    ctx.lineTo(xPos, yAxis.bottom);
-                    ctx.lineWidth = 1.5;
-                    ctx.strokeStyle = 'rgba(239, 68, 68, 0.8)';
-                    ctx.stroke();
-
-                    // Label Kotak Vertikal
-                    const text = todayLabel;
-                    ctx.font = 'bold 10px Poppins';
-                    const textWidth = ctx.measureText(text).width;
-                    const boxWidth = textWidth + 10;
-                    const boxHeight = 18;
-                    const labelY = yAxis.top + 30;
-
-                    ctx.translate(xPos, labelY);
-                    ctx.rotate(-Math.PI / 2);
-
-                    ctx.setLineDash([]);
-                    ctx.fillStyle = '#ffffff';
-                    ctx.strokeStyle = '#ef4444';
-                    ctx.lineWidth = 1;
+                    // Ambil metadata dari Dataset 2 (Approved / Biru Tua)
+                    const meta = chart.getDatasetMeta(2); 
                     
-                    const rectX = -boxWidth / 2;
-                    const rectY = -boxHeight - 2;
+                    // Ambil data batang sesuai index progressLineX dari Controller
+                    const activeBar = meta.data[progressLineX];
+                    
+                    if (activeBar) {
+                        // POSISI: Tepat di ujung kanan batang Approved
+                        const xPos = activeBar.x + (activeBar.width / 2) + 2;
 
-                    ctx.beginPath();
-                    if (ctx.roundRect) { ctx.roundRect(rectX, rectY, boxWidth, boxHeight, 4); } 
-                    else { ctx.rect(rectX, rectY, boxWidth, boxHeight); }
-                    ctx.fill();
-                    ctx.stroke();
+                        ctx.save();
+                        
+                        // 1. Gambar Garis Merah Putus-putus
+                        ctx.beginPath();
+                        ctx.setLineDash([5, 5]);
+                        ctx.moveTo(xPos, yAxis.top);
+                        ctx.lineTo(xPos, yAxis.bottom);
+                        ctx.lineWidth = 1.5;
+                        ctx.strokeStyle = 'rgba(239, 68, 68, 1)';
+                        ctx.stroke();
 
-                    ctx.fillStyle = '#ef4444';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(text, 0, rectY + (boxHeight / 2));
-                    ctx.restore();
+                        // 2. Gambar Kotak Tanggal Vertikal
+                        const text = todayLabel;
+                        ctx.font = 'bold 10px Poppins';
+                        const textWidth = ctx.measureText(text).width;
+                        const boxWidth = textWidth + 10;
+                        const boxHeight = 18;
+                        const labelY = yAxis.top + 30;
+
+                        ctx.translate(xPos, labelY);
+                        ctx.rotate(-Math.PI / 2);
+                        ctx.setLineDash([]);
+                        ctx.fillStyle = '#ffffff';
+                        ctx.strokeStyle = '#ef4444';
+                        ctx.lineWidth = 1;
+                        
+                        const rectX = -boxWidth / 2;
+                        const rectY = -boxHeight - 2;
+
+                        ctx.beginPath();
+                        if (ctx.roundRect) {
+                            ctx.roundRect(rectX, rectY, boxWidth, boxHeight, 4);
+                        } else {
+                            ctx.rect(rectX, rectY, boxWidth, boxHeight);
+                        }
+                        ctx.fill();
+                        ctx.stroke();
+
+                        ctx.fillStyle = '#ef4444';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(text, 0, rectY + (boxHeight / 2));
+
+                        ctx.restore();
+                    }
                 }
             }
         };
 
         Chart.register(verticalLinePlugin);
 
+        // 4. Inisialisasi Chart
         chartsData.forEach((chart, index) => {
             const canvas = document.getElementById(`chart-${index}`);
             if (!canvas) return;
@@ -237,7 +260,8 @@
                             pointRadius: 4,
                             fill: false,
                             tension: 0,
-                            order: 1
+                            order: 1,
+                            datalabels: { display: false }
                         },
                         {
                             label: 'Submitted',
@@ -245,7 +269,12 @@
                             backgroundColor: 'rgba(16, 53, 209, 0.2)',
                             borderRadius: 6,
                             barThickness: countBarThickness(chartsData.length),
-                            order: 2
+                            order: 2,
+                            datalabels: {
+                                color: '#091E6E',
+                                anchor: 'center',
+                                align: 'center'
+                            }
                         },
                         {
                             label: 'Approved',
@@ -253,7 +282,12 @@
                             backgroundColor: '#1035D1',
                             borderRadius: 6,
                             barThickness: countBarThickness(chartsData.length),
-                            order: 2
+                            order: 2,
+                            datalabels: {
+                                color: '#ffffff',
+                                anchor: 'center',
+                                align: 'center'
+                            }
                         }
                     ]
                 },
@@ -268,17 +302,31 @@
                             cornerRadius: 10,
                             titleFont: { family: 'Poppins', size: 13, weight: 'bold' },
                             bodyFont: { family: 'Poppins', size: 12 }
+                        },
+                        datalabels: {
+                            font: { family: 'Poppins', weight: 'bold', size: 10 },
+                            formatter: function(value) { return value > 0 ? value : ''; }
                         }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
                             grid: { color: 'rgba(0, 0, 0, 0.05)', drawBorder: false },
-                            ticks: { stepSize: 1, font: { family: 'Poppins', size: 11, weight: '600' }, color: '#94a3b8' }
+                            ticks: { 
+                                stepSize: 1, 
+                                font: { family: 'Poppins', size: 11, weight: '600' },
+                                color: '#94a3b8' 
+                            }
                         },
                         x: {
                             grid: { display: false },
-                            ticks: { font: { family: 'Poppins', size: 10, weight: '700' }, color: '#64748b' }
+                            ticks: { 
+                                font: { family: 'Poppins', size: 10, weight: '700' }, 
+                                color: '#64748b',
+                                autoSkip: false,
+                                maxRotation: 0,
+                                minRotation: 0
+                            }
                         }
                     }
                 }
