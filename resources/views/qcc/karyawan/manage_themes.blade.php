@@ -21,14 +21,26 @@
     <div class="flex flex-col xl:flex-row justify-between items-start xl:items-end mb-8 gap-6">
         <div>
             <h2 class="text-3xl font-bold text-[#091E6E]">Daftar Tema Circle</h2>
-            <p class="text-sm text-gray-400">Circle: <span class="text-[#1035D1] font-black uppercase tracking-wider">{{ $circle->circle_name }}</span></p>
+            <!-- Bagian ini diubah menjadi dropdown atau info circle -->
+            <p class="text-sm text-gray-400">Kelola tema perbaikan untuk circle terpilih</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-end">
             <!-- Form Filter: Search & Per Page -->
             <form action="{{ route('qcc.karyawan.themes') }}" method="GET" id="filterForm" class="flex flex-wrap items-center gap-3 flex-1 xl:flex-none">
-                <input type="hidden" name="circle_id" value="{{ $circle->id }}">
                 
+                <!-- NEW: Dropdown Pilih Circle -->
+                <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-[#091E6E]">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pilih Circle</span>
+                    <select name="circle_id" onchange="this.form.submit()" class="text-xs font-bold text-[#1035D1] outline-none bg-transparent cursor-pointer uppercase">
+                        @foreach($myCircles as $c)
+                            <option value="{{ $c->id }}" {{ $circle->id == $c->id ? 'selected' : '' }}>
+                                {{ $c->circle_name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
                 <!-- Dropdown Show Entries -->
                 <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-[#091E6E]">
                     <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Show</span>

@@ -164,6 +164,16 @@
             
             <form action="{{ route('qcc.karyawan.upload_file') }}" method="POST" enctype="multipart/form-data" class="p-8 space-y-6">
                 @csrf
+                <!-- Tambahkan ini tepat di bawah @csrf di dalam form modal upload -->
+                @if ($errors->any())
+                    <div class="p-4 mb-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-xl">
+                        <ul class="text-[10px] font-bold uppercase tracking-tight">
+                            @foreach ($errors->all() as $error)
+                                <li><i class="fa-solid fa-triangle-exclamation mr-1"></i> {{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
                 <input type="hidden" name="qcc_step_id" id="upload_step_id">
                 <input type="hidden" name="qcc_theme_id" value="{{ $theme->id }}">
                 <input type="hidden" name="qcc_circle_id" value="{{ $theme->qcc_circle_id }}">

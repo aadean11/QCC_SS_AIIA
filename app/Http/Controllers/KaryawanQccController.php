@@ -177,29 +177,26 @@ class KaryawanQccController extends Controller
         $user = $this->getAuthUser();
         $circleId = $request->get('circle_id');
 
-        // 1. VALIDASI: CEK APAKAH PUNYA CIRCLE
-        $hasAnyCircle = QccCircleMember::where('employee_npk', $user->npk)->exists();
-        if (!$hasAnyCircle) {
+        // 1. Ambil SEMUA ID Circle yang diikuti user untuk navigasi dropdown
+        $myCircleIds = QccCircleMember::where('employee_npk', $user->npk)->pluck('qcc_circle_id');
+        
+        if ($myCircleIds->isEmpty()) {
             return redirect()->route('qcc.karyawan.my_circle')->with('info', 'Silakan buat atau bergabung dengan Circle terlebih dahulu!');
         }
 
-        // 2. LOGIKA PENENTUAN CIRCLE ID
+        // Ambil data objek Circle lengkap untuk dropdown
+        $myCircles = QccCircle::whereIn('id', $myCircleIds)->get();
+
+        // 2. LOGIKA PENENTUAN CIRCLE ID (Jika tidak ada di URL, ambil yang pertama)
         if (!$circleId) {
-            $firstMembership = QccCircleMember::where('employee_npk', $user->npk)->first();
-            if (!$firstMembership) return redirect()->route('qcc.karyawan.my_circle')->with('error', 'Data keanggotaan tidak ditemukan!');
-            return redirect()->route('qcc.karyawan.themes', ['circle_id' => $firstMembership->qcc_circle_id]);
+            return redirect()->route('qcc.karyawan.themes', ['circle_id' => $myCircleIds->first()]);
         }
 
         $circle = QccCircle::findOrFail($circleId);
 
-        // 3. TAMBAHAN VALIDASI APPROVAL: Hanya status 'ACTIVE' yang boleh masuk ke menu Tema
+        // 3. VALIDASI APPROVAL (Tetap dipertahankan)
         if ($circle->status !== 'ACTIVE') {
-            $msg = "";
-            if (str_contains($circle->status, 'WAITING')) {
-                $msg = "Circle $circle->circle_name sedang menunggu persetujuan atasan. Anda baru bisa mengelola Tema setelah status ACTIVE.";
-            } elseif (str_contains($circle->status, 'REJECTED')) {
-                $msg = "Pendaftaran Circle $circle->circle_name ditolak. Silakan cek alasan penolakan di menu Manajemen Circle.";
-            }
+            $msg = "Circle $circle->circle_name sedang menunggu persetujuan atau ditolak.";
             return redirect()->route('qcc.karyawan.my_circle')->with('warning', $msg);
         }
 
@@ -218,7 +215,8 @@ class KaryawanQccController extends Controller
 
         $activePeriods = QccPeriod::where('status', 'ACTIVE')->get();
 
-        return view('qcc.karyawan.manage_themes', compact('user', 'circle', 'themes', 'activePeriods', 'perPage'));
+        // Tambahkan 'myCircles' ke dalam compact
+        return view('qcc.karyawan.manage_themes', compact('user', 'circle', 'themes', 'activePeriods', 'perPage', 'myCircles'));
     }
 
     public function storeTheme(Request $request)
@@ -313,59 +311,74 @@ class KaryawanQccController extends Controller
 
     public function uploadFile(Request $request)
     {
+        // 1. Validasi Input
         $request->validate([
-            'qcc_step_id' => 'required',
-            'qcc_theme_id' => 'required',
+            'qcc_step_id'   => 'required',
+            'qcc_theme_id'  => 'required',
             'qcc_circle_id' => 'required',
-            'file' => 'required|mimes:pdf|max:10240', // Max 10MB
-            
+            'file'          => 'required|mimes:pdf|max:10240', // Max 10MB
         ]);
 
-        $circleId = $request->qcc_circle_id;
-        $themeId = $request->qcc_theme_id;
-        $stepId = $request->qcc_step_id;
+        try {
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                
+                // Pastikan variabel ID adalah integer
+                $circleId = (int) $request->qcc_circle_id;
+                $themeId  = (int) $request->qcc_theme_id;
+                $stepId   = (int) $request->qcc_step_id;
+                $npk      = session('auth_npk');
 
-        // FOLDER SPESIFIK: storage/app/public/qcc/progress/circle_1/theme_5/
-        $folderPath = "qcc/progress/circle_{$circleId}/theme_{$themeId}";
+                // FOLDER PATH: qcc/progress/circle_1/theme_5
+                $folderPath = "qcc/progress/circle_{$circleId}/theme_{$themeId}";
+                
+                // Cari data lama untuk penghapusan file fisik jika sudah pernah upload
+                $oldTrans = QccCircleStepTransaction::where([
+                    'qcc_circle_id' => $circleId,
+                    'qcc_theme_id'  => $themeId,
+                    'qcc_step_id'   => $stepId
+                ])->first();
 
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
-            
-            // Ambil data transaksi lama jika ada untuk hapus file lama
-            $oldTrans = QccCircleStepTransaction::where([
-                'qcc_circle_id' => $circleId,
-                'qcc_theme_id' => $themeId,
-                'qcc_step_id' => $stepId
-            ])->first();
+                // Hapus file lama jika ada di storage
+                if ($oldTrans && $oldTrans->file_path && Storage::disk('public')->exists($oldTrans->file_path)) {
+                    Storage::disk('public')->delete($oldTrans->file_path);
+                }
 
-            if ($oldTrans && Storage::disk('public')->exists($oldTrans->file_path)) {
-                Storage::disk('public')->delete($oldTrans->file_path);
+                // 2. Simpan File Baru ke Storage
+                $fileName = "Step_{$stepId}_" . time() . "." . $file->getClientOriginalExtension();
+                $path = $file->storeAs($folderPath, $fileName, 'public');
+
+                // Jika path gagal terbuat
+                if (!$path) {
+                    return redirect()->back()->with('error', 'Gagal menyimpan file ke storage server.');
+                }
+
+                // 3. Simpan / Update ke Database
+                // Pastikan Model QccCircleStepTransaction memiliki $fillable untuk kolom-kolom di bawah
+                QccCircleStepTransaction::updateOrCreate(
+                    [
+                        'qcc_circle_id' => $circleId,
+                        'qcc_theme_id'  => $themeId,
+                        'qcc_step_id'   => $stepId,
+                    ],
+                    [
+                        'file_name' => $file->getClientOriginalName(),
+                        'file_path' => $path,
+                        'file_type' => 'pdf',
+                        'upload_by' => $npk,
+                        'status'    => 'WAITING SPV',
+                        'upload_at' => now(),
+                    ]
+                );
+
+                return redirect()->back()->with('success', 'File berhasil diunggah! Menunggu approval SPV.');
             }
 
-            // Simpan file baru
-            $fileName = "Step_{$stepId}_" . time() . "." . $file->getClientOriginalExtension();
-            $path = $file->storeAs($folderPath, $fileName, 'public');
+            return redirect()->back()->with('error', 'File tidak ditemukan dalam request.');
 
-            // Simpan ke Database
-            QccCircleStepTransaction::updateOrCreate(
-                [
-                    'qcc_circle_id' => $circleId,
-                    'qcc_theme_id' => $themeId,
-                    'qcc_step_id' => $stepId,
-                ],
-                [
-                    'file_name' => $file->getClientOriginalName(),
-                    'file_path' => $path,
-                    'file_type' => $file->getClientOriginalExtension(),
-                    'upload_by' => session('auth_npk'),
-                    'status'    => 'WAITING SPV', // Status kembali ke awal saat re-upload
-                    'upload_at' => now(),
-                ]
-            );
-
-            return redirect()->back()->with('success', 'File berhasil diunggah! Menunggu approval SPV.');
+        } catch (\Exception $e) {
+            // Jika error, tampilkan pesan errornya agar mudah di-debug
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
-
-        return redirect()->back()->with('error', 'Gagal mengunggah file.');
     }
 }

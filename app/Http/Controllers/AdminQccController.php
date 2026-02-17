@@ -371,6 +371,20 @@ class AdminQccController extends Controller
 
     public function updatePeriod(Request $request, $id)
     {
+        $period = QccPeriod::findOrFail($id);
+
+        // LOGIKA 1: Jika yang dikirim adalah form DEADLINE
+        if ($request->has('deadlines')) {
+            foreach ($request->deadlines as $stepId => $date) {
+                // Pastikan update berdasarkan qcc_period_id dan qcc_step_id
+                QccPeriodStep::where('qcc_period_id', $id)
+                    ->where('qcc_step_id', $stepId)
+                    ->update(['deadline_date' => $date]);
+            }
+            return redirect()->back()->with('success', 'Batas waktu (deadline) langkah berhasil diperbarui!');
+        }
+
+        // LOGIKA 2: Jika yang dikirim adalah form EDIT PROFIL PERIODE
         $request->validate([
             'period_code' => 'required|unique:m_qcc_periods,period_code,'.$id,
             'period_name' => 'required',
@@ -379,17 +393,7 @@ class AdminQccController extends Controller
             'end_date'    => 'required|date|after_or_equal:start_date',
         ]);
 
-        $period = QccPeriod::findOrFail($id);
-        $period->update($request->all());
-
-        // Update deadlines jika ada data dikirim dari modal deadline
-        if ($request->has('deadlines')) {
-            foreach ($request->deadlines as $stepId => $date) {
-                QccPeriodStep::where('qcc_period_id', $id)
-                    ->where('qcc_step_id', $stepId)
-                    ->update(['deadline_date' => $date]);
-            }
-        }
+        $period->update($request->only(['period_code', 'period_name', 'year', 'start_date', 'end_date', 'status']));
 
         return redirect()->back()->with('success', 'Data periode berhasil diperbarui!');
     }
