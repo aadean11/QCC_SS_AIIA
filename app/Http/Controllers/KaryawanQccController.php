@@ -10,10 +10,12 @@ use App\Models\QccCircle;
 use App\Models\QccTheme;
 use App\Models\QccStep;
 use App\Models\QccPeriod;
+use App\Models\QccPeriodStep;
 use App\Models\QccCircleStepTransaction;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class KaryawanQccController extends Controller
 {
@@ -26,6 +28,124 @@ class KaryawanQccController extends Controller
         return Employee::with(['job', 'subSection.section', 'section'])
                 ->where('npk', $npk)
                 ->first();
+    }
+
+    public function dashboard(Request $request)
+    {
+        $user = $this->getAuthUser();
+        if (!$user) return redirect('/login');
+
+        $selectedPeriod = $request->get('period_id');
+        $periods = QccPeriod::orderBy('year', 'desc')->get();
+        
+        if (!$selectedPeriod) {
+            $selectedPeriod = QccPeriod::where('status', 'ACTIVE')->value('id') ?? QccPeriod::orderBy('id', 'desc')->value('id');
+        }
+
+        // --- LOGIKA PROGRESS LINE (Garis Merah Melompat) ---
+        $today = Carbon::now();
+        $todayDate = $today->format('d/m/Y');
+        $progressLineX = 0; 
+        $period = QccPeriod::find($selectedPeriod);
+        $periodSteps = QccPeriodStep::where('qcc_period_id', $selectedPeriod)
+            ->join('m_qcc_steps', 'm_qcc_period_steps.qcc_step_id', '=', 'm_qcc_steps.id')
+            ->orderBy('m_qcc_steps.step_number', 'asc')
+            ->get(['m_qcc_period_steps.deadline_date', 'm_qcc_steps.step_number']);
+
+        if ($period && $periodSteps->count() > 0) {
+            foreach ($periodSteps as $index => $ps) {
+                if ($today->lte(Carbon::parse($ps->deadline_date))) {
+                    $progressLineX = $index; 
+                    break;
+                }
+                $progressLineX = $index;
+            }
+        }
+
+        // --- LABEL BULAN ---
+        $stepMonths = [];
+        if ($period) {
+            $stepMonths[] = Carbon::parse($period->start_date)->translatedFormat('M');
+            foreach ($periodSteps as $ps) {
+                $stepMonths[] = Carbon::parse($ps->deadline_date)->translatedFormat('M');
+            }
+        }
+        while(count($stepMonths) < 9) { $stepMonths[] = ''; }
+
+        // --- STATISTIK KARYAWAN ---
+        $myCircleIds = QccCircleMember::where('employee_npk', $user->npk)->pluck('qcc_circle_id');
+        
+        $stats = [
+            'total_circles' => $myCircleIds->count(),
+            'need_attention' => QccCircleStepTransaction::whereIn('qcc_circle_id', $myCircleIds)
+                                ->where('status', 'like', '%REJECTED%')->count(),
+            'on_review' => QccCircleStepTransaction::whereIn('qcc_circle_id', $myCircleIds)
+                                ->whereIn('status', ['WAITING SPV', 'WAITING KDP'])->count(),
+            'completed' => QccCircleStepTransaction::whereIn('qcc_circle_id', $myCircleIds)
+                                ->where('qcc_step_id', 8)->where('status', 'APPROVED')->count(),
+        ];
+
+        // --- DATA CHARTS (Per Circle saya) ---
+        $charts = [];
+        $myCircles = QccCircle::whereIn('id', $myCircleIds)
+                    ->where('qcc_period_id', $selectedPeriod)
+                    ->get();
+
+        foreach ($myCircles as $circle) {
+            $charts[] = [
+                'title' => 'Circle: ' . $circle->circle_name,
+                'data' => $this->getChartDataPerCircle($circle->id)
+            ];
+        }
+
+        return view('qcc.karyawan.dashboard', compact('user', 'stats', 'periods', 'selectedPeriod', 'charts', 'progressLineX', 'todayDate', 'stepMonths'));
+    }
+
+    /**
+     * Helper Private (Copied from Admin Controller Logic)
+     */
+    private function getChartDataPerCircle($circleId)
+    {
+        $submitted = []; $approved = [];
+        $circle = QccCircle::find($circleId);
+        $submitted[] = 1; 
+        $approved[] = ($circle->status === 'ACTIVE') ? 1 : 0;
+        for ($i = 1; $i <= 8; $i++) {
+            $trans = QccCircleStepTransaction::where('qcc_circle_id', $circleId)->where('qcc_step_id', $i)->first();
+            $submitted[] = ($trans) ? 1 : 0;
+            $approved[] = ($trans && $trans->status === 'APPROVED') ? 1 : 0;
+        }
+        return ['submitted' => $submitted, 'approved' => $approved, 'target' => array_fill(0, 9, 1)];
+    }
+
+    public function roadmap(Request $request)
+    {
+        $user = $this->getAuthUser();
+        if (!$user) return redirect('/login');
+
+        $selectedPeriod = $request->get('period_id');
+        $search = $request->get('search');
+
+        // 1. Ambil list periode untuk filter
+        $periods = QccPeriod::orderBy('year', 'desc')->get();
+        if (!$selectedPeriod) {
+            $selectedPeriod = QccPeriod::where('status', 'ACTIVE')->value('id') ?? QccPeriod::orderBy('id', 'desc')->value('id');
+        }
+
+        // 2. Ambil ID Circle yang diikuti karyawan ini
+        $myCircleIds = QccCircleMember::where('employee_npk', $user->npk)->pluck('qcc_circle_id');
+
+        // 3. Ambil data Circle, Tema Aktif, dan Progres tiap Step
+        $circles = QccCircle::with(['department', 'activeTheme.stepProgress.step'])
+            ->whereIn('id', $myCircleIds)
+            ->where('qcc_period_id', $selectedPeriod)
+            ->when($search, function($q) use ($search) {
+                $q->where('circle_name', 'like', "%{$search}%");
+            })
+            ->orderBy('circle_name', 'asc')
+            ->get();
+
+        return view('qcc.karyawan.roadmap', compact('user', 'circles', 'periods', 'selectedPeriod'));
     }
 
     // --- MASTER CIRCLE & MEMBER ---

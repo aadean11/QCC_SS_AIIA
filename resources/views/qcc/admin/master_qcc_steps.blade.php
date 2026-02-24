@@ -50,7 +50,10 @@
             <table class="w-full text-left border-separate border-spacing-y-2">
                 <thead>
                     <tr class="sidebar-gradient shadow-md">
-                        <th class="px-6 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold rounded-tl-2xl">No. Step</th>
+                        <!-- Tambah Kolom No -->
+                        <th class="px-4 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold rounded-tl-2xl text-center w-12">No</th>
+                        <!-- Hapus rounded-tl-2xl dari No. Step -->
+                        <th class="px-6 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold">No. Step</th>
                         <th class="px-6 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold">Nama Langkah</th>
                         <th class="px-6 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold">Template File</th>
                         <th class="px-6 py-4 text-center text-white text-[10px] uppercase tracking-[0.2em] font-bold rounded-tr-2xl">Aksi</th>
@@ -59,11 +62,18 @@
                 <tbody>
                     @forelse($steps as $step)
                     <tr class="bg-white hover:bg-blue-50/50 transition-all group shadow-sm border border-gray-100">
-                        <td class="px-6 py-3 rounded-l-xl border-y border-l border-gray-100">
+                        <!-- Kolom Nomor Urut Otomatis -->
+                        <td class="px-4 py-3 rounded-l-xl border-y border-l border-gray-100 text-center font-bold text-gray-500">
+                            {{ ($steps->currentPage() - 1) * $steps->perPage() + $loop->iteration }}
+                        </td>
+
+                        <!-- Kolom Step Number (Hapus rounded-l-xl dan border-l karena pindah ke No) -->
+                        <td class="px-6 py-3 border-y border-gray-100">
                             <div class="w-9 h-9 rounded-lg bg-blue-50 text-[#091E6E] font-bold flex items-center justify-center border border-blue-100 text-xs group-hover:bg-[#091E6E] group-hover:text-white transition-all duration-300">
                                 {{ $step->step_number }}
                             </div>
                         </td>
+                        
                         <td class="px-6 py-3 border-y border-gray-100">
                             <div class="flex flex-col leading-tight">
                                 <span class="font-bold text-[#091E6E] text-sm group-hover:text-[#130998]">{{ $step->step_name }}</span>
@@ -99,7 +109,10 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="4" class="text-center py-10 text-gray-300 italic">Belum ada langkah terdaftar.</td></tr>
+                    <tr>
+                        <!-- Update colspan dari 4 menjadi 5 -->
+                        <td colspan="5" class="text-center py-10 text-gray-300 italic">Belum ada langkah terdaftar.</td>
+                    </tr>
                     @endforelse
                 </tbody>
             </table>

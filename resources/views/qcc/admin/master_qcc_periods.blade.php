@@ -48,7 +48,10 @@
             <table class="w-full text-left border-separate border-spacing-y-2">
                 <thead>
                     <tr class="sidebar-gradient shadow-md">
-                        <th class="px-6 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold rounded-tl-2xl text-center">Tahun</th>
+                        <!-- Tambah Kolom No -->
+                        <th class="px-4 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold rounded-tl-2xl text-center w-12">No</th>
+                        <!-- Hapus rounded-tl-2xl dari kolom Tahun -->
+                        <th class="px-6 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold text-center">Tahun</th>
                         <th class="px-6 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold">Periode & Durasi</th>
                         <th class="px-6 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold text-center">Status</th>
                         <th class="px-6 py-4 text-center text-white text-[10px] uppercase tracking-[0.2em] font-bold rounded-tr-2xl">Aksi</th>
@@ -57,9 +60,16 @@
                 <tbody>
                     @forelse($periods as $period)
                     <tr class="bg-white hover:shadow-md transition-all group shadow-sm border border-gray-100">
-                        <td class="px-6 py-3 rounded-l-xl border-y border-l border-gray-100 text-center font-black text-[#091E6E]">
+                        <!-- Kolom Nomor Urut Otomatis -->
+                        <td class="px-4 py-3 rounded-l-xl border-y border-l border-gray-100 text-center font-bold text-gray-500">
+                            {{ ($periods->currentPage() - 1) * $periods->perPage() + $loop->iteration }}
+                        </td>
+
+                        <!-- Kolom Tahun (Hapus rounded-l-xl dan border-l karena sudah di kolom No) -->
+                        <td class="px-6 py-3 border-y border-gray-100 text-center font-black text-[#091E6E]">
                             {{ $period->year }}
                         </td>
+
                         <td class="px-6 py-3 border-y border-gray-100">
                             <div class="flex flex-col">
                                 <span class="font-bold text-[#091E6E] text-sm">{{ $period->period_name }} ({{ $period->period_code }})</span>
@@ -101,7 +111,10 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="4" class="text-center py-10 text-gray-300 italic text-sm">Belum ada periode.</td></tr>
+                    <tr>
+                        <!-- Update colspan dari 4 menjadi 5 -->
+                        <td colspan="5" class="text-center py-10 text-gray-300 italic text-sm">Belum ada periode.</td>
+                    </tr>
                     @endforelse
                 </tbody>
             </table>

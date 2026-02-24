@@ -55,7 +55,10 @@
             <table class="w-full text-left border-separate border-spacing-y-2">
                 <thead>
                     <tr class="sidebar-gradient shadow-md">
-                        <th class="px-6 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold rounded-tl-2xl">Karyawan</th>
+                        <!-- Tambah Kolom No -->
+                        <th class="px-4 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold rounded-tl-2xl text-center w-12">No</th>
+                        <!-- Hapus rounded-tl-2xl dari Karyawan -->
+                        <th class="px-6 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold">Karyawan</th>
                         <th class="px-6 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold">Jabatan</th>
                         <th class="px-6 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold text-center">Sub-Section</th>
                         <th class="px-6 py-4 text-center text-white text-[10px] uppercase tracking-[0.2em] font-bold rounded-tr-2xl">Aksi</th>
@@ -64,16 +67,25 @@
                 <tbody>
                     @forelse($employees as $emp)
                     <tr class="bg-white hover:bg-blue-50/50 transition-all group shadow-sm border border-gray-100">
-                        <td class="px-6 py-3 rounded-l-xl border-y border-l border-gray-100">
+                        <!-- Kolom Nomor Urut Otomatis -->
+                        <td class="px-4 py-3 rounded-l-xl border-y border-l border-gray-100 text-center font-bold text-gray-500">
+                            {{ ($employees->currentPage() - 1) * $employees->perPage() + $loop->iteration }}
+                        </td>
+
+                        <!-- Kolom Info (Hapus rounded-l-xl dan border-l karena sudah pindah ke No) -->
+                        <td class="px-6 py-3 border-y border-gray-100">
                             <p class="font-bold text-[#091E6E] text-sm group-hover:text-[#130998]">{{ $emp->nama }}</p>
                             <p class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">NPK: {{ $emp->npk }}</p>
                         </td>
+                        
                         <td class="px-6 py-3 border-y border-gray-100">
                             <span class="text-gray-600 text-xs font-semibold">{{ $emp->job->name ?? $emp->occupation }}</span>
                         </td>
+                        
                         <td class="px-6 py-3 border-y border-gray-100 text-center">
                             <span class="text-[10px] bg-gray-50 text-gray-500 px-3 py-1 rounded-lg font-bold border border-gray-100">{{ $emp->sub_section }}</span>
                         </td>
+                        
                         <td class="px-6 py-3 rounded-r-xl border-y border-r border-gray-100 text-center">
                             <div class="flex justify-center gap-2">
                                 <button onclick="openDetailModal({{ json_encode($emp) }})" class="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm">
@@ -93,7 +105,8 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="4" class="text-center py-20">
+                        <!-- Update colspan dari 4 menjadi 5 -->
+                        <td colspan="5" class="text-center py-20">
                             <div class="flex flex-col items-center gap-2 text-gray-300">
                                 <i class="fa-solid fa-folder-open text-4xl"></i>
                                 <span class="italic text-sm">Data karyawan tidak ditemukan...</span>
@@ -104,7 +117,6 @@
                 </tbody>
             </table>
         </div>
-
         <div class="mt-6 flex flex-col md:flex-row justify-between items-center gap-4 border-t border-gray-50 pt-6">
             <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">
                 Showing {{ $employees->firstItem() ?? 0 }} to {{ $employees->lastItem() ?? 0 }} of {{ $employees->total() }} entries

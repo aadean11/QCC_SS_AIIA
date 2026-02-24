@@ -76,7 +76,10 @@
             <table class="w-full text-left border-separate border-spacing-y-2">
                 <thead>
                     <tr class="sidebar-gradient shadow-md">
-                        <th class="px-6 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold rounded-tl-2xl w-1/4">Periode</th>
+                        <!-- Tambah Kolom No -->
+                        <th class="px-4 py-4 text-white text-[10px] uppercase tracking-widest font-bold rounded-tl-2xl text-center w-12">No</th>
+                        <!-- Hapus rounded-tl-2xl dari Periode -->
+                        <th class="px-6 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold w-1/4">Periode</th>
                         <th class="px-6 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold">Judul Tema Perbaikan</th>
                         <th class="px-6 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold text-center w-32">Status</th>
                         <th class="px-6 py-4 text-center text-white text-[10px] uppercase tracking-[0.2em] font-bold rounded-tr-2xl w-48">Opsi</th>
@@ -85,18 +88,27 @@
                 <tbody>
                     @forelse($themes as $theme)
                     <tr class="bg-white hover:bg-blue-50/50 transition-all shadow-sm border border-gray-100 group">
-                        <td class="px-6 py-4 rounded-l-xl border-y border-l">
+                        <!-- Kolom Nomor Urut Otomatis -->
+                        <td class="px-4 py-4 rounded-l-xl border-y border-l text-center font-bold text-gray-500">
+                            {{ ($themes->currentPage() - 1) * $themes->perPage() + $loop->iteration }}
+                        </td>
+
+                        <!-- Kolom Periode (Hapus rounded-l-xl dan border-l karena sudah di kolom No) -->
+                        <td class="px-6 py-4 border-y">
                             <span class="font-bold text-[#091E6E] text-xs uppercase">{{ $theme->period->period_name }}</span>
                             <p class="text-[9px] text-gray-400 font-bold">Tahun: {{ $theme->period->year }}</p>
                         </td>
+                        
                         <td class="px-6 py-4 border-y">
                             <p class="font-bold text-[#091E6E] group-hover:text-[#1035D1] transition-colors leading-tight">{{ $theme->theme_name }}</p>
                         </td>
+                        
                         <td class="px-6 py-4 border-y text-center">
                             <span class="px-3 py-1 rounded-full text-[9px] font-bold border {{ $theme->status == 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-gray-50 text-gray-400 border-gray-100' }}">
                                 {{ $theme->status }}
                             </span>
                         </td>
+                        
                         <td class="px-6 py-4 rounded-r-xl border-y border-r text-center">
                             <div class="flex justify-center gap-2">
                                 <!-- Ke Progress Transaksi -->
@@ -119,7 +131,8 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="4" class="text-center py-20">
+                        <!-- Update colspan dari 4 menjadi 5 -->
+                        <td colspan="5" class="text-center py-20">
                             <div class="flex flex-col items-center gap-3 text-gray-300">
                                 <i class="fa-solid fa-folder-open text-5xl"></i>
                                 <span class="italic text-sm font-medium uppercase tracking-widest">Belum ada tema QCC terdaftar</span>

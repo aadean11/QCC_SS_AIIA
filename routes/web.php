@@ -56,6 +56,9 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/qcc/admin/master-targets/{id}', [AdminQccController::class, 'updateTarget'])->name('qcc.admin.update_target');
     Route::delete('/qcc/admin/master-targets/{id}', [AdminQccController::class, 'deleteTarget'])->name('qcc.admin.delete_target');
 
+    // Route untuk melihat seluruh progres circle (Admin)
+    Route::get('/qcc/admin/all-progress', [AdminQccController::class, 'allCircleProgress'])->name('qcc.admin.all_progress');
+
     // Master Circles & Members (Data Kelompok QCC)
     Route::get('/qcc/admin/master-circles', [AdminQccController::class, 'masterCircles'])->name('qcc.admin.master_circles');
     Route::post('/qcc/admin/master-circles', [AdminQccController::class, 'storeCircle'])->name('qcc.admin.store_circle');
@@ -63,11 +66,15 @@ Route::middleware(['auth'])->group(function () {
     // Monitoring Progress (Monitoring File Transaksi Circle)
     Route::get('/qcc/admin/monitoring-progress/{circle_id}', [AdminQccController::class, 'monitoringProgress'])->name('qcc.admin.monitoring_progress');
 
+    // Dashboard Karyawan QCC
+    Route::get('/qcc/karyawan/dashboard', [KaryawanQccController::class, 'dashboard'])->name('qcc.karyawan.dashboard');
+
     // Route Karyawan QCC
     Route::get('/qcc/karyawan/my-circle', [KaryawanQccController::class, 'myCircle'])->name('qcc.karyawan.my_circle');   
     Route::post('/qcc/karyawan/store-circle', [KaryawanQccController::class, 'storeCircle'])->name('qcc.karyawan.store_circle');
     Route::put('/qcc/karyawan/update-circle/{id}', [KaryawanQccController::class, 'updateCircle'])->name('qcc.karyawan.update_circle');
     Route::delete('/qcc/karyawan/delete-circle/{id}', [KaryawanQccController::class, 'deleteCircle'])->name('qcc.karyawan.delete_circle');
+    Route::get('/qcc/karyawan/roadmap', [KaryawanQccController::class, 'roadmap'])->name('qcc.karyawan.roadmap');
 
     // Route Tema (Sub-menu baru)
     Route::get('/qcc/karyawan/themes', [KaryawanQccController::class, 'themes'])->name('qcc.karyawan.themes');

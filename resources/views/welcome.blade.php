@@ -75,6 +75,74 @@
             margin-bottom: 0.5rem; 
         }
 
+        /* ================================= */
+        /* MINIMALIS CLEAN CORPORATE SUBMENU */
+        /* ================================= */
+
+        .submenu {
+            position: relative;
+            padding-left: 2.25rem !important;
+            margin-top: 0.5rem;
+        }
+
+        /* Garis vertikal soft */
+        .submenu::before {
+            content: "";
+            position: absolute;
+            left: 20px;
+            top: 6px;
+            bottom: 6px;
+            width: 1px;
+            background-color: rgba(255,255,255,0.15);
+        }
+
+        /* Item submenu */
+        .submenu a {
+            position: relative;
+            display: block;
+            padding: 0.5rem 0.75rem 0.5rem 1.25rem !important;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        /* Connector horizontal */
+        .submenu a::before {
+            content: "";
+            position: absolute;
+            left: -14px;
+            top: 50%;
+            width: 14px;
+            height: 1px;
+            background-color: rgba(255,255,255,0.15);
+            transform: translateY(-50%);
+        }
+
+        /* Dot kecil clean */
+        .submenu a::after {
+            content: "";
+            position: absolute;
+            left: -18px;
+            top: 50%;
+            width: 4px;
+            height: 4px;
+            background-color: rgba(255,255,255,0.4);
+            border-radius: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* Hover clean */
+        .submenu a:hover {
+            background-color: rgba(255,255,255,0.07);
+            transform: translateX(4px);
+            color: #ffffff !important;
+        }
+
+        /* Active state */
+        .submenu a.font-bold {
+            background-color: rgba(255,255,255,0.1);
+            color: #ffffff !important;
+        }
+
         /* UTILS */
         .dropdown-arrow { transition: transform 0.3s ease; }
         .rotate-180 { transform: rotate(180deg); }
@@ -307,6 +375,12 @@
                             <div class="menu-gap"></div>
 
                             <div id="karyawanSubmenu" class="submenu pl-12 space-y-1 {{ request()->is('qcc/karyawan*') ? 'show' : '' }}">
+                                <a href="{{ route('qcc.karyawan.dashboard') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/dashboard') ? 'text-white font-bold' : '' }}">
+                                    <i class="fa-solid fa-chart-line w-4"></i> <span class="menu-text">Dashboard Progres</span>
+                                </a>
+                                <a href="{{ route('qcc.karyawan.roadmap') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/roadmap') ? 'text-white font-bold' : '' }}">
+                                    <i class="fa-solid fa-map-location-dot w-4"></i> <span class="menu-text">Monitoring Roadmap</span>
+                                </a>
                                 <a href="{{ route('qcc.karyawan.my_circle') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/my-circle') ? 'text-white font-bold' : '' }}">
                                     <i class="fa-solid fa-circle-info w-4"></i> <span class="menu-text">Info Circle & Member</span>
                                 </a>
@@ -354,6 +428,9 @@
                                 </a>
                                 <a href="{{ route('qcc.admin.master_targets') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/master-targets') ? 'text-white font-bold' : '' }}">
                                     <i class="fa-solid fa-crosshairs w-4"></i> <span class="menu-text">Master Target</span>
+                                </a>
+                                <a href="{{ route('qcc.admin.all_progress') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/all-progress') ? 'text-white font-bold' : '' }}">
+                                    <i class="fa-solid fa-chart-pie w-4"></i> <span class="menu-text">Seluruh Progres Circle</span>
                                 </a>
                             </div>
                         </div>

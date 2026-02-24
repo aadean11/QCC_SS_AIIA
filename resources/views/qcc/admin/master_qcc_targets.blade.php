@@ -42,7 +42,10 @@
             <table class="w-full text-left border-separate border-spacing-y-2">
                 <thead>
                     <tr class="sidebar-gradient shadow-md text-white text-[10px] uppercase tracking-widest font-bold">
-                        <th class="px-6 py-4 rounded-tl-2xl">Departemen</th>
+                        <!-- Tambah Kolom No -->
+                        <th class="px-4 py-4 rounded-tl-2xl text-center w-12">No</th>
+                        <!-- Hapus rounded-tl-2xl dari Departemen -->
+                        <th class="px-6 py-4">Departemen</th>
                         <th class="px-6 py-4">Periode</th>
                         <th class="px-6 py-4 text-center">Target (Circle)</th>
                         <th class="px-6 py-4 text-center rounded-tr-2xl">Opsi</th>
@@ -51,16 +54,25 @@
                 <tbody>
                     @forelse($targets as $t)
                     <tr class="bg-white hover:bg-blue-50/50 transition-all shadow-sm border border-gray-100">
-                        <td class="px-6 py-4 rounded-l-xl">
+                        <!-- Kolom Nomor Urut Otomatis -->
+                        <td class="px-4 py-4 rounded-l-xl border-y border-l border-gray-100 text-center font-bold text-gray-500">
+                            {{ ($targets->currentPage() - 1) * $targets->perPage() + $loop->iteration }}
+                        </td>
+
+                        <!-- Kolom Departemen (Hapus rounded-l-xl karena sudah di kolom No) -->
+                        <td class="px-6 py-4 border-y">
                             <p class="font-bold text-[#091E6E] text-sm uppercase">{{ $t->department->name }}</p>
                         </td>
-                        <td class="px-6 py-4">
+                        
+                        <td class="px-6 py-4 border-y">
                             <span class="text-xs font-bold text-gray-500">{{ $t->period->period_name }} ({{ $t->period->year }})</span>
                         </td>
-                        <td class="px-6 py-4 text-center">
+                        
+                        <td class="px-6 py-4 border-y text-center">
                             <span class="bg-blue-50 text-[#091E6E] font-black px-4 py-1 rounded-lg border border-blue-100">{{ $t->target_amount }}</span>
                         </td>
-                        <td class="px-6 py-4 rounded-r-xl text-center">
+                        
+                        <td class="px-6 py-4 rounded-r-xl border-y border-r border-gray-100 text-center">
                             <div class="flex justify-center gap-2">
                                 <button onclick="openEditModal({{ json_encode($t) }})" class="w-8 h-8 flex items-center justify-center bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-500 hover:text-white transition-all shadow-sm"><i class="fa-solid fa-pen-to-square text-[10px]"></i></button>
                                 <button onclick="confirmDelete('{{ $t->id }}')" class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-500 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm"><i class="fa-solid fa-trash text-[10px]"></i></button>
@@ -69,7 +81,10 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="4" class="text-center py-20 text-gray-300 italic">Belum ada target yang ditetapkan.</td></tr>
+                    <tr>
+                        <!-- Update colspan dari 4 menjadi 5 -->
+                        <td colspan="5" class="text-center py-20 text-gray-300 italic">Belum ada target yang ditetapkan.</td>
+                    </tr>
                     @endforelse
                 </tbody>
             </table>

@@ -35,28 +35,27 @@ class QccApprovalController extends Controller
         $perPage = $request->get('per_page', 10);
         $search = $request->get('search');
 
-        // Ambil SEMUA data transaksi di departemen user (Tanpa filter status pending saja)
-        $query = QccCircleStepTransaction::with(['circle', 'step', 'uploader'])
+        // Query Dasar: Kita ambil TEMA, bukan transaksi per langkah
+        $query = \App\Models\QccTheme::with(['circle', 'stepProgress.step', 'stepProgress.uploader'])
             ->whereHas('circle', function($q) use ($myDept) {
                 $q->where('department_code', $myDept);
             });
 
         if ($search) {
             $query->where(function($q) use ($search) {
-                $q->whereHas('circle', function($sq) use ($search) {
+                $q->where('theme_name', 'like', "%{$search}%")
+                ->orWhereHas('circle', function($sq) use ($search) {
                     $sq->where('circle_name', 'like', "%{$search}%");
-                })->orWhereHas('uploader', function($sq) use ($search) {
-                    $sq->where('nama', 'like', "%{$search}%");
                 });
             });
         }
 
-        // Urutkan berdasarkan yang terbaru diupdate
-        $pendingSteps = $query->orderBy('updated_at', 'desc')
+        // Urutkan berdasarkan yang terbaru aktif
+        $pendingThemes = $query->orderBy('updated_at', 'desc')
                             ->paginate($perPage)
                             ->withQueryString();
 
-        return view('qcc.approval.index', compact('user', 'pendingSteps', 'perPage'));
+        return view('qcc.approval.index', compact('user', 'pendingThemes', 'perPage'));
     }
 
     // Progres Approval (Step 1-8)

@@ -23,4 +23,8 @@ class QccTheme extends Model
     {
         return $this->hasMany(QccCircleStepTransaction::class, 'qcc_theme_id');
     }
+
+    public function stepProgress() {
+        return $this->hasMany(QccCircleStepTransaction::class, 'qcc_theme_id');
+    }
 }

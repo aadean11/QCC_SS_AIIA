@@ -57,7 +57,10 @@
             <table class="w-full text-left border-separate border-spacing-y-2">
                 <thead>
                     <tr class="sidebar-gradient shadow-md">
-                        <th class="px-6 py-4 text-white text-[10px] uppercase tracking-widest font-bold rounded-tl-2xl">Nama Circle & Kode</th>
+                        <!-- Tambah Kolom No -->
+                        <th class="px-4 py-4 text-white text-[10px] uppercase tracking-widest font-bold rounded-tl-2xl text-center w-12">No</th>
+                        <!-- Hapus rounded-tl-2xl dari Nama Circle -->
+                        <th class="px-6 py-4 text-white text-[10px] uppercase tracking-widest font-bold">Nama Circle & Kode</th>
                         <th class="px-6 py-4 text-white text-[10px] uppercase tracking-widest font-bold">Preview Anggota</th>
                         <th class="px-6 py-4 text-white text-[10px] uppercase tracking-widest font-bold text-center">Status</th>
                         <th class="px-6 py-4 text-center text-white text-[10px] uppercase tracking-widest font-bold rounded-tr-2xl">Aksi</th>
@@ -66,10 +69,17 @@
                 <tbody>
                     @forelse($pendingCircles as $pc)
                     <tr class="bg-white hover:bg-blue-50/50 transition-all shadow-sm border border-gray-100 group">
-                        <td class="px-6 py-4 rounded-l-xl border-y border-l border-gray-100 leading-tight">
+                        <!-- Kolom Nomor Urut Otomatis -->
+                        <td class="px-4 py-4 rounded-l-xl border-y border-l border-gray-100 text-center font-bold text-gray-500">
+                            {{ ($pendingCircles->currentPage() - 1) * $pendingCircles->perPage() + $loop->iteration }}
+                        </td>
+
+                        <!-- Kolom Info Circle (Hapus rounded-l-xl dan border-l karena pindah ke No) -->
+                        <td class="px-6 py-4 border-y leading-tight">
                             <p class="font-bold text-[#091E6E] text-sm uppercase tracking-tight">{{ $pc->circle_name }}</p>
                             <p class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter mt-1">{{ $pc->circle_code }} | DEPT: {{ $pc->department_code }}</p>
                         </td>
+
                         <td class="px-6 py-4 border-y border-gray-100">
                             <div class="flex items-center gap-2">
                                 <div class="flex -space-x-2 overflow-hidden">
@@ -93,7 +103,7 @@
                                 if(str_contains($pc->status, 'REJECTED')) $statusColor = 'text-red-500 bg-red-50 border-red-100';
                             @endphp
                             <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase border {{ $statusColor }}">
-                                 {{ $pc->status }}
+                                {{ $pc->status }}
                             </span>
                         </td>
                         <td class="px-6 py-4 rounded-r-xl border-y border-r border-gray-100 text-center">
@@ -104,7 +114,6 @@
                             @endphp
 
                             <div class="flex justify-center gap-2">
-                                <!-- TOMBOL LIHAT DETAIL (MATA BIRU) -->
                                 <button onclick="openViewDetail({{ json_encode($pc->load('members.employee')) }})" 
                                     class="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Lihat Detail Kelompok">
                                     <i class="fa-solid fa-eye text-xs"></i>
@@ -125,7 +134,8 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="4" class="text-center py-20 text-gray-300 italic text-sm font-medium">
+                        <!-- Update colspan dari 4 menjadi 5 -->
+                        <td colspan="5" class="text-center py-20 text-gray-300 italic text-sm font-medium">
                             <i class="fa-solid fa-users-slash text-5xl block mb-3 opacity-20"></i>
                             Tidak ada pendaftaran Circle yang ditemukan.
                         </td>
@@ -134,7 +144,6 @@
                 </tbody>
             </table>
         </div>
-
         <!-- PAGINATION AREA -->
         <div class="mt-6 flex flex-col md:flex-row justify-between items-center gap-4 border-t border-gray-50 pt-6">
             <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">

@@ -515,4 +515,49 @@ class AdminQccController extends Controller
         Employee::destroy($id);
         return redirect()->back()->with('success', 'Data karyawan telah dihapus.');
     }
+
+    public function allCircleProgress(Request $request)
+    {
+        $user = Employee::with('job')->find(Auth::id());
+        
+        $selectedPeriod = $request->get('period_id');
+        $selectedDiv = $request->get('division_code');
+        $selectedDept = $request->get('department_code');
+        $search = $request->get('search');
+        $perPage = $request->get('per_page', 10);
+
+        $periods = QccPeriod::orderBy('year', 'desc')->get();
+        if (!$selectedPeriod) {
+            $selectedPeriod = QccPeriod::where('status', 'ACTIVE')->value('id') ?? QccPeriod::orderBy('id', 'desc')->value('id');
+        }
+
+        $divisions = Division::all();
+        $departments = Department::when($selectedDiv, fn($q) => $q->where('code_division', $selectedDiv))->get();
+
+        // Query Utama: Ambil Circle dan Progres Stepnya melalui Tema Aktif
+        $query = QccCircle::with(['department', 'activeTheme.stepProgress.step'])
+            ->where('qcc_period_id', $selectedPeriod);
+
+        // Filter Hirarki
+        if ($selectedDept) {
+            $query->where('department_code', $selectedDept);
+        } elseif ($selectedDiv) {
+            $deptCodes = Department::where('code_division', $selectedDiv)->pluck('code');
+            $query->whereIn('department_code', $deptCodes);
+        }
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('circle_name', 'like', "%{$search}%")
+                ->orWhere('circle_code', 'like', "%{$search}%");
+            });
+        }
+
+        $circles = $query->orderBy('circle_name', 'asc')->paginate($perPage)->withQueryString();
+
+        return view('qcc.admin.all_circle_progress', compact(
+            'user', 'circles', 'periods', 'divisions', 'departments', 
+            'selectedPeriod', 'selectedDiv', 'selectedDept', 'perPage'
+        ));
+    }
 }   

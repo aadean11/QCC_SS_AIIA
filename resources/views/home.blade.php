@@ -1,6 +1,6 @@
 @extends('welcome')
 
-@section('title', 'Beranda - Satu AISIN')
+@section('title', 'Beranda - SIGITA')
 
 @section('content')
 <div class="animate-reveal space-y-10">

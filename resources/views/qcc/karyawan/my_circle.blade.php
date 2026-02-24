@@ -54,7 +54,10 @@
             <table class="w-full text-left border-separate border-spacing-y-2">
                 <thead>
                     <tr class="sidebar-gradient shadow-md">
-                        <th class="px-6 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold rounded-tl-2xl">Nama Circle</th>
+                        <!-- Tambah Kolom No -->
+                        <th class="px-4 py-4 text-white text-[10px] uppercase tracking-widest font-bold rounded-tl-2xl text-center w-12">No</th>
+                        <!-- Hapus rounded-tl-2xl dari Nama Circle -->
+                        <th class="px-6 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold">Nama Circle</th>
                         <th class="px-6 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold">Departemen</th>
                         <th class="px-6 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold text-center">Status</th>
                         <th class="px-6 py-4 text-center text-white text-[10px] uppercase tracking-[0.2em] font-bold rounded-tr-2xl">Opsi</th>
@@ -63,13 +66,21 @@
                 <tbody>
                     @forelse($circles as $c)
                     <tr class="bg-white hover:shadow-md transition-all group shadow-sm border border-gray-100">
-                        <td class="px-6 py-3 rounded-l-xl border-y border-l border-gray-100">
+                        <!-- Kolom Nomor Urut Otomatis -->
+                        <td class="px-4 py-3 rounded-l-xl border-y border-l border-gray-100 text-center font-bold text-gray-500">
+                            {{ ($circles->currentPage() - 1) * $circles->perPage() + $loop->iteration }}
+                        </td>
+
+                        <!-- Kolom Info Circle (Hapus rounded-l-xl dan border-l karena pindah ke No) -->
+                        <td class="px-6 py-3 border-y border-gray-100">
                             <p class="font-bold text-[#091E6E] text-sm group-hover:text-[#130998]">{{ $c->circle_name }}</p>
                             <p class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">{{ $c->circle_code }}</p>
                         </td>
+
                         <td class="px-6 py-3 border-y border-gray-100 text-gray-600 text-xs font-medium">
                             {{ $c->department->name ?? $c->department_code }}
                         </td>
+
                         <td class="px-6 py-3 border-y border-gray-100 text-center">
                             @php
                                 $badgeColor = 'bg-amber-50 text-amber-600 border-amber-100';
@@ -80,6 +91,7 @@
                                 {{ $c->status }}
                             </span>
                         </td>
+
                         <td class="px-6 py-3 rounded-r-xl border-y border-r border-gray-100 text-center">
                             <div class="flex justify-center gap-2">
                                 <a href="{{ route('qcc.karyawan.themes', ['circle_id' => $c->id]) }}" class="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Kelola Tema">
@@ -101,7 +113,10 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="4" class="text-center py-10 text-gray-300 italic text-sm">Anda belum bergabung di circle manapun.</td></tr>
+                    <tr>
+                        <!-- Update colspan dari 4 menjadi 5 -->
+                        <td colspan="5" class="text-center py-10 text-gray-300 italic text-sm">Anda belum bergabung di circle manapun.</td>
+                    </tr>
                     @endforelse
                 </tbody>
             </table>
