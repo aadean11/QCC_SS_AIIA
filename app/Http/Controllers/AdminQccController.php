@@ -231,6 +231,51 @@ class AdminQccController extends Controller
         ];
     }
 
+    // Master Schedule QCC
+    public function masterSchedule(Request $request)
+    {
+        $user = Employee::with('job')->find(Auth::id());
+        $selectedPeriod = $request->get('period_id');
+        $periods = QccPeriod::orderBy('year', 'desc')->get();
+
+        if (!$selectedPeriod) {
+            $selectedPeriod = QccPeriod::where('status', 'ACTIVE')->value('id') ?? QccPeriod::orderBy('id', 'desc')->value('id');
+        }
+
+        $period = QccPeriod::with(['periodSteps.step'])->find($selectedPeriod);
+
+        // Persiapan data untuk Gantt Chart
+        $ganttData = [];
+        if ($period && $period->periodSteps->count() > 0) {
+            $steps = $period->periodSteps->sortBy('step.step_number');
+            
+            // Titik awal adalah start_date periode
+            $lastDate = $period->start_date;
+
+            foreach ($steps as $ps) {
+                $ganttData[] = [
+                    'step_name' => 'Step ' . $ps->step->step_number . ': ' . $ps->step->step_name,
+                    'start' => $lastDate,
+                    'end' => $ps->deadline_date,
+                    'color' => $this->getStepColor($ps->step->step_number)
+                ];
+                // Start date step berikutnya adalah deadline step ini
+                $lastDate = $ps->deadline_date;
+            }
+        }
+
+        return view('qcc.admin.master_schedule', compact('user', 'periods', 'selectedPeriod', 'period', 'ganttData'));
+    }
+
+    // Helper warna agar gantt chart berwarna-warni menarik
+    private function getStepColor($stepNumber) {
+        $colors = [
+            0 => '#3b82f6', 1 => '#6366f1', 2 => '#8b5cf6', 3 => '#a855f7',
+            4 => '#d946ef', 5 => '#ec4899', 6 => '#f43f5e', 7 => '#f97316', 8 => '#10b981'
+        ];
+        return $colors[$stepNumber] ?? '#94a3b8';
+    }
+
     // Master Steps QCC
     public function masterSteps(Request $request)
     {

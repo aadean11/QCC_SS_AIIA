@@ -38,6 +38,9 @@ Route::middleware(['auth'])->group(function () {
     // Dashboard Admin QCC
     Route::get('/qcc/admin/dashboard', [AdminQccController::class, 'index'])->name('qcc.admin.dashboard');
 
+    // Master Schedule QCC
+    Route::get('/qcc/admin/master-schedule', [AdminQccController::class, 'masterSchedule'])->name('qcc.admin.master_schedule');
+
     // Master Steps QCC
     Route::get('/qcc/admin/master-steps', [AdminQccController::class, 'masterSteps'])->name('qcc.admin.master_steps');
     Route::post('/qcc/admin/master-steps', [AdminQccController::class, 'storeStep'])->name('qcc.admin.store_step');
