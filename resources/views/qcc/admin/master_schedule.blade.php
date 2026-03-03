@@ -70,7 +70,6 @@
         const ctx = document.getElementById('ganttChart').getContext('2d');
         const rawData = @json($ganttData);
         
-        // Format data untuk Floating Bar Chart
         const datasets = rawData.map(item => {
             return {
                 label: item.step_name,
@@ -87,9 +86,7 @@
 
         const config = {
             type: 'bar',
-            data: {
-                datasets: datasets
-            },
+            data: { datasets: datasets },
             options: {
                 indexAxis: 'y',
                 responsive: true,
@@ -109,10 +106,7 @@
                 scales: {
                     x: {
                         type: 'time',
-                        time: {
-                            unit: 'month',
-                            displayFormats: { month: 'MMM yyyy' }
-                        },
+                        time: { unit: 'month', displayFormats: { month: 'MMM yyyy' } },
                         grid: { color: 'rgba(0,0,0,0.03)' },
                         ticks: { font: { family: 'Poppins', size: 11 }, color: '#64748b' },
                         min: "{{ $period->start_date }}",
@@ -128,32 +122,69 @@
             plugins: [{
                 id: 'todayLine',
                 afterDraw: (chart) => {
-                    const ctx = chart.ctx;
-                    const xAxis = chart.scales.x;
-                    const yAxis = chart.scales.y;
-                    const xPos = xAxis.getPixelForValue(new Date());
+                    const { ctx, chartArea: { top, bottom, left, right }, scales: { x } } = chart;
+                    const today = new Date();
+                    const xPos = x.getPixelForValue(today);
 
-                    if (xPos >= xAxis.left && xPos <= xAxis.right) {
+                    if (xPos >= left && xPos <= right) {
                         ctx.save();
+                        
+                        // 1. Gambar Garis Vertikal Merah Putus-putus
                         ctx.beginPath();
-                        ctx.moveTo(xPos, yAxis.top);
-                        ctx.lineTo(xPos, yAxis.bottom);
-                        ctx.lineWidth = 2;
+                        ctx.moveTo(xPos, top);
+                        ctx.lineTo(xPos, bottom);
+                        ctx.lineWidth = 1.5;
                         ctx.strokeStyle = '#ef4444';
-                        ctx.setLineDash([6, 6]);
+                        ctx.setLineDash([5, 5]);
                         ctx.stroke();
 
-                        // Label "Today"
-                        ctx.fillStyle = '#ef4444';
+                        // 2. Desain Bendera Horizontal di Samping Kanan Garis
+                        const dateText = today.toLocaleDateString('id-ID', { 
+                            day: '2-digit', month: 'long', year: 'numeric' 
+                        }).toUpperCase();
+                        
                         ctx.font = 'bold 10px Poppins';
+                        const textWidth = ctx.measureText(dateText).width;
+                        const boxWidth = textWidth + 12; // Padding horizontal
+                        const boxHeight = 20;
+                        const boxX = xPos + 5; // Jarak 5px ke kanan dari garis merah
+                        const boxY = top + 1;
+
+                        // Gambar Background Kotak Bendera (Putih Ber-border Merah)
+                        ctx.setLineDash([]); // Reset garis putus-putus jadi solid untuk kotak
+                        ctx.fillStyle = '#ffffff';
+                        ctx.strokeStyle = '#ef4444';
+                        ctx.lineWidth = 1;
+                        
+                        // Efek Shadow halus agar terlihat seperti bendera melayang
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+                        ctx.shadowBlur = 4;
+                        ctx.shadowOffsetX = 2;
+
+                        ctx.beginPath();
+                        if (ctx.roundRect) {
+                            // x, y, width, height, radius
+                            ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 5);
+                        } else {
+                            ctx.rect(boxX, boxY, boxWidth, boxHeight);
+                        }
+                        ctx.fill();
+                        ctx.stroke();
+
+                        // 3. Tulis Teks Tanggal (Warna Merah)
+                        ctx.shadowBlur = 0; // Matikan shadow untuk teks
+                        ctx.shadowOffsetX = 0;
+                        ctx.fillStyle = '#ef4444';
                         ctx.textAlign = 'center';
-                        ctx.fillText('HARI INI', xPos, yAxis.top - 10);
+                        ctx.textBaseline = 'middle';
+                        // Posisi teks di tengah-tengah kotak
+                        ctx.fillText(dateText, boxX + (boxWidth / 2), boxY + (boxHeight / 2));
+
                         ctx.restore();
                     }
                 }
             }]
         };
-
         new Chart(ctx, config);
     });
 </script>
