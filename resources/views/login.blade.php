@@ -29,24 +29,23 @@
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
 
-    <header class="bg-white h-20 px-10 shadow-md flex justify-between items-center shrink-0 relative z-50">
-        <img src="{{ asset('assets/images/logo-aisin.png') }}" alt="Satu AISIN Logo" class="h-12">
-        <!-- Badge Nama Aplikasi di Header -->
-        <div class="hidden md:flex flex-col items-end leading-none">
-            <span class="text-xl font-extrabold text-[#091E6E]">SIGIT<span class="text-blue-500">A</span></span>
-            <!-- <span class="text-[9px] text-gray-400 font-medium">Sistem Integrasi Gagasan, Inovasi & Tindak lanjut AIIA</span> -->
+    <!-- Header: Menyesuaikan padding di mobile agar tidak terlalu sempit -->
+    <header class="bg-white h-20 px-6 md:px-10 shadow-md flex justify-between items-center shrink-0 relative z-50">
+        <img src="{{ asset('assets/images/logo-aisin.png') }}" alt="Satu AISIN Logo" class="h-10 md:h-12">
+        <div class="flex flex-col items-end leading-none">
+            <span class="text-lg md:text-xl font-extrabold text-[#091E6E]">SIGIT<span class="text-blue-500">A</span></span>
         </div>
     </header>
 
-    <main class="flex-1 bg-custom-gradient flex items-center justify-center p-6">
-        <div class="container mx-auto flex flex-col md:flex-row items-center justify-around gap-12">
+    <main class="flex-1 bg-custom-gradient flex items-center justify-center p-4 md:p-6">
+        <div class="container mx-auto flex flex-col md:flex-row items-center justify-around gap-8 md:gap-12">
             
             <div class="hidden md:flex flex-col items-center text-white max-w-sm">
                 <div class="animate-reveal">
                     <img src="{{ asset('assets/images/In progress-amico.png') }}" class="w-full mb-6 animate-float">
                 </div>
                 <h1 class="text-2xl font-extrabold text-center leading-tight mb-2 uppercase">SIGITA</h1>
-                <p class="text-white-400 text-[13px] leading-relaxed px-4">
+                <p class="text-white-400 text-[13px] leading-relaxed px-4 text-center">
                         <span class="font-bold text-white-900">S</span>istem
                         <span class="font-bold text-white-900">I</span>ntegrasi
                         <span class="font-bold text-white-900">G</span>agasan,
@@ -58,19 +57,18 @@
                 <p class="text-sm font-light text-center opacity-90 italic">"Satu ide, Satu Perubahan, Satu Kemajuan!"</p>
             </div>
 
-            <!-- Login Card -->
-            <div class="bg-white rounded-[2.5rem] shadow-2xl p-10 max-w-md w-full animate-reveal relative">
-                <div class="text-center mb-10">
-                    <!-- Desain Nama Aplikasi yang Menarik -->
+            <!-- Login Card: Padding disesuaikan (p-8 di mobile, p-10 di desktop) -->
+            <div class="bg-white rounded-[2.5rem] shadow-2xl p-8 md:p-10 max-w-md w-full animate-reveal relative">
+                <div class="text-center mb-6 md:mb-10">
                     <div class="mb-4 inline-block">
-                        <h2 class="text-5xl font-extrabold tracking-tighter">
+                        <!-- Ukuran teks SIGITA mengecil sedikit di mobile agar tidak bungkus (wrap) -->
+                        <h2 class="text-4xl md:text-5xl font-extrabold tracking-tighter">
                             <span class="text-brand">SIGIT</span><span class="text-blue-500">A</span>
                         </h2>
                         <div class="h-1.5 w-12 bg-blue-500 mx-auto rounded-full mt-1"></div>
                     </div>
                     
-                    <!-- <h3 class="text-sm font-bold text-gray-700 uppercase tracking-widest mb-1">Selamat Datang</h3> -->
-                    <p class="text-gray-400 text-[16px] leading-relaxed px-4">
+                    <p class="text-gray-400 text-sm md:text-[16px] leading-relaxed px-2">
                         <span class="font-bold text-blue-900">S</span>istem
                         <span class="font-bold text-blue-900">I</span>ntegrasi
                         <span class="font-bold text-blue-900">G</span>agasan,
@@ -112,38 +110,38 @@
         </div>
     </main>
 
-    <!-- MODAL PILIH AKSES -->
+    <!-- MODAL PILIH AKSES: Menyesuaikan lebar agar tidak overflow di mobile -->
     <div id="modalRole" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden">
-                <div class="sidebar-gradient p-6 text-white flex justify-between items-center">
-                    <h3 class="text-xl font-bold uppercase tracking-widest">Pilih Akses Masuk</h3>
+                <div class="btn-gradient p-6 text-white flex justify-between items-center">
+                    <h3 class="text-lg md:text-xl font-bold uppercase tracking-widest">Pilih Akses</h3>
                     <button onclick="closeModal()" class="text-white/70 hover:text-white text-2xl">&times;</button>
                 </div>
-                <div class="p-8 space-y-6">
+                <div class="p-6 md:p-8 space-y-4 md:space-y-6">
                     <div class="text-center mb-2">
                         <h4 class="text-2xl font-black text-[#091E6E]">SIGIT<span class="text-blue-500">A</span></h4>
                         <p class="text-gray-500 text-xs">Pilih mode akses untuk melanjutkan</p>
                     </div>
                     
                     <div class="grid gap-4">
-                        <button onclick="finalSubmit('admin')" class="flex items-center gap-5 p-5 border-2 border-gray-100 rounded-3xl hover:border-[#130998] hover:bg-indigo-50 transition-all text-left group">
-                            <div class="w-12 h-12 bg-indigo-100 text-[#130998] rounded-xl flex items-center justify-center text-xl group-hover:bg-[#130998] group-hover:text-white">
+                        <button onclick="finalSubmit('admin')" class="flex items-center gap-4 md:gap-5 p-4 md:p-5 border-2 border-gray-100 rounded-3xl hover:border-[#130998] hover:bg-indigo-50 transition-all text-left group">
+                            <div class="shrink-0 w-10 h-10 md:w-12 md:h-12 bg-indigo-100 text-[#130998] rounded-xl flex items-center justify-center text-lg md:text-xl group-hover:bg-[#130998] group-hover:text-white">
                                 <i class="fa-solid fa-user-shield"></i>
                             </div>
                             <div>
-                                <h4 class="font-bold text-[#130998]">Masuk sebagai Admin</h4>
-                                <p class="text-[10px] text-gray-400 uppercase font-bold">Monitoring & Master Data</p>
+                                <h4 class="font-bold text-[#130998] text-sm md:text-base">Masuk sebagai Admin</h4>
+                                <p class="text-[9px] text-gray-400 uppercase font-bold">Monitoring & Master Data</p>
                             </div>
                         </button>
 
-                        <button onclick="finalSubmit('employee')" class="flex items-center gap-5 p-5 border-2 border-gray-100 rounded-3xl hover:border-[#091E6E] hover:bg-blue-50 transition-all text-left group">
-                            <div class="w-12 h-12 bg-blue-100 text-[#091E6E] rounded-xl flex items-center justify-center text-xl group-hover:bg-[#091E6E] group-hover:text-white">
+                        <button onclick="finalSubmit('employee')" class="flex items-center gap-4 md:gap-5 p-4 md:p-5 border-2 border-gray-100 rounded-3xl hover:border-[#091E6E] hover:bg-blue-50 transition-all text-left group">
+                            <div class="shrink-0 w-10 h-10 md:w-12 md:h-12 bg-blue-100 text-[#091E6E] rounded-xl flex items-center justify-center text-lg md:text-xl group-hover:bg-[#091E6E] group-hover:text-white">
                                 <i class="fa-solid fa-user-gear"></i>
                             </div>
                             <div>
-                                <h4 class="font-bold text-[#091E6E]">Masuk sebagai Karyawan</h4>
-                                <p class="text-[10px] text-gray-400 uppercase font-bold">QCC & Suggestion System</p>
+                                <h4 class="font-bold text-[#091E6E] text-sm md:text-base">Masuk sebagai Karyawan</h4>
+                                <p class="text-[9px] text-gray-400 uppercase font-bold">QCC & Suggestion System</p>
                             </div>
                         </button>
                     </div>
@@ -164,6 +162,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // JS Anda tetap utuh tanpa perubahan logika
         function closeModal() { document.getElementById('modalRole').classList.add('hidden'); }
 
         document.getElementById('tempLoginForm').addEventListener('submit', async function(e) {

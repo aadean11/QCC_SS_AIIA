@@ -7,274 +7,67 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        body { font-family: 'Poppins', sans-serif; background-color: #F3F4F6; }
-
-        html, body {
-            height: 100%;
-            overflow: hidden;
+<style>
+    /* ... (semua style tetap sama seperti sebelumnya) ... */
+    body { font-family: 'Poppins', sans-serif; background-color: #F3F4F6; }
+    html, body { height: 100%; overflow: hidden; }
+    .sidebar-gradient { background: linear-gradient(180deg, #091E6E 0%, #130998 100%); transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; overflow-x: hidden; }
+    .sidebar-collapsed { width: 5rem !important; overflow: visible !important; }
+    .sidebar-collapsed .badge-number { display: none !important; }
+    .sidebar-collapsed .sidebar-link .relative { margin-right: 0 !important; }
+    .sidebar-collapsed .sidebar-link .relative span.bg-red-500 { top: -2px !important; right: -2px !important; width: 10px !important; height: 10px !important; }
+    .sidebar-collapsed .menu-text, .sidebar-collapsed .sidebar-header-text, .sidebar-collapsed .sidebar-footer, .sidebar-collapsed .dropdown-arrow { display: none; }
+    .sidebar-collapsed .sidebar-link { justify-content: center; padding-left: 0; padding-right: 0; }
+    .submenu { transition: all 0.3s ease-in-out; max-height: 0; overflow: hidden; opacity: 0; }
+    .submenu.show { max-height: 500px; opacity: 1; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+    .submenu { position: relative; padding-left: 2.25rem !important; margin-top: 0.5rem; }
+    .submenu::before { content: ""; position: absolute; left: 20px; top: 6px; bottom: 6px; width: 1px; background-color: rgba(255,255,255,0.15); }
+    .submenu a { position: relative; display: block; padding: 0.5rem 0.75rem 0.5rem 1.25rem !important; border-radius: 8px; transition: all 0.2s ease; }
+    .submenu a::before { content: ""; position: absolute; left: -14px; top: 50%; width: 14px; height: 1px; background-color: rgba(255,255,255,0.15); transform: translateY(-50%); }
+    .submenu a::after { content: ""; position: absolute; left: -18px; top: 50%; width: 4px; height: 4px; background-color: rgba(255,255,255,0.4); border-radius: 50%; transform: translateY(-50%); }
+    .submenu a:hover { background-color: rgba(255,255,255,0.07); transform: translateX(4px); color: #ffffff !important; }
+    .submenu a.font-bold { background-color: rgba(255,255,255,0.1); color: #ffffff !important; }
+    .dropdown-arrow { transition: transform 0.3s ease; }
+    .rotate-180 { transform: rotate(180deg); }
+    .sidebar-link { transition: all 0.3s ease; border-left: 4px solid transparent; }
+    .sidebar-link:hover { background: rgba(255, 255, 255, 0.1); border-left: 4px solid #FBBF24; }
+    .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
+    .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #707070; border-radius: 10px;}
+    .welcome-banner { background: linear-gradient(90deg, #091E6E 0%, #1035D1 100%); }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-reveal { animation: fadeInUp 0.6s ease-out forwards; }
+    .sidebar-collapsed .group { position: relative; }
+    .floating-submenu { position: fixed !important; display: block !important; visibility: hidden; opacity: 0; width: 240px; background: #091E6E; border-radius: 0 1rem 1rem 0; padding: 1rem; box-shadow: 15px 5px 30px rgba(0, 0, 0, 0.4); z-index: 99999; border-left: 3px solid #FBBF24; max-height: 80vh !important; overflow-y: auto !important; transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease; transform: translateX(-10px); }
+    .floating-submenu.active { visibility: visible; opacity: 1; transform: translateX(0); }
+    .floating-submenu .menu-text { display: inline-block !important; color: #fff !important; white-space: nowrap; }
+    .floating-submenu a { padding: 0.75rem 1rem !important; display: flex !important; align-items: center !important; gap: 12px !important; transition: all 0.2s !important; border-radius: 0.5rem !important; margin-bottom: 0.25rem !important; color: #93C5FD !important; }
+    .floating-submenu a:hover { background: rgba(255, 255, 255, 0.15) !important; transform: translateX(5px) !important; color: white !important; }
+    .floating-submenu i { color: #93C5FD !important; width: 1.25rem !important; text-align: center !important; transition: color 0.2s; }
+    .floating-submenu a:hover i { color: white !important; }
+    .floating-submenu .text-xs { font-size: 0.8125rem !important; line-height: 1.5 !important; }
+    .sidebar-collapsed .sidebar-link:hover { background: rgba(255, 255, 255, 0.15) !important; border-left: 4px solid #FBBF24 !important; }
+    .menu-gap { position: absolute; left: 100%; top: 0; width: 20px; height: 100%; z-index: 99998; }
+    .swal2-shown { padding-right: 0 !important; }
+    body.swal2-height-auto { height: 100vh !important; }
+    .swal2-container { position: fixed !important; inset: 0 !important; }
+    .sidebar-collapsed ~ main { margin-left: 5rem !important; }
+    #sidebar { transition: transform 0.3s ease-in-out; }
+    #sidebarOverlay { transition: opacity 0.3s ease-in-out; z-index: 35; }
+    @media (min-width: 768px) {
+        #sidebar { transform: none !important; }
+        #sidebarOverlay { display: none !important; }
+    }
+</style>
+<!-- SCRIPT CEK STATUS SIDEBAR SEBELUM HALAMAN DI-RENDER -->
+<script>
+    (function() {
+        const state = localStorage.getItem('sidebar-state');
+        if (state === 'collapsed') {
+            document.documentElement.classList.add('sidebar-is-collapsed');
         }
-        
-        /* SIDEBAR BASE */
-        .sidebar-gradient { 
-            background: linear-gradient(180deg, #091E6E 0%, #130998 100%); 
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-
-        /* SIDEBAR COLLAPSED STATE (MINI) */
-        .sidebar-collapsed { 
-            width: 5rem !important; 
-            overflow: visible !important; 
-        }
-
-        /* HIDE NUMBER BADGE WHEN COLLAPSED */
-        .sidebar-collapsed .badge-number {
-            display: none !important;
-        }
-
-        /* ADJUST ICON CONTAINER WHEN COLLAPSED */
-        .sidebar-collapsed .sidebar-link .relative {
-            margin-right: 0 !important;
-        }
-
-        /* FIX POSITION OF RED DOT WHEN COLLAPSED */
-        .sidebar-collapsed .sidebar-link .relative span.bg-red-500 {
-            top: -2px !important;
-            right: -2px !important;
-            width: 10px !important; /* Ukuran titik merah sedikit dipertegas */
-            height: 10px !important;
-        }
-
-        .sidebar-collapsed .menu-text, 
-        .sidebar-collapsed .sidebar-header-text, 
-        .sidebar-collapsed .sidebar-footer, 
-        .sidebar-collapsed .dropdown-arrow { 
-            display: none; 
-        }
-
-        .sidebar-collapsed .sidebar-link { 
-            justify-content: center; 
-            padding-left: 0; 
-            padding-right: 0; 
-        }
-
-        /* SUBMENU ACCORDION (Mode Normal) */
-        .submenu { 
-            transition: all 0.3s ease-in-out; 
-            max-height: 0; 
-            overflow: hidden; 
-            opacity: 0; 
-        }
-        .submenu.show { 
-            max-height: 500px; 
-            opacity: 1; 
-            margin-top: 0.5rem; 
-            margin-bottom: 0.5rem; 
-        }
-
-        /* ================================= */
-        /* MINIMALIS CLEAN CORPORATE SUBMENU */
-        /* ================================= */
-
-        .submenu {
-            position: relative;
-            padding-left: 2.25rem !important;
-            margin-top: 0.5rem;
-        }
-
-        /* Garis vertikal soft */
-        .submenu::before {
-            content: "";
-            position: absolute;
-            left: 20px;
-            top: 6px;
-            bottom: 6px;
-            width: 1px;
-            background-color: rgba(255,255,255,0.15);
-        }
-
-        /* Item submenu */
-        .submenu a {
-            position: relative;
-            display: block;
-            padding: 0.5rem 0.75rem 0.5rem 1.25rem !important;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-        }
-
-        /* Connector horizontal */
-        .submenu a::before {
-            content: "";
-            position: absolute;
-            left: -14px;
-            top: 50%;
-            width: 14px;
-            height: 1px;
-            background-color: rgba(255,255,255,0.15);
-            transform: translateY(-50%);
-        }
-
-        /* Dot kecil clean */
-        .submenu a::after {
-            content: "";
-            position: absolute;
-            left: -18px;
-            top: 50%;
-            width: 4px;
-            height: 4px;
-            background-color: rgba(255,255,255,0.4);
-            border-radius: 50%;
-            transform: translateY(-50%);
-        }
-
-        /* Hover clean */
-        .submenu a:hover {
-            background-color: rgba(255,255,255,0.07);
-            transform: translateX(4px);
-            color: #ffffff !important;
-        }
-
-        /* Active state */
-        .submenu a.font-bold {
-            background-color: rgba(255,255,255,0.1);
-            color: #ffffff !important;
-        }
-
-        /* UTILS */
-        .dropdown-arrow { transition: transform 0.3s ease; }
-        .rotate-180 { transform: rotate(180deg); }
-        .sidebar-link { transition: all 0.3s ease; border-left: 4px solid transparent; }
-        .sidebar-link:hover { background: rgba(255, 255, 255, 0.1); border-left: 4px solid #FBBF24; }
-        
-        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #707070; border-radius: 10px;}
-        
-        .welcome-banner { background: linear-gradient(90deg, #091E6E 0%, #1035D1 100%); }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-reveal { animation: fadeInUp 0.6s ease-out forwards; }
-
-        /* ========================= */
-        /* FIXED FLOATING SUBMENU - REVISI BUG */
-        /* ========================= */
-
-        /* Parent group untuk floating menu */
-        .sidebar-collapsed .group {
-            position: relative;
-        }
-
-        /* Floating submenu yang stabil */
-        .floating-submenu {
-            position: fixed !important;
-            display: block !important;
-            visibility: hidden;
-            opacity: 0;
-            width: 240px;
-            background: #091E6E;
-            border-radius: 0 1rem 1rem 0;
-            padding: 1rem;
-            box-shadow: 15px 5px 30px rgba(0, 0, 0, 0.4);
-            z-index: 99999;
-            border-left: 3px solid #FBBF24;
-            max-height: 80vh !important;
-            overflow-y: auto !important;
-            transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
-            transform: translateX(-10px);
-        }
-
-        .floating-submenu.active {
-            visibility: visible;
-            opacity: 1;
-            transform: translateX(0);
-        }
-
-        .floating-submenu .menu-text {
-            display: inline-block !important;
-            color: #fff !important;
-            white-space: nowrap;
-        }
-
-        /* Styling untuk submenu items di floating menu */
-        .floating-submenu a {
-            padding: 0.75rem 1rem !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 12px !important;
-            transition: all 0.2s !important;
-            border-radius: 0.5rem !important;
-            margin-bottom: 0.25rem !important;
-            color: #93C5FD !important;
-        }
-
-        .floating-submenu a:hover {
-            background: rgba(255, 255, 255, 0.15) !important;
-            transform: translateX(5px) !important;
-            color: white !important;
-        }
-
-        /* Pastikan icon visible */
-        .floating-submenu i {
-            color: #93C5FD !important;
-            width: 1.25rem !important;
-            text-align: center !important;
-            transition: color 0.2s;
-        }
-
-        .floating-submenu a:hover i {
-            color: white !important;
-        }
-
-        /* Styling untuk submenu items di floating menu */
-        .floating-submenu .text-xs {
-            font-size: 0.8125rem !important;
-            line-height: 1.5 !important;
-        }
-
-        /* Hover effect untuk parent button saat sidebar collapsed */
-        .sidebar-collapsed .sidebar-link:hover {
-            background: rgba(255, 255, 255, 0.15) !important;
-            border-left: 4px solid #FBBF24 !important;
-        }
-
-        /* Gap antara tombol dan floating menu (toleransi untuk mencegah kehilangan hover) */
-        .menu-gap {
-            position: absolute;
-            left: 100%;
-            top: 0;
-            width: 20px;
-            height: 100%;
-            z-index: 99998;
-        }
-
-        .swal2-shown {
-            padding-right: 0 !important;
-        }
-
-        body.swal2-height-auto {
-            height: 100vh !important;
-        }
-
-        .swal2-container {
-            position: fixed !important;
-            inset: 0 !important;
-        }
-
-        .sidebar-collapsed ~ main {
-            margin-left: 5rem !important;
-        }
-    </style>
-    <!-- SCRIPT CEK STATUS SIDEBAR SEBELUM HALAMAN DI-RENDER (Mencegah Kedip) -->
-    <script>
-        (function() {
-            const state = localStorage.getItem('sidebar-state');
-            if (state === 'collapsed') {
-                document.documentElement.classList.add('sidebar-is-collapsed');
-            }
-        })();
-    </script>
+    })();
+</script>
 </head>
 <body class="h-screen flex flex-col text-sm">
     <!-- TOPBAR -->
@@ -303,9 +96,13 @@
         </div>
     </header>
 
+    <!-- Overlay untuk mobile -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden transition-opacity" onclick="toggleMobileSidebar()"></div>
+
     <div class="flex flex-1 h-full">
         <!-- SIDEBAR -->
-        <aside id="sidebar" class="w-72 sidebar-gradient hidden md:flex flex-col p-4 shadow-2xl fixed top-20 left-0 h-[calc(100vh-5rem)] z-40">
+        <aside id="sidebar" class="w-72 sidebar-gradient flex flex-col p-4 shadow-2xl fixed top-20 left-0 h-[calc(100vh-5rem)] z-40 transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0">
+            <!-- Konten sidebar (sama seperti sebelumnya) -->
             <div class="flex-1 mt-1 overflow-y-auto custom-scrollbar pr-2">
                 <nav class="space-y-1">
                     <!-- 1. DASHBOARD (Universal) -->
@@ -338,13 +135,11 @@
                         <a href="{{ route('qcc.approval.circle') }}" class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl {{ request()->is('*/approval/circle*') ? 'bg-white/10' : '' }}">
                             <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg relative">
                                 <i class="fa-solid fa-user-check text-blue-200"></i>
-                                <!-- Ini adalah Titik Merah (Indikator) - Tetap Tampil -->
                                 @if(isset($countCircle) && $countCircle > 0) 
                                     <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-[#091E6E]"></span> 
                                 @endif
                             </div>
                             <span class="menu-text font-medium whitespace-nowrap text-sm">Approve Circle</span>
-                            <!-- Tambahkan class 'badge-number' di sini -->
                             @if(isset($countCircle) && $countCircle > 0) 
                                 <span class="badge-number ml-auto bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-black">{{ $countCircle }}</span> 
                             @endif
@@ -353,13 +148,11 @@
                         <a href="{{ route('qcc.approval.progress') }}" class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl {{ request()->is('*/approval/progress*') ? 'bg-white/10' : '' }}">
                             <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg relative">
                                 <i class="fa-solid fa-file-signature text-blue-200"></i>
-                                <!-- Titik Merah -->
                                 @if(isset($countProgress) && $countProgress > 0) 
                                     <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-[#091E6E]"></span> 
                                 @endif
                             </div>
                             <span class="menu-text font-medium whitespace-nowrap text-sm">Approve Progres</span>
-                            <!-- Tambahkan class 'badge-number' di sini -->
                             @if(isset($countProgress) && $countProgress > 0) 
                                 <span class="badge-number ml-auto bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-black">{{ $countProgress }}</span> 
                             @endif
@@ -378,7 +171,6 @@
                                 </div>
                                 <i id="karyawanArrow" class="fa-solid fa-chevron-down text-[10px] dropdown-arrow"></i>
                             </button>
-                            <!-- Invisible gap untuk menghubungkan tombol dengan floating menu -->
                             <div class="menu-gap"></div>
 
                             <div id="karyawanSubmenu" class="submenu pl-12 space-y-1 {{ request()->is('qcc/karyawan*') ? 'show' : '' }}">
@@ -420,7 +212,6 @@
                                 </div>
                                 <i id="qccArrow" class="fa-solid fa-chevron-down text-[10px] dropdown-arrow"></i>
                             </button>
-                            <!-- Invisible gap untuk menghubungkan tombol dengan floating menu -->
                             <div class="menu-gap"></div>
 
                             <div id="qccSubmenu" class="submenu pl-12 space-y-1 {{ request()->is('qcc/admin*') ? 'show' : '' }}">
@@ -464,7 +255,7 @@
             </div>
         </aside>
 
-        <main class="flex-1 ml-72 p-8 overflow-y-auto custom-scrollbar h-[calc(100vh-5rem)]">
+        <main class="flex-1 md:ml-72 p-8 overflow-y-auto custom-scrollbar h-[calc(100vh-5rem)]">
             @yield('content')
         </main>
     </div>
@@ -477,18 +268,53 @@
     <script>
         const sidebar = document.getElementById('sidebar');
         const sidebarToggle = document.getElementById('sidebarToggle');
+        const overlay = document.getElementById('sidebarOverlay');
         const qccSubmenu = document.getElementById('qccSubmenu');
         const qccArrow = document.getElementById('qccArrow');
         const karyawanSubmenu = document.getElementById('karyawanSubmenu');
         const karyawanArrow = document.getElementById('karyawanArrow');
 
-        // Variabel global untuk kontrol floating menu
+        // Variabel global
         let hoverTimeout = null;
         let activeFloatingMenu = null;
         let isSidebarCollapsed = false;
         let isMouseInFloatingMenu = false;
 
-        // LOGIKA SAAT HALAMAN DIMUAT (Restore State)
+        function isMobile() {
+            return window.innerWidth < 768;
+        }
+
+        // Toggle mobile sidebar (off-canvas)
+        function toggleMobileSidebar(open) {
+            if (open === undefined) {
+                const isOpen = !sidebar.classList.contains('-translate-x-full');
+                if (isOpen) {
+                    // Tutup
+                    sidebar.classList.add('-translate-x-full');
+                    overlay.classList.add('hidden');
+                    overlay.classList.remove('flex');
+                } else {
+                    // Buka – pastikan collapsed class dihapus agar lebar penuh
+                    sidebar.classList.remove('sidebar-collapsed');
+                    sidebar.classList.remove('-translate-x-full');
+                    overlay.classList.remove('hidden');
+                    overlay.classList.add('flex');
+                }
+            } else {
+                if (open) {
+                    sidebar.classList.remove('sidebar-collapsed');
+                    sidebar.classList.remove('-translate-x-full');
+                    overlay.classList.remove('hidden');
+                    overlay.classList.add('flex');
+                } else {
+                    sidebar.classList.add('-translate-x-full');
+                    overlay.classList.add('hidden');
+                    overlay.classList.remove('flex');
+                }
+            }
+        }
+
+        // Inisialisasi
         document.addEventListener('DOMContentLoaded', () => {
             const state = localStorage.getItem('sidebar-state');
             if (state === 'collapsed') {
@@ -497,86 +323,58 @@
                 closeAllSubmenus();
                 setupFloatingMenuListeners();
             }
+            if (isMobile()) {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            } else {
+                sidebar.classList.remove('-translate-x-full');
+            }
         });
 
-        // Fungsi untuk membuat floating submenu
+        // Floating menu (sama seperti sebelumnya)
         function createFloatingSubmenu(parentButton, submenuId) {
-            // Hapus floating menu yang sudah ada
             const existingFloating = document.querySelector('.floating-submenu');
             if (existingFloating) {
                 existingFloating.remove();
                 activeFloatingMenu = null;
             }
-            
-            // Clone submenu yang asli
             const originalSubmenu = document.getElementById(submenuId);
             if (!originalSubmenu) return null;
-            
             const floatingMenu = originalSubmenu.cloneNode(true);
             floatingMenu.id = 'floating-' + submenuId;
             floatingMenu.classList.add('floating-submenu');
-            floatingMenu.classList.remove('submenu');
-            floatingMenu.classList.remove('show');
+            floatingMenu.classList.remove('submenu', 'show');
             
-            // Tambahkan event listener untuk floating menu
             floatingMenu.addEventListener('mouseenter', () => {
                 isMouseInFloatingMenu = true;
-                if (hoverTimeout) {
-                    clearTimeout(hoverTimeout);
-                }
+                if (hoverTimeout) clearTimeout(hoverTimeout);
             });
-            
             floatingMenu.addEventListener('mouseleave', (e) => {
                 isMouseInFloatingMenu = false;
-                // Cek apakah mouse benar-benar meninggalkan floating menu
                 if (!floatingMenu.contains(e.relatedTarget)) {
                     hoverTimeout = setTimeout(() => {
-                        if (!isMouseInFloatingMenu) {
-                            hideFloatingSubmenu();
-                        }
-                    }, 300); // Delay lebih lama untuk memberi waktu ke floating menu
+                        if (!isMouseInFloatingMenu) hideFloatingSubmenu();
+                    }, 300);
                 }
             });
-            
-            // Tambahkan ke body
             document.body.appendChild(floatingMenu);
             
-            // Hitung posisi
             const parentRect = parentButton.getBoundingClientRect();
-            const sidebarWidth = 80; // 5rem = 80px
-            
-            // Pastikan posisi tidak melebihi tinggi layar
+            const sidebarWidth = 80;
             let topPosition = parentRect.top - 10;
             const maxTop = window.innerHeight - 300;
-            
-            if (topPosition > maxTop) {
-                topPosition = maxTop;
-            }
-            
+            if (topPosition > maxTop) topPosition = maxTop;
             floatingMenu.style.left = (sidebarWidth + 5) + 'px';
             floatingMenu.style.top = topPosition + 'px';
-            
             return floatingMenu;
         }
 
-        // Fungsi untuk menampilkan floating submenu
         function showFloatingSubmenu(button, submenuId) {
-            if (!isSidebarCollapsed) return;
-            
-            // Clear timeout sebelumnya
-            if (hoverTimeout) {
-                clearTimeout(hoverTimeout);
-            }
-            
-            // Tutup menu aktif sebelumnya
-            if (activeFloatingMenu) {
-                hideFloatingSubmenu();
-            }
-            
-            // Buat dan tampilkan menu baru
+            if (!isSidebarCollapsed || isMobile()) return;
+            if (hoverTimeout) clearTimeout(hoverTimeout);
+            if (activeFloatingMenu) hideFloatingSubmenu();
             const floatingMenu = createFloatingSubmenu(button, submenuId);
             if (floatingMenu) {
-                // Small delay untuk memastikan DOM sudah siap
                 setTimeout(() => {
                     floatingMenu.classList.add('active');
                     activeFloatingMenu = floatingMenu;
@@ -584,7 +382,6 @@
             }
         }
 
-        // Fungsi untuk menyembunyikan floating submenu
         function hideFloatingSubmenu() {
             if (activeFloatingMenu) {
                 activeFloatingMenu.classList.remove('active');
@@ -594,142 +391,135 @@
                         activeFloatingMenu = null;
                         isMouseInFloatingMenu = false;
                     }
-                }, 300); // Match dengan CSS transition
+                }, 300);
             }
         }
 
-        // Setup event listeners untuk floating menu
         function setupFloatingMenuListeners() {
             const groups = document.querySelectorAll('.group[data-submenu]');
-            
             groups.forEach(group => {
                 const button = group.querySelector('button');
                 const menuGap = group.querySelector('.menu-gap');
                 const submenuId = group.getAttribute('data-submenu');
-                
                 if (!button || !submenuId) return;
-                
-                // Event untuk tombol utama
+
                 button.addEventListener('mouseenter', () => {
-                    if (!isSidebarCollapsed) return;
-                    
-                    hoverTimeout = setTimeout(() => {
-                        showFloatingSubmenu(button, submenuId);
-                    }, 200); // Delay sedikit untuk mencegah flash
+                    if (!isSidebarCollapsed || isMobile()) return;
+                    hoverTimeout = setTimeout(() => showFloatingSubmenu(button, submenuId), 200);
                 });
-                
                 button.addEventListener('mouseleave', (e) => {
-                    if (!isSidebarCollapsed) return;
-                    
-                    if (hoverTimeout) {
-                        clearTimeout(hoverTimeout);
-                    }
-                    
-                    // Cek apakah cursor pindah ke menu gap atau floating menu
+                    if (!isSidebarCollapsed || isMobile()) return;
+                    if (hoverTimeout) clearTimeout(hoverTimeout);
                     const floatingMenu = document.querySelector('.floating-submenu.active');
                     const isMovingToGap = menuGap && menuGap.contains(e.relatedTarget);
                     const isMovingToFloatingMenu = floatingMenu && floatingMenu.contains(e.relatedTarget);
-                    
                     if (!isMovingToGap && !isMovingToFloatingMenu) {
                         hoverTimeout = setTimeout(() => {
-                            if (!isMouseInFloatingMenu) {
-                                hideFloatingSubmenu();
-                            }
+                            if (!isMouseInFloatingMenu) hideFloatingSubmenu();
                         }, 200);
                     }
                 });
-                
-                // Event untuk menu gap (area transisi antara tombol dan floating menu)
                 if (menuGap) {
                     menuGap.addEventListener('mouseenter', () => {
-                        if (!isSidebarCollapsed) return;
-                        
-                        if (hoverTimeout) {
-                            clearTimeout(hoverTimeout);
-                        }
-                        
-                        // Tampilkan floating menu jika belum tampil
-                        if (!activeFloatingMenu) {
-                            showFloatingSubmenu(button, submenuId);
-                        }
+                        if (!isSidebarCollapsed || isMobile()) return;
+                        if (hoverTimeout) clearTimeout(hoverTimeout);
+                        if (!activeFloatingMenu) showFloatingSubmenu(button, submenuId);
                     });
-                    
                     menuGap.addEventListener('mouseleave', (e) => {
-                        if (!isSidebarCollapsed) return;
-                        
+                        if (!isSidebarCollapsed || isMobile()) return;
                         const floatingMenu = document.querySelector('.floating-submenu.active');
                         const isMovingToFloatingMenu = floatingMenu && floatingMenu.contains(e.relatedTarget);
-                        
                         if (!isMovingToFloatingMenu) {
                             hoverTimeout = setTimeout(() => {
-                                if (!isMouseInFloatingMenu) {
-                                    hideFloatingSubmenu();
-                                }
+                                if (!isMouseInFloatingMenu) hideFloatingSubmenu();
                             }, 200);
                         }
                     });
                 }
-                
-                // Event untuk group parent
                 group.addEventListener('mouseleave', (e) => {
-                    if (!isSidebarCollapsed) return;
-                    
+                    if (!isSidebarCollapsed || isMobile()) return;
                     const floatingMenu = document.querySelector('.floating-submenu.active');
                     const isMovingToGap = menuGap && menuGap.contains(e.relatedTarget);
                     const isMovingToFloatingMenu = floatingMenu && floatingMenu.contains(e.relatedTarget);
-                    
                     if (!isMovingToGap && !isMovingToFloatingMenu) {
                         hoverTimeout = setTimeout(() => {
-                            if (!isMouseInFloatingMenu) {
-                                hideFloatingSubmenu();
-                            }
+                            if (!isMouseInFloatingMenu) hideFloatingSubmenu();
                         }, 200);
                     }
                 });
             });
-            
-            // Tutup floating menu saat klik di luar
             document.addEventListener('click', (e) => {
                 const floatingMenu = document.querySelector('.floating-submenu.active');
-                if (floatingMenu && !floatingMenu.contains(e.target) && 
-                    !e.target.closest('.group')) {
+                if (floatingMenu && !floatingMenu.contains(e.target) && !e.target.closest('.group')) {
                     hideFloatingSubmenu();
                 }
             });
-            
-            // Update posisi floating menu saat scroll
             window.addEventListener('scroll', () => {
-                if (activeFloatingMenu && isSidebarCollapsed) {
+                if (activeFloatingMenu && isSidebarCollapsed && !isMobile()) {
                     const button = document.querySelector('.group:hover button');
                     if (button) {
                         const parentRect = button.getBoundingClientRect();
-                        const sidebarWidth = 80;
                         let topPosition = parentRect.top - 10;
                         const maxTop = window.innerHeight - 300;
-                        
-                        if (topPosition > maxTop) {
-                            topPosition = maxTop;
-                        }
-                        
+                        if (topPosition > maxTop) topPosition = maxTop;
                         activeFloatingMenu.style.top = topPosition + 'px';
                     }
                 }
             });
         }
 
-        // Toggle Sidebar & Simpan Status ke LocalStorage
+        // Toggle sidebar utama
         sidebarToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('sidebar-collapsed');
-            isSidebarCollapsed = sidebar.classList.contains('sidebar-collapsed');
-            
-            if (isSidebarCollapsed) {
-                localStorage.setItem('sidebar-state', 'collapsed');
-                closeAllSubmenus();
-                hideFloatingSubmenu();
-                setTimeout(setupFloatingMenuListeners, 100);
+            if (isMobile()) {
+                toggleMobileSidebar();
             } else {
-                localStorage.setItem('sidebar-state', 'expanded');
-                hideFloatingSubmenu();
+                sidebar.classList.toggle('sidebar-collapsed');
+                isSidebarCollapsed = sidebar.classList.contains('sidebar-collapsed');
+                if (isSidebarCollapsed) {
+                    localStorage.setItem('sidebar-state', 'collapsed');
+                    closeAllSubmenus();
+                    hideFloatingSubmenu();
+                    setTimeout(setupFloatingMenuListeners, 100);
+                } else {
+                    localStorage.setItem('sidebar-state', 'expanded');
+                    hideFloatingSubmenu();
+                }
+            }
+        });
+
+        overlay.addEventListener('click', () => toggleMobileSidebar(false));
+
+        // Resize handler: menangani perpindahan mode mobile/desktop
+        window.addEventListener('resize', function() {
+            if (isMobile()) {
+                // Masuk mode mobile: hapus collapsed class agar sidebar penuh saat dibuka
+                if (sidebar.classList.contains('sidebar-collapsed')) {
+                    sidebar.classList.remove('sidebar-collapsed');
+                    // Jangan ubah localStorage, tetap ingat untuk desktop
+                }
+                // Pastikan sidebar tersembunyi
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+                isSidebarCollapsed = false; // di mobile tidak ada collapsed
+            } else {
+                // Masuk mode desktop: pulihkan status collapsed dari localStorage
+                const state = localStorage.getItem('sidebar-state');
+                if (state === 'collapsed') {
+                    sidebar.classList.add('sidebar-collapsed');
+                    isSidebarCollapsed = true;
+                } else {
+                    sidebar.classList.remove('sidebar-collapsed');
+                    isSidebarCollapsed = false;
+                }
+                // Pastikan sidebar terlihat
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+                // Setup ulang floating menu jika perlu
+                if (isSidebarCollapsed) {
+                    setupFloatingMenuListeners();
+                }
             }
         });
 
@@ -738,52 +528,37 @@
             document.querySelectorAll('.dropdown-arrow').forEach(el => el.classList.remove('rotate-180'));
         }
 
+        // Fungsi dropdown yang sudah diperbaiki untuk mobile
         function toggleQccDropdown() {
-            // Hanya toggle jika sidebar tidak collapsed
-            if (!isSidebarCollapsed) {
-                if (qccSubmenu) qccSubmenu.classList.toggle('show');
-                if (qccArrow) qccArrow.classList.toggle('rotate-180');
-            }
+            // Di desktop collapsed, dropdown diganti floating menu → jangan toggle
+            if (isSidebarCollapsed && !isMobile()) return;
+            // Di mobile, hanya boleh toggle jika sidebar terbuka
+            if (isMobile() && sidebar.classList.contains('-translate-x-full')) return;
+            // Selain itu, toggle biasa
+            if (qccSubmenu) qccSubmenu.classList.toggle('show');
+            if (qccArrow) qccArrow.classList.toggle('rotate-180');
         }
 
         function toggleKaryawanDropdown() {
-            // Hanya toggle jika sidebar tidak collapsed
-            if (!isSidebarCollapsed) {
-                if (karyawanSubmenu) karyawanSubmenu.classList.toggle('show');
-                if (karyawanArrow) karyawanArrow.classList.toggle('rotate-180');
-            }
+            if (isSidebarCollapsed && !isMobile()) return;
+            if (isMobile() && sidebar.classList.contains('-translate-x-full')) return;
+            if (karyawanSubmenu) karyawanSubmenu.classList.toggle('show');
+            if (karyawanArrow) karyawanArrow.classList.toggle('rotate-180');
         }
 
-        // GLOBAL FLASH MESSAGE HANDLER
+        // Flash message (sama)
         document.addEventListener('DOMContentLoaded', function() {
-            const Toast = Swal.mixin({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true
-            });
-
             @if(session('success'))
                 Swal.fire({ icon: 'success', title: 'Berhasil!', text: "{{ session('success') }}", confirmButtonColor: '#091E6E', scrollbarPadding: false });
             @endif
-
             @if(session('error'))
                 Swal.fire({ icon: 'error', title: 'Gagal!', text: "{{ session('error') }}", confirmButtonColor: '#091E6E', scrollbarPadding: false });
             @endif
-
             @if(session('warning'))
                 Swal.fire({ icon: 'warning', title: 'Perhatian!', text: "{{ session('warning') }}", confirmButtonColor: '#091E6E', scrollbarPadding: false });
             @endif
-
             @if(session('info'))
-                Swal.fire({ 
-                    icon: 'info', 
-                    title: 'Informasi', 
-                    text: "{{ session('info') }}", 
-                    confirmButtonColor: '#091E6E',
-                    scrollbarPadding: false 
-                });
+                Swal.fire({ icon: 'info', title: 'Informasi', text: "{{ session('info') }}", confirmButtonColor: '#091E6E', scrollbarPadding: false });
             @endif
         });
     </script>

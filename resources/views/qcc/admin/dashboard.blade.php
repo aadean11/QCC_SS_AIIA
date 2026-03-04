@@ -6,44 +6,46 @@
 <div class="animate-reveal pb-20">
     <!-- Breadcrumbs -->
     <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-1 gap-4">
-        <nav class="flex text-sm text-gray-400">
+        <nav class="flex text-xs md:text-sm text-gray-400">
             <ol class="inline-flex items-center space-x-1 md:space-x-3">
                 <li class="inline-flex items-center text-gray-400">Monitoring QCC</li>
-                <li><i class="fa-solid fa-chevron-right text-[10px] mx-2"></i></li>
-                <li class="text-[#091E6E] font-semibold tracking-tight uppercase text-xs">Dashboard Admin</li>
+                <li><i class="fa-solid fa-chevron-right text-[8px] md:text-[10px] mx-1 md:mx-2"></i></li>
+                <li class="text-[#091E6E] font-semibold tracking-tight uppercase text-[10px] md:text-xs">Dashboard Admin</li>
             </ol>
         </nav>
     </div>
 
     <!-- TAB NAVIGATION & FILTERS -->
-    <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-6">
-        <div>
-            <div class="flex bg-gray-200/50 p-1 rounded-2xl w-fit mt-4 border border-gray-100 shadow-inner">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-6">
+        <div class="w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+            <div class="flex bg-gray-200/50 p-1 rounded-2xl w-fit mt-4 border border-gray-100 shadow-inner whitespace-nowrap md:whitespace-normal">
                 @if(session('active_role') === 'admin')
-                    <button onclick="switchTab('company')" class="px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all {{ $viewLevel == 'company' ? 'bg-white text-[#091E6E] shadow-sm' : 'text-gray-500 hover:text-[#091E6E]' }}">Company</button>
+                    <button onclick="switchTab('company')" class="px-3 md:px-6 py-1.5 md:py-2 rounded-xl text-[9px] md:text-xs font-bold uppercase tracking-wider transition-all {{ $viewLevel == 'company' ? 'bg-white text-[#091E6E] shadow-sm' : 'text-gray-500 hover:text-[#091E6E]' }}">Company</button>
                 @endif
 
                 @if(session('active_role') === 'admin' || $user->occupation === 'GMR')
-                    <button onclick="switchTab('division')" class="px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all {{ $viewLevel == 'division' ? 'bg-white text-[#091E6E] shadow-sm' : 'text-gray-500 hover:text-[#091E6E]' }}">Division</button>
+                    <button onclick="switchTab('division')" class="px-3 md:px-6 py-1.5 md:py-2 rounded-xl text-[9px] md:text-xs font-bold uppercase tracking-wider transition-all {{ $viewLevel == 'division' ? 'bg-white text-[#091E6E] shadow-sm' : 'text-gray-500 hover:text-[#091E6E]' }}">Division</button>
                 @endif
 
-                <button onclick="switchTab('department')" class="px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all {{ $viewLevel == 'department' ? 'bg-white text-[#091E6E] shadow-sm' : 'text-gray-500 hover:text-[#091E6E]' }}">Department</button>
+                <button onclick="switchTab('department')" class="px-3 md:px-6 py-1.5 md:py-2 rounded-xl text-[9px] md:text-xs font-bold uppercase tracking-wider transition-all {{ $viewLevel == 'department' ? 'bg-white text-[#091E6E] shadow-sm' : 'text-gray-500 hover:text-[#091E6E]' }}">Department</button>
 
                 @if(in_array($user->occupation, ['KDP', 'SPV']))
-                    <button onclick="switchTab('circle')" class="px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all {{ $viewLevel == 'circle' ? 'bg-white text-[#091E6E] shadow-sm' : 'text-gray-500 hover:text-[#091E6E]' }}">
+                    <button onclick="switchTab('circle')" class="px-3 md:px-6 py-1.5 md:py-2 rounded-xl text-[9px] md:text-xs font-bold uppercase tracking-wider transition-all {{ $viewLevel == 'circle' ? 'bg-white text-[#091E6E] shadow-sm' : 'text-gray-500 hover:text-[#091E6E]' }}">
                        Circle
                     </button>
                 @endif
             </div>
         </div>
 
-        <form action="{{ route('qcc.admin.dashboard') }}" method="GET" id="filterForm" class="flex flex-col md:flex-row gap-3">
+        <form action="{{ route('qcc.admin.dashboard') }}" method="GET" id="filterForm" class="flex flex-col md:flex-row gap-3 w-full md:w-auto">
             <input type="hidden" name="view_level" id="view_level" value="{{ $viewLevel }}">
             @if($viewLevel == 'department' && session('active_role') === 'admin')
-            <div class="flex items-center gap-3 bg-white p-2 px-4 rounded-2xl shadow-sm border border-gray-100 transition-all hover:border-[#091E6E]">
-                <i class="fa-solid fa-layer-group text-amber-500 text-xs"></i>
-                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Division:</span>
-                <select name="division_code" onchange="this.form.submit()" class="text-sm font-bold text-[#091E6E] outline-none bg-transparent cursor-pointer min-w-[150px]">
+            <div class="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-3 bg-white p-2 md:p-2 md:px-4 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 transition-all hover:border-[#091E6E] w-full md:w-auto">
+                <div class="flex items-center gap-2 w-full md:w-auto">
+                    <i class="fa-solid fa-layer-group text-amber-500 text-[10px] md:text-xs"></i>
+                    <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest">Division:</span>
+                </div>
+                <select name="division_code" onchange="this.form.submit()" class="text-xs md:text-sm font-bold text-[#091E6E] outline-none bg-transparent cursor-pointer w-full md:w-auto">
                     <option value="">Pilih Divisi...</option>
                     @foreach($divisions as $div)
                         <option value="{{ $div->code }}" {{ $selectedDiv == $div->code ? 'selected' : '' }}>{{ $div->name }}</option>
@@ -51,10 +53,12 @@
                 </select>
             </div>
             @endif
-            <div class="flex items-center gap-3 bg-white p-2 px-4 rounded-2xl shadow-sm border border-gray-100 transition-all hover:border-[#091E6E]">
-                <i class="fa-solid fa-calendar-check text-blue-400 text-xs"></i>
-                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Periode:</span>
-                <select name="period_id" onchange="this.form.submit()" class="text-sm font-bold text-[#091E6E] outline-none bg-transparent cursor-pointer min-w-[140px]">
+            <div class="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-3 bg-white p-2 md:p-2 md:px-4 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 transition-all hover:border-[#091E6E] w-full md:w-auto">
+                <div class="flex items-center gap-2 w-full md:w-auto">
+                    <i class="fa-solid fa-calendar-check text-blue-400 text-[10px] md:text-xs"></i>
+                    <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest">Periode:</span>
+                </div>
+                <select name="period_id" onchange="this.form.submit()" class="text-xs md:text-sm font-bold text-[#091E6E] outline-none bg-transparent cursor-pointer w-full md:w-auto">
                     @foreach($periods as $p)
                         <option value="{{ $p->id }}" {{ $selectedPeriod == $p->id ? 'selected' : '' }}>{{ $p->period_name }} ({{ $p->year }})</option>
                     @endforeach
@@ -63,76 +67,83 @@
         </form>
     </div>
 
-    <!-- Stat Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 text-left">
-        <div class="glass-card p-6 rounded-[2rem] shadow-sm border-l-4 border-blue-600 transition-all duration-300 hover:scale-[1.05] hover:shadow-xl group relative overflow-hidden">
+    <!-- Stat Cards - Tinggi diperkecil (padding vertikal dikurangi) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8 text-left">
+        <div class="glass-card py-2 px-3 sm:py-3 sm:px-4 md:py-4 md:px-6 rounded-[1.2rem] sm:rounded-[1.5rem] md:rounded-[2rem] shadow-sm border-l-4 border-blue-600 transition-all duration-300 hover:scale-[1.02] md:hover:scale-[1.05] hover:shadow-xl group relative overflow-hidden">
             <div class="flex items-center justify-between relative z-10">
                 <div>
-                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Circle Terdaftar</p>
-                    <div class="flex items-baseline gap-1"><h3 class="text-3xl font-black text-[#091E6E]">{{ $stats['total_circles'] }}</h3><span class="text-gray-400 font-bold text-sm">/ {{ $stats['target_circles'] }}</span></div>
-                    <div class="w-full bg-gray-100 h-1.5 rounded-full mt-3 overflow-hidden">
+                    <p class="text-[7px] sm:text-[8px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Circle Terdaftar</p>
+                    <div class="flex items-baseline gap-1"><h3 class="text-xl sm:text-2xl md:text-3xl font-black text-[#091E6E]">{{ $stats['total_circles'] }}</h3><span class="text-gray-400 font-bold text-[10px] sm:text-xs md:text-sm">/ {{ $stats['target_circles'] }}</span></div>
+                    <div class="w-full bg-gray-100 h-0.5 sm:h-1 md:h-1.5 rounded-full mt-1 sm:mt-2 md:mt-3 overflow-hidden">
                         <div class="bg-blue-600 h-full rounded-full transition-all duration-1000" style="width: {{ $stats['target_circles'] > 0 ? min(($stats['total_circles'] / $stats['target_circles']) * 100, 100) : 0 }}%"></div>
                     </div>
                 </div>
-                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-inner group-hover:bg-blue-600 group-hover:text-white transition-all duration-500"><i class="fa-solid fa-users text-xl"></i></div>
+                <div class="w-6 h-6 sm:w-8 sm:h-8 md:w-12 md:h-12 bg-blue-50 text-blue-600 rounded-lg sm:rounded-xl md:rounded-2xl flex items-center justify-center shadow-inner group-hover:bg-blue-600 group-hover:text-white transition-all duration-500"><i class="fa-solid fa-users text-xs sm:text-sm md:text-xl"></i></div>
             </div>
-            <i class="fa-solid fa-users absolute -right-2 -bottom-2 opacity-5 text-blue-600 text-6xl"></i>
+            <i class="fa-solid fa-users absolute -right-2 -bottom-2 opacity-5 text-blue-600 text-3xl sm:text-4xl md:text-6xl"></i>
         </div>
-        <div class="glass-card p-6 rounded-[2rem] shadow-sm border-l-4 border-amber-500 transition-all duration-300 hover:scale-[1.05] hover:shadow-xl group relative overflow-hidden">
+        <div class="glass-card py-2 px-3 sm:py-3 sm:px-4 md:py-4 md:px-6 rounded-[1.2rem] sm:rounded-[1.5rem] md:rounded-[2rem] shadow-sm border-l-4 border-amber-500 transition-all duration-300 hover:scale-[1.02] md:hover:scale-[1.05] hover:shadow-xl group relative overflow-hidden">
             <div class="flex items-center justify-between relative z-10">
-                <div><p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Need Review</p><h3 class="text-3xl font-black text-amber-600">{{ $stats['need_review'] }}</h3><p class="text-[9px] text-gray-400 mt-2 font-bold uppercase italic tracking-tighter">Menunggu Approval</p></div>
-                <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center shadow-inner group-hover:bg-amber-600 group-hover:text-white transition-all duration-500"><i class="fa-solid fa-clock-rotate-left text-xl"></i></div>
+                <div><p class="text-[7px] sm:text-[8px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Need Review</p><h3 class="text-xl sm:text-2xl md:text-3xl font-black text-amber-600">{{ $stats['need_review'] }}</h3><p class="text-[6px] sm:text-[7px] md:text-[9px] text-gray-400 mt-0.5 sm:mt-1 md:mt-2 font-bold uppercase italic tracking-tighter">Menunggu Approval</p></div>
+                <div class="w-6 h-6 sm:w-8 sm:h-8 md:w-12 md:h-12 bg-amber-50 text-amber-600 rounded-lg sm:rounded-xl md:rounded-2xl flex items-center justify-center shadow-inner group-hover:bg-amber-600 group-hover:text-white transition-all duration-500"><i class="fa-solid fa-clock-rotate-left text-xs sm:text-sm md:text-xl"></i></div>
             </div>
-            <i class="fa-solid fa-clock-rotate-left absolute -right-2 -bottom-2 opacity-5 text-amber-600 text-6xl"></i>
+            <i class="fa-solid fa-clock-rotate-left absolute -right-2 -bottom-2 opacity-5 text-amber-600 text-3xl sm:text-4xl md:text-6xl"></i>
         </div>
-        <div class="glass-card p-6 rounded-[2rem] shadow-sm border-l-4 border-emerald-500 transition-all duration-300 hover:scale-[1.05] hover:shadow-xl group relative overflow-hidden">
+        <div class="glass-card py-2 px-3 sm:py-3 sm:px-4 md:py-4 md:px-6 rounded-[1.2rem] sm:rounded-[1.5rem] md:rounded-[2rem] shadow-sm border-l-4 border-emerald-500 transition-all duration-300 hover:scale-[1.02] md:hover:scale-[1.05] hover:shadow-xl group relative overflow-hidden">
             <div class="flex items-center justify-between relative z-10">
                 <div>
-                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Circle Selesai</p>
-                    <div class="flex items-baseline gap-1"><h3 class="text-3xl font-black text-emerald-600">{{ $stats['completed'] }}</h3><span class="text-gray-400 font-bold text-sm">/ {{ $stats['target_circles'] }}</span></div>
-                    <div class="w-full bg-gray-100 h-1.5 rounded-full mt-3 overflow-hidden">
+                    <p class="text-[7px] sm:text-[8px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Circle Selesai</p>
+                    <div class="flex items-baseline gap-1"><h3 class="text-xl sm:text-2xl md:text-3xl font-black text-emerald-600">{{ $stats['completed'] }}</h3><span class="text-gray-400 font-bold text-[10px] sm:text-xs md:text-sm">/ {{ $stats['target_circles'] }}</span></div>
+                    <div class="w-full bg-gray-100 h-0.5 sm:h-1 md:h-1.5 rounded-full mt-1 sm:mt-2 md:mt-3 overflow-hidden">
                         <div class="bg-emerald-500 h-full rounded-full transition-all duration-1000" style="width: {{ $stats['target_circles'] > 0 ? min(($stats['completed'] / $stats['target_circles']) * 100, 100) : 0 }}%"></div>
                     </div>
                 </div>
-                <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center shadow-inner group-hover:bg-emerald-600 group-hover:text-white transition-all duration-500"><i class="fa-solid fa-circle-check text-xl"></i></div>
+                <div class="w-6 h-6 sm:w-8 sm:h-8 md:w-12 md:h-12 bg-emerald-50 text-emerald-600 rounded-lg sm:rounded-xl md:rounded-2xl flex items-center justify-center shadow-inner group-hover:bg-emerald-600 group-hover:text-white transition-all duration-500"><i class="fa-solid fa-circle-check text-xs sm:text-sm md:text-xl"></i></div>
             </div>
-            <i class="fa-solid fa-circle-check absolute -right-2 -bottom-2 opacity-5 text-emerald-600 text-6xl"></i>
+            <i class="fa-solid fa-circle-check absolute -right-2 -bottom-2 opacity-5 text-emerald-600 text-3xl sm:text-4xl md:text-6xl"></i>
         </div>
-        <div class="glass-card p-6 rounded-[2rem] shadow-sm border-l-4 border-indigo-500 transition-all duration-300 hover:scale-[1.05] hover:shadow-xl group relative overflow-hidden">
+        <div class="glass-card py-2 px-3 sm:py-3 sm:px-4 md:py-4 md:px-6 rounded-[1.2rem] sm:rounded-[1.5rem] md:rounded-[2rem] shadow-sm border-l-4 border-indigo-500 transition-all duration-300 hover:scale-[1.02] md:hover:scale-[1.05] hover:shadow-xl group relative overflow-hidden">
             <div class="flex items-center justify-between relative z-10">
-                <div><p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Viewing Mode</p><h3 class="text-2xl font-black text-indigo-600 uppercase">{{ $viewLevel }}</h3><p class="text-[9px] text-gray-400 mt-2 font-bold uppercase italic tracking-tight">Satu AISIN AIIA</p></div>
-                <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shadow-inner group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500"><i class="fa-solid fa-layer-group text-xl"></i></div>
+                <div><p class="text-[7px] sm:text-[8px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Viewing Mode</p><h3 class="text-base sm:text-lg md:text-2xl font-black text-indigo-600 uppercase">{{ $viewLevel }}</h3><p class="text-[6px] sm:text-[7px] md:text-[9px] text-gray-400 mt-0.5 sm:mt-1 md:mt-2 font-bold uppercase italic tracking-tight">Satu AISIN AIIA</p></div>
+                <div class="w-6 h-6 sm:w-8 sm:h-8 md:w-12 md:h-12 bg-indigo-50 text-indigo-600 rounded-lg sm:rounded-xl md:rounded-2xl flex items-center justify-center shadow-inner group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500"><i class="fa-solid fa-layer-group text-xs sm:text-sm md:text-xl"></i></div>
             </div>
-            <i class="fa-solid fa-layer-group absolute -right-2 -bottom-2 opacity-5 text-indigo-600 text-6xl"></i>
+            <i class="fa-solid fa-layer-group absolute -right-2 -bottom-2 opacity-5 text-indigo-600 text-3xl sm:text-4xl md:text-6xl"></i>
         </div>
     </div>
 
-    <!-- DYNAMIC CHARTS GRID -->
+    <!-- DYNAMIC CHARTS GRID - Tinggi ditambah lebih agresif dengan kelas Tailwind responsif -->
     @php
         $gridClass = count($charts) > 1 ? 'lg:grid-cols-2' : 'grid-cols-1';
-        $chartHeight = count($charts) > 1 ? '320px' : '450px';
+        // Tentukan kelas tinggi berdasarkan jumlah chart
+        if (count($charts) > 1) {
+            $heightClass = 'h-[150px] md:h-[225px]';  // Untuk 2 chart
+        } else {
+            $heightClass = 'h-[150px] md:h-[300px]';  // Untuk 1 chart
+        }
     @endphp
 
-    <div class="grid grid-cols-1 {{ $gridClass }} gap-8">
+    <div class="grid grid-cols-1 {{ $gridClass }} gap-4 md:gap-8">
         @forelse($charts as $index => $chart)
-        <div class="glass-card rounded-[2.5rem] p-8 shadow-sm border border-white relative overflow-hidden">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 text-left relative z-10">
+        <div class="glass-card rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-6 shadow-sm border border-white relative overflow-hidden">
+            <!-- Header chart -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-4 gap-3 md:gap-4 text-left relative z-10">
                 <div>
-                    <h2 class="text-lg font-bold text-[#091E6E] uppercase tracking-tight">{{ $chart['title'] }}</h2>
-                    <p class="text-xs text-gray-400 italic font-medium">Progress Activity Step 0 - 8</p>
+                    <h2 class="text-base md:text-lg font-bold text-[#091E6E] uppercase tracking-tight">{{ $chart['title'] }}</h2>
+                    <p class="text-[10px] md:text-xs text-gray-400 italic font-medium">Progress Activity Step 0 - 8</p>
                 </div>
-                <div class="flex gap-3 text-[9px] font-black uppercase tracking-widest">
-                    <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-100 shadow-sm"></span> Submited</div>
-                    <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm"></span> Approved</div>
-                    <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm"></span> Target</div>
+                <div class="flex gap-2 md:gap-3 text-[7px] md:text-[9px] font-black uppercase tracking-widest">
+                    <div class="flex items-center gap-1"><span class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-blue-100 shadow-sm"></span> Submited</div>
+                    <div class="flex items-center gap-1"><span class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-blue-600 shadow-sm"></span> Approved</div>
+                    <div class="flex items-center gap-1"><span class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-emerald-500 shadow-sm"></span> Target</div>
                 </div>
             </div>
-            <div class="relative w-full" style="height: {{ $chartHeight }};">
+            <!-- Container canvas dengan tinggi responsif -->
+            <div class="relative w-full {{ $heightClass }}">
                 <canvas id="chart-{{ $index }}"></canvas>
             </div>
         </div>
         @empty
-        <div class="col-span-full py-20 text-center glass-card rounded-[2.5rem]"><i class="fa-solid fa-chart-area text-5xl text-gray-200 mb-4"></i><p class="text-gray-400 font-medium italic">Tidak ada data grafik yang dapat ditampilkan.</p></div>
+        <div class="col-span-full py-10 md:py-20 text-center glass-card rounded-[1.5rem] md:rounded-[2.5rem]"><i class="fa-solid fa-chart-area text-4xl md:text-5xl text-gray-200 mb-3 md:mb-4"></i><p class="text-gray-400 font-medium italic text-xs md:text-sm">Tidak ada data grafik yang dapat ditampilkan.</p></div>
         @endforelse
     </div>
 </div>

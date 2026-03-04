@@ -5,26 +5,28 @@
 @section('content')
 <div class="animate-reveal pb-20">
     <!-- Breadcrumb -->
-    <nav class="flex mb-6 text-sm text-gray-400">
+    <nav class="flex mb-4 md:mb-6 text-xs md:text-sm text-gray-400">
         <ol class="inline-flex items-center space-x-1 md:space-x-3 text-gray-400">
             <li class="inline-flex items-center">Monitoring QCC</li>
-            <li><i class="fa-solid fa-chevron-right text-[10px] mx-2"></i></li>
-            <li class="text-[#091E6E] font-semibold tracking-tight uppercase text-xs">Master Schedule</li>
+            <li><i class="fa-solid fa-chevron-right text-[8px] md:text-[10px] mx-1 md:mx-2"></i></li>
+            <li class="text-[#091E6E] font-semibold tracking-tight uppercase text-[10px] md:text-xs">Master Schedule</li>
         </ol>
     </nav>
 
     <!-- Header & Filter -->
-    <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 md:mb-8 gap-4 md:gap-6">
         <div>
-            <h2 class="text-3xl font-bold text-[#091E6E]">Master Schedule QCC</h2>
-            <p class="text-sm text-gray-400 italic">Visualisasi rentang waktu pengerjaan 8-Step PDCA berdasarkan periode.</p>
+            <h2 class="text-2xl md:text-3xl font-bold text-[#091E6E]">Master Schedule QCC</h2>
+            <p class="text-xs md:text-sm text-gray-400 italic">Visualisasi rentang waktu pengerjaan 8-Step PDCA berdasarkan periode.</p>
         </div>
 
-        <form action="{{ route('qcc.admin.master_schedule') }}" method="GET" id="filterForm">
-            <div class="flex items-center gap-3 bg-white p-2 px-4 rounded-2xl shadow-sm border border-gray-100 transition-all hover:border-[#091E6E]">
-                <i class="fa-solid fa-calendar-days text-blue-400 text-xs"></i>
-                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Periode:</span>
-                <select name="period_id" onchange="this.form.submit()" class="text-sm font-bold text-[#091E6E] outline-none bg-transparent cursor-pointer min-w-[140px]">
+        <form action="{{ route('qcc.admin.master_schedule') }}" method="GET" id="filterForm" class="w-full md:w-auto">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 bg-white p-2 sm:p-2 sm:px-4 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 transition-all hover:border-[#091E6E] w-full md:w-auto">
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <i class="fa-solid fa-calendar-days text-blue-400 text-[10px] md:text-xs"></i>
+                    <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest">Periode:</span>
+                </div>
+                <select name="period_id" onchange="this.form.submit()" class="text-xs md:text-sm font-bold text-[#091E6E] outline-none bg-transparent cursor-pointer w-full sm:w-auto">
                     @foreach($periods as $p)
                         <option value="{{ $p->id }}" {{ $selectedPeriod == $p->id ? 'selected' : '' }}>{{ $p->period_name }} ({{ $p->year }})</option>
                     @endforeach
@@ -34,18 +36,18 @@
     </div>
 
     <!-- Gantt Chart Container -->
-    <div class="glass-card rounded-[2.5rem] p-4 md:p-10 shadow-sm border border-white relative overflow-hidden">
-        <div class="flex justify-between items-center mb-10">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
-                    <i class="fa-solid fa-timeline text-xl"></i>
+    <div class="glass-card rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-10 shadow-sm border border-white relative overflow-hidden">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-10">
+            <div class="flex items-center gap-3 md:gap-4 w-full sm:w-auto">
+                <div class="w-8 h-8 md:w-12 md:h-12 bg-blue-50 text-blue-600 rounded-xl md:rounded-2xl flex items-center justify-center">
+                    <i class="fa-solid fa-timeline text-sm md:text-xl"></i>
                 </div>
-                <div>
-                    <h3 class="text-xl font-bold text-[#091E6E]">{{ $period->period_name ?? 'N/A' }}</h3>
-                    <p class="text-xs text-gray-400 font-medium">Timeline Duration: {{ \Carbon\Carbon::parse($period->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($period->end_date)->format('d M Y') }}</p>
+                <div class="flex-1">
+                    <h3 class="text-base md:text-xl font-bold text-[#091E6E]">{{ $period->period_name ?? 'N/A' }}</h3>
+                    <p class="text-[10px] md:text-xs text-gray-400 font-medium">Timeline Duration: {{ \Carbon\Carbon::parse($period->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($period->end_date)->format('d M Y') }}</p>
                 </div>
             </div>
-            <!-- Legend Button -->
+            <!-- Legend Button - Sembunyikan di mobile, tampil di desktop -->
             <div class="hidden md:block">
                 <span class="bg-red-50 text-red-500 px-4 py-2 rounded-xl text-[10px] font-bold uppercase border border-red-100">
                     <i class="fa-solid fa-clock-rotate-left mr-1"></i> Real-time Tracking Active
@@ -53,7 +55,7 @@
             </div>
         </div>
 
-        <div class="relative w-full" style="min-height: 500px;">
+        <div class="relative w-full" style="min-height: 350px; height: 400px; max-height: 500px; @media (min-width: 768px) { min-height: 500px; }">
             <canvas id="ganttChart"></canvas>
         </div>
     </div>
@@ -108,14 +110,22 @@
                         type: 'time',
                         time: { unit: 'month', displayFormats: { month: 'MMM yyyy' } },
                         grid: { color: 'rgba(0,0,0,0.03)' },
-                        ticks: { font: { family: 'Poppins', size: 11 }, color: '#64748b' },
+                        ticks: { 
+                            font: { family: 'Poppins', size: 10, weight: '500' }, 
+                            color: '#64748b',
+                            maxRotation: 45,
+                            minRotation: 30
+                        },
                         min: "{{ $period->start_date }}",
                         max: "{{ $period->end_date }}"
                     },
                     y: {
                         stacked: true,
                         grid: { display: false },
-                        ticks: { font: { family: 'Poppins', weight: 'bold', size: 12 }, color: '#091E6E' }
+                        ticks: { 
+                            font: { family: 'Poppins', weight: 'bold', size: 11 }, 
+                            color: '#091E6E'
+                        }
                     }
                 }
             },
@@ -143,10 +153,10 @@
                             day: '2-digit', month: 'long', year: 'numeric' 
                         }).toUpperCase();
                         
-                        ctx.font = 'bold 10px Poppins';
+                        ctx.font = 'bold 9px Poppins';
                         const textWidth = ctx.measureText(dateText).width;
                         const boxWidth = textWidth + 12; // Padding horizontal
-                        const boxHeight = 20;
+                        const boxHeight = 18;
                         const boxX = xPos + 5; // Jarak 5px ke kanan dari garis merah
                         const boxY = top + 1;
 
@@ -163,7 +173,6 @@
 
                         ctx.beginPath();
                         if (ctx.roundRect) {
-                            // x, y, width, height, radius
                             ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 5);
                         } else {
                             ctx.rect(boxX, boxY, boxWidth, boxHeight);
@@ -177,7 +186,6 @@
                         ctx.fillStyle = '#ef4444';
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        // Posisi teks di tengah-tengah kotak
                         ctx.fillText(dateText, boxX + (boxWidth / 2), boxY + (boxHeight / 2));
 
                         ctx.restore();

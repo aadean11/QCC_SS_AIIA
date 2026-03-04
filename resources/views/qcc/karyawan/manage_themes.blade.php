@@ -5,34 +5,33 @@
 @section('content')
 <div class="animate-reveal">
     <!-- Breadcrumb -->
-    <nav class="flex mb-6 text-sm text-gray-400">
+    <nav class="flex mb-4 md:mb-6 text-xs md:text-sm text-gray-400">
         <ol class="inline-flex items-center space-x-1 md:space-x-3">
             <li class="inline-flex items-center">
-                <i class="fa-solid fa-house mr-2 text-xs"></i> Monitoring QCC
+                <i class="fa-solid fa-house mr-2 text-[10px] md:text-xs"></i> Monitoring QCC
             </li>
-            <li><i class="fa-solid fa-chevron-right text-[10px] mx-2"></i></li>
-            <li><a href="{{ route('qcc.karyawan.my_circle') }}" class="hover:text-[#091E6E] transition-colors">Circle Saya</a></li>
-            <li><i class="fa-solid fa-chevron-right text-[10px] mx-2"></i></li>
-            <li class="text-[#091E6E] font-semibold tracking-tight">Manajemen Tema</li>
+            <li><i class="fa-solid fa-chevron-right text-[8px] md:text-[10px] mx-1 md:mx-2"></i></li>
+            <li><a href="{{ route('qcc.karyawan.my_circle') }}" class="hover:text-[#091E6E] transition-colors text-[10px] md:text-xs">Circle Saya</a></li>
+            <li><i class="fa-solid fa-chevron-right text-[8px] md:text-[10px] mx-1 md:mx-2"></i></li>
+            <li class="text-[#091E6E] font-semibold tracking-tight text-[10px] md:text-xs">Manajemen Tema</li>
         </ol>
     </nav>
 
     <!-- Header & Search Controls -->
-    <div class="flex flex-col xl:flex-row justify-between items-start xl:items-end mb-8 gap-6">
+    <div class="flex flex-col xl:flex-row justify-between items-start xl:items-end mb-6 md:mb-8 gap-6">
         <div>
-            <h2 class="text-3xl font-bold text-[#091E6E]">Daftar Tema Circle</h2>
-            <!-- Bagian ini diubah menjadi dropdown atau info circle -->
-            <p class="text-sm text-gray-400">Kelola tema perbaikan untuk circle terpilih</p>
+            <h2 class="text-2xl md:text-3xl font-bold text-[#091E6E]">Daftar Tema Circle</h2>
+            <p class="text-xs md:text-sm text-gray-400">Kelola tema perbaikan untuk circle terpilih</p>
         </div>
 
-        <div class="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-end">
+        <div class="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-start xl:justify-end">
             <!-- Form Filter: Search & Per Page -->
-            <form action="{{ route('qcc.karyawan.themes') }}" method="GET" id="filterForm" class="flex flex-wrap items-center gap-3 flex-1 xl:flex-none">
+            <form action="{{ route('qcc.karyawan.themes') }}" method="GET" id="filterForm" class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full xl:w-auto">
                 
-                <!-- NEW: Dropdown Pilih Circle -->
-                <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-[#091E6E]">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pilih Circle</span>
-                    <select name="circle_id" onchange="this.form.submit()" class="text-xs font-bold text-[#1035D1] outline-none bg-transparent cursor-pointer uppercase">
+                <!-- Dropdown Pilih Circle -->
+                <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-[#091E6E] w-full sm:w-auto">
+                    <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pilih Circle</span>
+                    <select name="circle_id" onchange="this.form.submit()" class="text-[10px] md:text-xs font-bold text-[#1035D1] outline-none bg-transparent cursor-pointer uppercase w-full sm:w-auto">
                         @foreach($myCircles as $c)
                             <option value="{{ $c->id }}" {{ $circle->id == $c->id ? 'selected' : '' }}>
                                 {{ $c->circle_name }}
@@ -42,9 +41,9 @@
                 </div>
 
                 <!-- Dropdown Show Entries -->
-                <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-[#091E6E]">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Show</span>
-                    <select name="per_page" onchange="this.form.submit()" class="text-xs font-bold text-[#091E6E] outline-none bg-transparent cursor-pointer">
+                <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-[#091E6E] w-full sm:w-auto">
+                    <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest">Show</span>
+                    <select name="per_page" onchange="this.form.submit()" class="text-[10px] md:text-xs font-bold text-[#091E6E] outline-none bg-transparent cursor-pointer w-full sm:w-auto">
                         <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
                         <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
                         <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
@@ -52,18 +51,18 @@
                 </div>
                 
                 <!-- Search Input -->
-                <div class="relative flex-1 md:min-w-[250px]">
+                <div class="relative w-full sm:min-w-[250px]">
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari judul tema..." 
-                        class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] shadow-sm transition-all text-sm font-medium">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                        class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] shadow-sm transition-all text-xs md:text-sm font-medium">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] md:text-xs"></i>
                 </div>
             </form>
 
-            <div class="flex gap-2">
-                <a href="{{ route('qcc.karyawan.my_circle') }}" class="bg-gray-100 text-gray-500 px-5 py-2 rounded-xl font-bold hover:bg-gray-200 transition-all text-xs flex items-center gap-2 shadow-sm uppercase tracking-widest active:scale-95">
+            <div class="flex gap-2 w-full sm:w-auto">
+                <a href="{{ route('qcc.karyawan.my_circle') }}" class="bg-gray-100 text-gray-500 px-4 md:px-5 py-2 rounded-xl font-bold hover:bg-gray-200 transition-all text-[9px] md:text-xs flex items-center gap-2 shadow-sm uppercase tracking-widest active:scale-95">
                     <i class="fa-solid fa-arrow-left"></i> Kembali
                 </a>
-                <button onclick="openModal('modalAddTheme')" class="bg-[#091E6E] hover:bg-[#130998] text-white px-5 py-2 rounded-xl flex items-center gap-2 shadow-lg transition-all active:scale-95 text-xs font-bold uppercase tracking-widest">
+                <button onclick="openModal('modalAddTheme')" class="bg-[#091E6E] hover:bg-[#130998] text-white px-4 md:px-5 py-2 rounded-xl flex items-center gap-2 shadow-lg transition-all active:scale-95 text-[9px] md:text-xs font-bold uppercase tracking-widest">
                     <i class="fa-solid fa-plus"></i> Tambah Tema
                 </button>
             </div>
@@ -71,57 +70,53 @@
     </div>
 
     <!-- Table Section -->
-    <div class="glass-card rounded-[2rem] p-6 shadow-sm border border-white">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-separate border-spacing-y-2">
+    <div class="glass-card rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-6 shadow-sm border border-white">
+        <div class="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">
+            <table class="w-full text-left border-separate border-spacing-y-2 min-w-[900px] md:min-w-full">
                 <thead>
                     <tr class="sidebar-gradient shadow-md">
-                        <!-- Tambah Kolom No -->
-                        <th class="px-4 py-4 text-white text-[10px] uppercase tracking-widest font-bold rounded-tl-2xl text-center w-12">No</th>
-                        <!-- Hapus rounded-tl-2xl dari Periode -->
-                        <th class="px-6 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold w-1/4">Periode</th>
-                        <th class="px-6 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold">Judul Tema Perbaikan</th>
-                        <th class="px-6 py-4 text-white text-[10px] uppercase tracking-[0.2em] font-bold text-center w-32">Status</th>
-                        <th class="px-6 py-4 text-center text-white text-[10px] uppercase tracking-[0.2em] font-bold rounded-tr-2xl w-48">Opsi</th>
+                        <th class="px-2 md:px-4 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-widest font-bold rounded-tl-2xl text-center w-12">No</th>
+                        <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold w-1/4">Periode</th>
+                        <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold">Judul Tema Perbaikan</th>
+                        <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold text-center w-32">Status</th>
+                        <th class="px-3 md:px-6 py-3 md:py-4 text-center text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold rounded-tr-2xl w-48">Opsi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($themes as $theme)
                     <tr class="bg-white hover:bg-blue-50/50 transition-all shadow-sm border border-gray-100 group">
-                        <!-- Kolom Nomor Urut Otomatis -->
-                        <td class="px-4 py-4 rounded-l-xl border-y border-l text-center font-bold text-gray-500">
+                        <td class="px-2 md:px-4 py-2 md:py-4 rounded-l-xl border-y border-l text-center font-bold text-gray-500 text-xs md:text-sm">
                             {{ ($themes->currentPage() - 1) * $themes->perPage() + $loop->iteration }}
                         </td>
 
-                        <!-- Kolom Periode (Hapus rounded-l-xl dan border-l karena sudah di kolom No) -->
-                        <td class="px-6 py-4 border-y">
-                            <span class="font-bold text-[#091E6E] text-xs uppercase">{{ $theme->period->period_name }}</span>
-                            <p class="text-[9px] text-gray-400 font-bold">Tahun: {{ $theme->period->year }}</p>
+                        <td class="px-3 md:px-6 py-2 md:py-4 border-y">
+                            <span class="font-bold text-[#091E6E] text-[10px] md:text-xs uppercase">{{ $theme->period->period_name }}</span>
+                            <p class="text-[8px] md:text-[9px] text-gray-400 font-bold">Tahun: {{ $theme->period->year }}</p>
                         </td>
                         
-                        <td class="px-6 py-4 border-y">
-                            <p class="font-bold text-[#091E6E] group-hover:text-[#1035D1] transition-colors leading-tight">{{ $theme->theme_name }}</p>
+                        <td class="px-3 md:px-6 py-2 md:py-4 border-y">
+                            <p class="font-bold text-[#091E6E] group-hover:text-[#1035D1] transition-colors leading-tight text-xs md:text-sm">{{ $theme->theme_name }}</p>
                         </td>
                         
-                        <td class="px-6 py-4 border-y text-center">
-                            <span class="px-3 py-1 rounded-full text-[9px] font-bold border {{ $theme->status == 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-gray-50 text-gray-400 border-gray-100' }}">
+                        <td class="px-3 md:px-6 py-2 md:py-4 border-y text-center">
+                            <span class="px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[8px] md:text-[9px] font-bold border {{ $theme->status == 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-gray-50 text-gray-400 border-gray-100' }}">
                                 {{ $theme->status }}
                             </span>
                         </td>
                         
-                        <td class="px-6 py-4 rounded-r-xl border-y border-r text-center">
-                            <div class="flex justify-center gap-2">
+                        <td class="px-3 md:px-6 py-2 md:py-4 rounded-r-xl border-y border-r text-center">
+                            <div class="flex justify-center gap-1 md:gap-2">
                                 <!-- Ke Progress Transaksi -->
-                                <a href="{{ route('qcc.karyawan.progress') }}?theme_id={{ $theme->id }}" class="bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg font-bold text-[9px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-sm active:scale-95 flex items-center gap-1">
+                                <a href="{{ route('qcc.karyawan.progress') }}?theme_id={{ $theme->id }}" class="bg-blue-50 text-blue-600 px-2 md:px-3 py-1 md:py-1.5 rounded-lg font-bold text-[7px] md:text-[9px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-sm active:scale-95 flex items-center gap-1">
                                     <i class="fa-solid fa-spinner"></i> Progress
                                 </a>
                                 <!-- Edit -->
-                                <button onclick="openEditThemeModal({{ json_encode($theme) }})" class="w-8 h-8 flex items-center justify-center bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-500 hover:text-white transition-all shadow-sm active:scale-95" title="Edit Tema">
-                                    <i class="fa-solid fa-pen-to-square text-[10px]"></i>
+                                <button onclick="openEditThemeModal({{ json_encode($theme) }})" class="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-500 hover:text-white transition-all shadow-sm active:scale-95" title="Edit Tema">
+                                    <i class="fa-solid fa-pen-to-square text-[8px] md:text-[10px]"></i>
                                 </button>
                                 <!-- Hapus -->
-                                <button onclick="confirmDeleteTheme('{{ $theme->id }}', '{{ $theme->theme_name }}')" class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-500 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm active:scale-95" title="Hapus Tema">
-                                    <i class="fa-solid fa-trash text-[10px]"></i>
+                                <button onclick="confirmDeleteTheme('{{ $theme->id }}', '{{ $theme->theme_name }}')" class="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center bg-red-50 text-red-500 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm active:scale-95" title="Hapus Tema">
+                                    <i class="fa-solid fa-trash text-[8px] md:text-[10px]"></i>
                                 </button>
                                 <form id="delete-theme-{{ $theme->id }}" action="{{ route('qcc.karyawan.delete_theme', $theme->id) }}" method="POST" class="hidden">
                                     @csrf @method('DELETE')
@@ -131,11 +126,10 @@
                     </tr>
                     @empty
                     <tr>
-                        <!-- Update colspan dari 4 menjadi 5 -->
-                        <td colspan="5" class="text-center py-20">
+                        <td colspan="5" class="text-center py-10 md:py-20">
                             <div class="flex flex-col items-center gap-3 text-gray-300">
-                                <i class="fa-solid fa-folder-open text-5xl"></i>
-                                <span class="italic text-sm font-medium uppercase tracking-widest">Belum ada tema QCC terdaftar</span>
+                                <i class="fa-solid fa-folder-open text-3xl md:text-5xl"></i>
+                                <span class="italic text-xs md:text-sm font-medium uppercase tracking-widest">Belum ada tema QCC terdaftar</span>
                             </div>
                         </td>
                     </tr>
@@ -145,8 +139,8 @@
         </div>
 
         <!-- PAGINATION FOOTER -->
-        <div class="mt-8 flex flex-col md:flex-row justify-between items-center gap-4 border-t border-gray-50 pt-6">
-            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">
+        <div class="mt-4 md:mt-8 flex flex-col md:flex-row justify-between items-center gap-4 border-t border-gray-50 pt-4 md:pt-6">
+            <div class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">
                 Showing {{ $themes->firstItem() ?? 0 }} to {{ $themes->lastItem() ?? 0 }} of {{ $themes->total() }} entries
             </div>
             <div class="custom-pagination">
@@ -158,20 +152,20 @@
 
 <!-- ================= MODAL ADD THEME ================= -->
 <div id="modalAddTheme" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm transition-all">
-    <div class="flex items-center justify-center min-h-screen p-4 text-left">
-        <div class="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden">
-            <div class="sidebar-gradient p-6 text-white flex justify-between items-center">
-                <h3 class="text-lg font-bold"><i class="fa-solid fa-lightbulb mr-2"></i>
+    <div class="flex items-center justify-center min-h-screen p-2 md:p-4 text-left">
+        <div class="bg-white rounded-[1.5rem] md:rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden">
+            <div class="sidebar-gradient p-4 md:p-6 text-white flex justify-between items-center">
+                <h3 class="text-base md:text-lg font-bold"><i class="fa-solid fa-lightbulb mr-2"></i>
                     Tambah Tema QCC
                 </h3>
-                <button onclick="closeModal('modalAddTheme')" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 transition-all text-xl">&times;</button>
+                <button onclick="closeModal('modalAddTheme')" class="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-full hover:bg-white/20 transition-all text-lg md:text-xl">&times;</button>
             </div>
-            <form id="formStoreTheme" action="{{ route('qcc.karyawan.store_theme') }}" method="POST" class="p-10 space-y-6 text-left">
+            <form id="formStoreTheme" action="{{ route('qcc.karyawan.store_theme') }}" method="POST" class="p-4 md:p-10 space-y-4 md:space-y-6 text-left">
                 @csrf
                 <input type="hidden" name="qcc_circle_id" value="{{ $circle->id }}">
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Pilih Periode Aktif</label>
-                    <select name="qcc_period_id" required class="w-full mt-2 px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl outline-none font-bold text-[#091E6E] focus:ring-2 focus:ring-[#091E6E] transition-all">
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Pilih Periode Aktif</label>
+                    <select name="qcc_period_id" required class="w-full mt-2 px-3 md:px-5 py-2 md:py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:rounded-2xl outline-none font-bold text-[#091E6E] text-xs md:text-sm focus:ring-2 focus:ring-[#091E6E] transition-all">
                         <option value="">-- Pilih Periode --</option>
                         @foreach($activePeriods as $p) 
                             <option value="{{ $p->id }}">{{ $p->period_name }} ({{ $p->year }})</option> 
@@ -179,13 +173,13 @@
                     </select>
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Judul Tema Perbaikan</label>
-                    <input type="text" name="theme_name" required placeholder="Contoh: Optimasi Efisiensi Mesin CNC-01" class="w-full mt-2 px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#091E6E] outline-none font-medium text-[#091E6E] transition-all">
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Judul Tema Perbaikan</label>
+                    <input type="text" name="theme_name" required placeholder="Contoh: Optimasi Efisiensi Mesin CNC-01" class="w-full mt-2 px-3 md:px-5 py-2 md:py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:rounded-2xl focus:ring-2 focus:ring-[#091E6E] outline-none font-medium text-[#091E6E] text-xs md:text-sm transition-all">
                 </div>
-                <div class="bg-blue-50 p-5 rounded-2xl border border-blue-100 text-[10px] text-blue-600 italic">
-                    <i class="fa-solid fa-circle-info mr-1 text-sm"></i> Tema yang ditambahkan akan otomatis berstatus <b>ACTIVE</b> dan dapat diupdate progres PDCA-nya.
+                <div class="bg-blue-50 p-3 md:p-5 rounded-xl md:rounded-2xl border border-blue-100 text-[8px] md:text-[10px] text-blue-600 italic">
+                    <i class="fa-solid fa-circle-info mr-1 text-xs md:text-sm"></i> Tema yang ditambahkan akan otomatis berstatus <b>ACTIVE</b> dan dapat diupdate progres PDCA-nya.
                 </div>
-                <button type="submit" class="w-full py-4 bg-[#091E6E] text-white rounded-2xl font-bold shadow-lg hover:bg-[#130998] transition-all uppercase tracking-widest text-xs">Simpan Data Tema</button>
+                <button type="submit" class="w-full py-3 md:py-4 bg-[#091E6E] text-white rounded-xl md:rounded-2xl font-bold shadow-lg hover:bg-[#130998] transition-all uppercase tracking-widest text-[9px] md:text-xs">Simpan Data Tema</button>
             </form>
         </div>
     </div>
@@ -193,30 +187,30 @@
 
 <!-- ================= MODAL EDIT THEME ================= -->
 <div id="modalEditTheme" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm transition-all">
-    <div class="flex items-center justify-center min-h-screen p-4 text-left">
-        <div class="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden">
-            <div class="sidebar-gradient p-6 text-white flex justify-between items-center">
-                <h3 class="text-lg font-bold"><i class="fa-solid fa-pen-to-square mr-2"></i>
+    <div class="flex items-center justify-center min-h-screen p-2 md:p-4 text-left">
+        <div class="bg-white rounded-[1.5rem] md:rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden">
+            <div class="sidebar-gradient p-4 md:p-6 text-white flex justify-between items-center">
+                <h3 class="text-base md:text-lg font-bold"><i class="fa-solid fa-pen-to-square mr-2"></i>
                     Update Data Tema
                 </h3>
-                <button onclick="closeModal('modalEditTheme')" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 transition-all text-xl">&times;</button>
+                <button onclick="closeModal('modalEditTheme')" class="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-full hover:bg-white/20 transition-all text-lg md:text-xl">&times;</button>
             </div>
-            <form id="formUpdateTheme" method="POST" class="p-10 space-y-6 text-left">
+            <form id="formUpdateTheme" method="POST" class="p-4 md:p-10 space-y-4 md:space-y-6 text-left">
                 @csrf @method('PUT')
                 <input type="hidden" name="qcc_circle_id" value="{{ $circle->id }}">
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Pilih Periode</label>
-                    <select name="qcc_period_id" id="edit_theme_period" required class="w-full mt-2 px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-amber-500 outline-none font-bold text-[#091E6E] transition-all">
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Pilih Periode</label>
+                    <select name="qcc_period_id" id="edit_theme_period" required class="w-full mt-2 px-3 md:px-5 py-2 md:py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:rounded-2xl focus:ring-2 focus:ring-amber-500 outline-none font-bold text-[#091E6E] text-xs md:text-sm transition-all">
                         @foreach($activePeriods as $p) <option value="{{ $p->id }}">{{ $p->period_name }} ({{ $p->year }})</option> @endforeach
                     </select>
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Judul Tema</label>
-                    <input type="text" name="theme_name" id="edit_theme_name" required class="w-full mt-2 px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-[#091E6E] transition-all">
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Judul Tema</label>
+                    <input type="text" name="theme_name" id="edit_theme_name" required class="w-full mt-2 px-3 md:px-5 py-2 md:py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:rounded-2xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-[#091E6E] text-xs md:text-sm transition-all">
                 </div>
-                <div class="flex gap-4 pt-4">
-                    <button type="button" onclick="closeModal('modalEditTheme')" class="flex-1 py-4 bg-gray-100 text-gray-500 rounded-2xl font-bold uppercase tracking-widest text-[10px] hover:bg-gray-200 transition-all">Batal</button>
-                    <button type="submit" class="flex-1 py-4 bg-amber-500 text-white rounded-2xl font-bold shadow-lg uppercase tracking-widest text-[10px] hover:bg-amber-600 transition-all">Simpan Perubahan</button>
+                <div class="flex flex-col sm:flex-row gap-3 md:gap-4 pt-2 md:pt-4">
+                    <button type="button" onclick="closeModal('modalEditTheme')" class="flex-1 py-3 md:py-4 bg-gray-100 text-gray-500 rounded-xl md:rounded-2xl font-bold uppercase tracking-widest text-[9px] md:text-[10px] hover:bg-gray-200 transition-all">Batal</button>
+                    <button type="submit" class="flex-1 py-3 md:py-4 bg-amber-500 text-white rounded-xl md:rounded-2xl font-bold shadow-lg uppercase tracking-widest text-[9px] md:text-[10px] hover:bg-amber-600 transition-all">Simpan Perubahan</button>
                 </div>
             </form>
         </div>
@@ -227,7 +221,7 @@
 @push('scripts')
 <style>
     /* Styling Paging Agar Senada */
-    .custom-pagination nav { display: flex; align-items: center; justify-content: center; gap: 4px; }
+    .custom-pagination nav { display: flex; align-items: center; justify-content: center; gap: 4px; flex-wrap: wrap; }
     .custom-pagination nav svg { width: 1rem; height: 1rem; }
     .custom-pagination span[aria-current="page"] > span { 
         background-color: #091E6E !important; color: white !important; border: none !important;

@@ -39,29 +39,25 @@ class Employee extends Authenticatable
 
     public function getDeptCode()
     {
-        // 1. LOGIKA KDP (Kepala Departemen)
+        // 1. Jika dia Kepala Departemen (KDP), cek langsung ke tabel m_departments
         if ($this->occupation === 'KDP') {
-            $dept = Department::where('npk', $this->npk)->first();
-            if ($dept) return $dept->code;
+            $managedDept = \App\Models\Department::where('npk', $this->npk)->first();
+            if ($managedDept) {
+                return $managedDept->code;
+            }
         }
 
-        // 2. LOGIKA SPV / STAFF (Berdasarkan Hirarki)
-        
-        // Jalur A: Lewat Sub Section (Hirarki Terendah)
-        // Employee -> m_sub_sections -> m_sections -> code_department
-        $sub = $this->subSection; 
-        if ($sub && $sub->section) {
-            return $sub->section->code_department;
+        // 2. Jalur Hirarki: SubSection -> Section -> Department
+        if ($this->subSection && $this->subSection->section) {
+            return $this->subSection->section->code_department;
         }
 
-        // Jalur B: Lewat Section Langsung (Jika Sub Section kosong/gagal)
-        // Employee -> m_sections -> code_department
-        $sec = $this->section;
-        if ($sec) {
-            return $sec->code_department;
+        // 3. Jalur Hirarki: Section -> Department
+        if ($this->section) {
+            return $this->section->code_department;
         }
 
-        // 3. FALLBACK (Terakhir)
+        // 4. Fallback ke line_code jika ada
         return $this->line_code;
     }
 

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\QccCircleStepTransaction;
 use App\Models\Employee;
 use App\Models\QccCircle;
+use App\Models\Department;
 use Illuminate\Support\Facades\Log;
 
 class QccApprovalController extends Controller
@@ -13,10 +14,19 @@ class QccApprovalController extends Controller
     private function getCurrentUser()
     {
         $npk = session('auth_npk');
-        $user = Employee::with(['subSection.section', 'section', 'job'])->where('npk', $npk)->first();
+        
+        // Eager load semua kemungkinan jalur ke department
+        $user = Employee::with([
+            'subSection.section.department', 
+            'section.department', 
+            'job'
+        ])->where('npk', $npk)->first();
 
         if ($user) {
+            // Logika Tambahan: Jika dia KDP, pastikan kita ambil kode Dept dari tabel m_departments
+            // karena biasanya KDP tidak punya sub_section di profilnya.
             $dept = $user->getDeptCode();
+            
             Log::info("Debug Dept Detection", [
                 "NPK" => $user->npk,
                 "Jabatan" => $user->occupation,
