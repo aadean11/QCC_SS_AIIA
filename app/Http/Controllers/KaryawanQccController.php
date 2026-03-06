@@ -2,28 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Employee;
-use App\Models\User; // Import Model User
-use App\Models\QccCircleMember;
 use App\Models\QccCircle;
-use App\Models\QccTheme;
-use App\Models\QccStep;
+use App\Models\QccCircleMember; // Import Model User
+use App\Models\QccCircleStepTransaction;
 use App\Models\QccPeriod;
 use App\Models\QccPeriodStep;
-use App\Models\QccCircleStepTransaction;
-use Illuminate\Support\Facades\Auth;
+use App\Models\QccStep;
+use App\Models\QccTheme;
+use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
 
 class KaryawanQccController extends Controller
 {
-   /**
-     * Mengambil user yang sedang login dengan eager loading relasi departemen
+    /**
+     * Mengambil user yang sedang login dengan eager loading relasi departemen.
      */
-    private function getAuthUser() {
+    private function getAuthUser()
+    {
         $npk = session('auth_npk');
+
         // Eager load relasi hirarki departemen agar getDeptCode() tidak berat (N+1)
         return Employee::with(['job', 'subSection.section', 'section'])
                 ->where('npk', $npk)
@@ -33,11 +34,13 @@ class KaryawanQccController extends Controller
     public function dashboard(Request $request)
     {
         $user = $this->getAuthUser();
-        if (!$user) return redirect('/login');
+        if (!$user) {
+            return redirect('/login');
+        }
 
         $selectedPeriod = $request->get('period_id');
-        $periods = QccPeriod::orderBy('year', 'desc')->get();
-        
+        $periods = QccPeriod::where('status', 'ACTIVE')->orderBy('year', 'desc')->get();
+
         if (!$selectedPeriod) {
             $selectedPeriod = QccPeriod::where('status', 'ACTIVE')->value('id') ?? QccPeriod::orderBy('id', 'desc')->value('id');
         }
@@ -45,7 +48,7 @@ class KaryawanQccController extends Controller
         // --- LOGIKA PROGRESS LINE (Garis Merah Melompat) ---
         $today = Carbon::now();
         $todayDate = $today->format('d/m/Y');
-        $progressLineX = 0; 
+        $progressLineX = 0;
         $period = QccPeriod::find($selectedPeriod);
         $periodSteps = QccPeriodStep::where('qcc_period_id', $selectedPeriod)
             ->join('m_qcc_steps', 'm_qcc_period_steps.qcc_step_id', '=', 'm_qcc_steps.id')
@@ -55,7 +58,7 @@ class KaryawanQccController extends Controller
         if ($period && $periodSteps->count() > 0) {
             foreach ($periodSteps as $index => $ps) {
                 if ($today->lte(Carbon::parse($ps->deadline_date))) {
-                    $progressLineX = $index; 
+                    $progressLineX = $index;
                     break;
                 }
                 $progressLineX = $index;
@@ -70,11 +73,13 @@ class KaryawanQccController extends Controller
                 $stepMonths[] = Carbon::parse($ps->deadline_date)->translatedFormat('M');
             }
         }
-        while(count($stepMonths) < 9) { $stepMonths[] = ''; }
+        while (count($stepMonths) < 9) {
+            $stepMonths[] = '';
+        }
 
         // --- STATISTIK KARYAWAN ---
         $myCircleIds = QccCircleMember::where('employee_npk', $user->npk)->pluck('qcc_circle_id');
-        
+
         $stats = [
             'total_circles' => $myCircleIds->count(),
             'need_attention' => QccCircleStepTransaction::whereIn('qcc_circle_id', $myCircleIds)
@@ -93,8 +98,8 @@ class KaryawanQccController extends Controller
 
         foreach ($myCircles as $circle) {
             $charts[] = [
-                'title' => 'Circle: ' . $circle->circle_name,
-                'data' => $this->getChartDataPerCircle($circle->id)
+                'title' => 'Circle: '.$circle->circle_name,
+                'data' => $this->getChartDataPerCircle($circle->id),
             ];
         }
 
@@ -102,32 +107,36 @@ class KaryawanQccController extends Controller
     }
 
     /**
-     * Helper Private (Copied from Admin Controller Logic)
+     * Helper Private (Copied from Admin Controller Logic).
      */
     private function getChartDataPerCircle($circleId)
     {
-        $submitted = []; $approved = [];
+        $submitted = [];
+        $approved = [];
         $circle = QccCircle::find($circleId);
-        $submitted[] = 1; 
+        $submitted[] = 1;
         $approved[] = ($circle->status === 'ACTIVE') ? 1 : 0;
-        for ($i = 1; $i <= 8; $i++) {
+        for ($i = 1; $i <= 8; ++$i) {
             $trans = QccCircleStepTransaction::where('qcc_circle_id', $circleId)->where('qcc_step_id', $i)->first();
             $submitted[] = ($trans) ? 1 : 0;
             $approved[] = ($trans && $trans->status === 'APPROVED') ? 1 : 0;
         }
+
         return ['submitted' => $submitted, 'approved' => $approved, 'target' => array_fill(0, 9, 1)];
     }
 
     public function roadmap(Request $request)
     {
         $user = $this->getAuthUser();
-        if (!$user) return redirect('/login');
+        if (!$user) {
+            return redirect('/login');
+        }
 
         $selectedPeriod = $request->get('period_id');
         $search = $request->get('search');
 
         // 1. Ambil list periode untuk filter
-        $periods = QccPeriod::orderBy('year', 'desc')->get();
+        $periods = QccPeriod::where('status', 'ACTIVE')->orderBy('year', 'desc')->get();
         if (!$selectedPeriod) {
             $selectedPeriod = QccPeriod::where('status', 'ACTIVE')->value('id') ?? QccPeriod::orderBy('id', 'desc')->value('id');
         }
@@ -139,7 +148,7 @@ class KaryawanQccController extends Controller
         $circles = QccCircle::with(['department', 'activeTheme.stepProgress.step'])
             ->whereIn('id', $myCircleIds)
             ->where('qcc_period_id', $selectedPeriod)
-            ->when($search, function($q) use ($search) {
+            ->when($search, function ($q) use ($search) {
                 $q->where('circle_name', 'like', "%{$search}%");
             })
             ->orderBy('circle_name', 'asc')
@@ -152,7 +161,9 @@ class KaryawanQccController extends Controller
     public function myCircle(Request $request)
     {
         $user = $this->getAuthUser();
-        if (!$user) return redirect('/login');
+        if (!$user) {
+            return redirect('/login');
+        }
 
         $perPage = $request->get('per_page', 10);
         $search = $request->get('search');
@@ -162,7 +173,7 @@ class KaryawanQccController extends Controller
 
         $circles = QccCircle::with(['members.employee', 'department'])
             ->whereIn('id', $circleIds)
-            ->when($search, function($query) use ($search) {
+            ->when($search, function ($query) use ($search) {
                 $query->where('circle_name', 'like', "%{$search}%")
                       ->orWhere('circle_code', 'like', "%{$search}%");
             })
@@ -199,18 +210,18 @@ class KaryawanQccController extends Controller
 
         $request->validate([
             'circle_name' => 'required|string|max:255',
-            'members'     => 'required|array|min:1', 
+            'members' => 'required|array|min:1',
         ]);
 
         try {
             DB::transaction(function () use ($request, $user, $deptCode) {
                 // Simpan Circle dengan kode departemen user
                 $circle = QccCircle::create([
-                    'circle_code' => 'C-' . strtoupper(bin2hex(random_bytes(3))),
+                    'circle_code' => 'C-'.strtoupper(bin2hex(random_bytes(3))),
                     'circle_name' => $request->circle_name,
-                    'department_code' => $deptCode, 
+                    'department_code' => $deptCode,
                     'qcc_period_id' => QccPeriod::where('status', 'ACTIVE')->value('id') ?? 1,
-                    'status' => 'WAITING SPV' // Biasanya saat daftar statusnya menunggu approval
+                    'status' => 'WAITING SPV', // Biasanya saat daftar statusnya menunggu approval
                 ]);
 
                 // Simpan Pembuat sebagai LEADER
@@ -218,7 +229,7 @@ class KaryawanQccController extends Controller
                     'qcc_circle_id' => $circle->id,
                     'employee_npk' => $user->npk,
                     'role' => 'LEADER',
-                    'is_active' => 1, 'joined_at' => now()
+                    'is_active' => 1, 'joined_at' => now(),
                 ]);
 
                 // Simpan Anggota lainnya
@@ -227,13 +238,14 @@ class KaryawanQccController extends Controller
                         'qcc_circle_id' => $circle->id,
                         'employee_npk' => $npk,
                         'role' => 'MEMBER',
-                        'is_active' => 1, 'joined_at' => now()
+                        'is_active' => 1, 'joined_at' => now(),
                     ]);
                 }
             });
+
             return redirect()->back()->with('success', 'Circle baru berhasil didaftarkan! Menunggu persetujuan atasan.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal: '.$e->getMessage());
         }
     }
 
@@ -242,7 +254,7 @@ class KaryawanQccController extends Controller
         $user = $this->getAuthUser();
         $request->validate([
             'circle_name' => 'required|string|max:255',
-            'members'     => 'required|array|min:1', 
+            'members' => 'required|array|min:1',
         ]);
 
         try {
@@ -259,35 +271,37 @@ class KaryawanQccController extends Controller
                     'qcc_circle_id' => $id,
                     'employee_npk' => $user->npk,
                     'role' => 'LEADER',
-                    'is_active' => 1, 'joined_at' => now()
+                    'is_active' => 1, 'joined_at' => now(),
                 ]);
 
                 foreach ($request->members as $npk) {
-                    if ($npk != $user->npk) { 
+                    if ($npk != $user->npk) {
                         QccCircleMember::create([
                             'qcc_circle_id' => $id,
                             'employee_npk' => $npk,
                             'role' => 'MEMBER',
-                            'is_active' => 1, 'joined_at' => now()
+                            'is_active' => 1, 'joined_at' => now(),
                         ]);
                     }
                 }
             });
+
             return redirect()->back()->with('success', 'Data Circle berhasil diperbarui!');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal update: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal update: '.$e->getMessage());
         }
     }
 
     public function deleteCircle($id)
     {
         try {
-            // Karena ada foreign key ON DELETE CASCADE, 
+            // Karena ada foreign key ON DELETE CASCADE,
             // menghapus circle akan menghapus member, tema, dan transaksi terkait.
             QccCircle::destroy($id);
+
             return redirect()->back()->with('success', 'Circle berhasil dihapus selamanya.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal menghapus: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal menghapus: '.$e->getMessage());
         }
     }
 
@@ -299,7 +313,7 @@ class KaryawanQccController extends Controller
 
         // 1. Ambil SEMUA ID Circle yang diikuti user untuk navigasi dropdown
         $myCircleIds = QccCircleMember::where('employee_npk', $user->npk)->pluck('qcc_circle_id');
-        
+
         if ($myCircleIds->isEmpty()) {
             return redirect()->route('qcc.karyawan.my_circle')->with('info', 'Silakan buat atau bergabung dengan Circle terlebih dahulu!');
         }
@@ -317,6 +331,7 @@ class KaryawanQccController extends Controller
         // 3. VALIDASI APPROVAL (Tetap dipertahankan)
         if ($circle->status !== 'ACTIVE') {
             $msg = "Circle $circle->circle_name sedang menunggu persetujuan atau ditolak.";
+
             return redirect()->route('qcc.karyawan.my_circle')->with('warning', $msg);
         }
 
@@ -326,7 +341,7 @@ class KaryawanQccController extends Controller
 
         $themes = QccTheme::with('period')
             ->where('qcc_circle_id', $circleId)
-            ->when($search, function($query) use ($search) {
+            ->when($search, function ($query) use ($search) {
                 $query->where('theme_name', 'like', "%{$search}%");
             })
             ->orderBy('created_at', 'desc')
@@ -342,13 +357,13 @@ class KaryawanQccController extends Controller
     public function storeTheme(Request $request)
     {
         $request->validate(['theme_name' => 'required', 'qcc_period_id' => 'required', 'qcc_circle_id' => 'required']);
-        
+
         // Logika diubah: Tidak mematikan tema lama (Sesuai permintaan Anda)
         QccTheme::create([
             'qcc_circle_id' => $request->qcc_circle_id,
             'qcc_period_id' => $request->qcc_period_id,
             'theme_name' => $request->theme_name,
-            'status' => 'ACTIVE'
+            'status' => 'ACTIVE',
         ]);
 
         return redirect()->back()->with('success', 'Tema baru berhasil ditambahkan!');
@@ -379,6 +394,7 @@ class KaryawanQccController extends Controller
         try {
             // Soft delete atau hard delete sesuai kebutuhan (t_qcc_circle_steps akan terhapus jika ada cascade)
             QccTheme::destroy($id);
+
             return redirect()->back()->with('success', 'Tema berhasil dihapus.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal menghapus tema.');
@@ -406,6 +422,7 @@ class KaryawanQccController extends Controller
             if (!$activeTheme) {
                 return redirect()->route('qcc.karyawan.my_circle')->with('warning', 'Anda belum memiliki Tema. Silakan buat tema di Manajemen Tema.');
             }
+
             return redirect()->route('qcc.karyawan.progress', ['theme_id' => $activeTheme->id]);
         }
 
@@ -433,30 +450,30 @@ class KaryawanQccController extends Controller
     {
         // 1. Validasi Input
         $request->validate([
-            'qcc_step_id'   => 'required',
-            'qcc_theme_id'  => 'required',
+            'qcc_step_id' => 'required',
+            'qcc_theme_id' => 'required',
             'qcc_circle_id' => 'required',
-            'file'          => 'required|mimes:pdf|max:10240', // Max 10MB
+            'file' => 'required|mimes:pdf|max:10240', // Max 10MB
         ]);
 
         try {
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
-                
+
                 // Pastikan variabel ID adalah integer
                 $circleId = (int) $request->qcc_circle_id;
-                $themeId  = (int) $request->qcc_theme_id;
-                $stepId   = (int) $request->qcc_step_id;
-                $npk      = session('auth_npk');
+                $themeId = (int) $request->qcc_theme_id;
+                $stepId = (int) $request->qcc_step_id;
+                $npk = session('auth_npk');
 
                 // FOLDER PATH: qcc/progress/circle_1/theme_5
                 $folderPath = "qcc/progress/circle_{$circleId}/theme_{$themeId}";
-                
+
                 // Cari data lama untuk penghapusan file fisik jika sudah pernah upload
                 $oldTrans = QccCircleStepTransaction::where([
                     'qcc_circle_id' => $circleId,
-                    'qcc_theme_id'  => $themeId,
-                    'qcc_step_id'   => $stepId
+                    'qcc_theme_id' => $themeId,
+                    'qcc_step_id' => $stepId,
                 ])->first();
 
                 // Hapus file lama jika ada di storage
@@ -465,7 +482,7 @@ class KaryawanQccController extends Controller
                 }
 
                 // 2. Simpan File Baru ke Storage
-                $fileName = "Step_{$stepId}_" . time() . "." . $file->getClientOriginalExtension();
+                $fileName = "Step_{$stepId}_".time().'.'.$file->getClientOriginalExtension();
                 $path = $file->storeAs($folderPath, $fileName, 'public');
 
                 // Jika path gagal terbuat
@@ -478,15 +495,15 @@ class KaryawanQccController extends Controller
                 QccCircleStepTransaction::updateOrCreate(
                     [
                         'qcc_circle_id' => $circleId,
-                        'qcc_theme_id'  => $themeId,
-                        'qcc_step_id'   => $stepId,
+                        'qcc_theme_id' => $themeId,
+                        'qcc_step_id' => $stepId,
                     ],
                     [
                         'file_name' => $file->getClientOriginalName(),
                         'file_path' => $path,
                         'file_type' => 'pdf',
                         'upload_by' => $npk,
-                        'status'    => 'WAITING SPV',
+                        'status' => 'WAITING SPV',
                         'upload_at' => now(),
                     ]
                 );
@@ -495,10 +512,9 @@ class KaryawanQccController extends Controller
             }
 
             return redirect()->back()->with('error', 'File tidak ditemukan dalam request.');
-
         } catch (\Exception $e) {
             // Jika error, tampilkan pesan errornya agar mudah di-debug
-            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan: '.$e->getMessage());
         }
     }
 }

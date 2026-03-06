@@ -2,33 +2,34 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Employee;
-use App\Models\QccCircle;
-use App\Models\QccStep;
-use App\Models\QccPeriod;
-use App\Models\QccPeriodStep;
-use App\Models\QccTarget;
 use App\Models\Department;
 use App\Models\Division;
+use App\Models\Employee;
+use App\Models\QccCircle;
 use App\Models\QccCircleStepTransaction;
+use App\Models\QccPeriod;
+use App\Models\QccPeriodStep;
+use App\Models\QccStep;
+use App\Models\QccTarget;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
 
 class AdminQccController extends Controller
 {
     public function index(Request $request)
     {
         $user = Employee::with(['subSection.section.department.division', 'section.department.division'])->find(Auth::id());
-        
-        $viewLevel = $request->get('view_level', 'company'); 
+
+        $viewLevel = $request->get('view_level', 'company');
         $selectedPeriod = $request->get('period_id');
         $selectedDiv = $request->get('division_code');
         $isAdmin = (session('active_role') === 'admin');
 
-        $periods = QccPeriod::orderBy('year', 'desc')->get();
+        $periods = QccPeriod::where('status', 'ACTIVE')->orderBy('year', 'desc')->get();
+
         if (!$selectedPeriod) {
             $selectedPeriod = QccPeriod::where('status', 'ACTIVE')->value('id') ?? QccPeriod::orderBy('id', 'desc')->value('id');
         }
@@ -36,8 +37,8 @@ class AdminQccController extends Controller
         // --- LOGIKA PROGRESS LINE (DISKRIT / MELOMPAT) ---
         $today = Carbon::now();
         $todayDate = $today->format('d/m/Y'); // <--- TAMBAHKAN BARIS INI UNTUK MEMPERBAIKI ERROR
-        
-        $progressLineX = 0; 
+
+        $progressLineX = 0;
         $period = QccPeriod::find($selectedPeriod);
 
         $periodSteps = QccPeriodStep::where('qcc_period_id', $selectedPeriod)
@@ -49,13 +50,13 @@ class AdminQccController extends Controller
             foreach ($periodSteps as $index => $ps) {
                 $deadline = Carbon::parse($ps->deadline_date);
                 if ($today->lte($deadline)) {
-                    $progressLineX = $index; 
+                    $progressLineX = $index;
                     break;
                 }
                 $progressLineX = $index;
             }
         }
-        
+
         // --- GENERATE LABEL BULAN PER STEP ---
         $stepMonths = [];
         if ($period) {
@@ -64,18 +65,24 @@ class AdminQccController extends Controller
                 $stepMonths[] = Carbon::parse($ps->deadline_date)->translatedFormat('M');
             }
         }
-        while(count($stepMonths) < 9) { $stepMonths[] = ''; }
+        while (count($stepMonths) < 9) {
+            $stepMonths[] = '';
+        }
 
         // Tentukan Otoritas Data & Filter
         $selectedDept = null;
         if ($isAdmin) {
             $selectedDept = $request->get('department_code');
         } elseif ($user->occupation === 'GMR') {
-            if ($viewLevel === 'company') $viewLevel = 'division';
+            if ($viewLevel === 'company') {
+                $viewLevel = 'division';
+            }
             $myDept = Department::where('code', $user->getDeptCode())->first();
             $selectedDiv = $myDept ? $myDept->code_division : null;
         } elseif (in_array($user->occupation, ['KDP', 'SPV'])) {
-            if (!in_array($viewLevel, ['department', 'circle'])) $viewLevel = 'department';
+            if (!in_array($viewLevel, ['department', 'circle'])) {
+                $viewLevel = 'department';
+            }
             $selectedDept = $user->getDeptCode();
             $deptData = Department::where('code', $selectedDept)->first();
             $selectedDiv = $deptData ? $deptData->code_division : null;
@@ -89,10 +96,12 @@ class AdminQccController extends Controller
             $charts[] = ['title' => 'All Company Overview', 'data' => $this->getChartData($selectedPeriod)];
         } elseif ($viewLevel == 'division') {
             $divQuery = Division::query();
-            if (!$isAdmin) $divQuery->where('code', $selectedDiv);
+            if (!$isAdmin) {
+                $divQuery->where('code', $selectedDiv);
+            }
             foreach ($divQuery->get() as $div) {
                 $deptCodes = Department::where('code_division', $div->code)->pluck('code');
-                $charts[] = ['title' => 'Division: ' . $div->name, 'data' => $this->getChartData($selectedPeriod, $deptCodes)];
+                $charts[] = ['title' => 'Division: '.$div->name, 'data' => $this->getChartData($selectedPeriod, $deptCodes)];
             }
         } elseif ($viewLevel == 'department') {
             $deptQuery = Department::query();
@@ -101,43 +110,48 @@ class AdminQccController extends Controller
             } elseif (!$isAdmin && $user->occupation === 'GMR') {
                 $deptQuery->where('code_division', $selectedDiv);
             } else {
-                if ($selectedDiv) $deptQuery->where('code_division', $selectedDiv);
+                if ($selectedDiv) {
+                    $deptQuery->where('code_division', $selectedDiv);
+                }
             }
             foreach ($deptQuery->orderBy('name', 'asc')->get() as $dept) {
-                $charts[] = ['title' => 'Dept: ' . $dept->name, 'data' => $this->getChartData($selectedPeriod, [$dept->code])];
+                $charts[] = ['title' => 'Dept: '.$dept->name, 'data' => $this->getChartData($selectedPeriod, [$dept->code])];
             }
         } elseif ($viewLevel == 'circle') {
             $circles = QccCircle::where('department_code', $selectedDept)
                         ->where('qcc_period_id', $selectedPeriod)
                         ->orderBy('circle_name', 'asc')->get();
             foreach ($circles as $circle) {
-                $charts[] = ['title' => 'Circle: ' . $circle->circle_name, 'data' => $this->getChartDataPerCircle($circle->id)];
+                $charts[] = ['title' => 'Circle: '.$circle->circle_name, 'data' => $this->getChartDataPerCircle($circle->id)];
             }
         }
 
         $divisions = Division::all();
+
         return view('qcc.admin.dashboard', compact(
-            'user', 'stats', 'periods', 'divisions', 
+            'user', 'stats', 'periods', 'divisions',
             'selectedPeriod', 'viewLevel', 'selectedDiv', 'selectedDept', 'charts', 'progressLineX', 'todayDate', 'stepMonths'
         ));
     }
+
     /**
-     * Helper khusus untuk mengambil data 1 Circle saja
+     * Helper khusus untuk mengambil data 1 Circle saja.
      */
     private function getChartDataPerCircle($circleId)
     {
-        $submitted = []; $approved = [];
-        
+        $submitted = [];
+        $approved = [];
+
         // Step 0 (Registration)
         $circle = QccCircle::find($circleId);
         $submitted[] = 1; // Karena circle ini sudah ada
         $approved[] = ($circle->status === 'ACTIVE') ? 1 : 0;
 
         // Step 1 - 8
-        for ($i = 1; $i <= 8; $i++) {
+        for ($i = 1; $i <= 8; ++$i) {
             $trans = QccCircleStepTransaction::where('qcc_circle_id', $circleId)
                         ->where('qcc_step_id', $i)->first();
-            
+
             $submitted[] = ($trans) ? 1 : 0;
             $approved[] = ($trans && $trans->status === 'APPROVED') ? 1 : 0;
         }
@@ -145,58 +159,64 @@ class AdminQccController extends Controller
         return [
             'submitted' => $submitted,
             'approved' => $approved,
-            'target' => array_fill(0, 9, 1) // Target per circle selalu 1 project
+            'target' => array_fill(0, 9, 1), // Target per circle selalu 1 project
         ];
     }
 
     private function getChartData($periodId, $deptCodes = null)
     {
-        $submitted = []; $approved = [];
-        $targetValue = QccTarget::where('qcc_period_id', $periodId)->when($deptCodes, fn($q) => $q->whereIn('department_code', $deptCodes))->sum('target_amount');
-        $step0Query = QccCircle::where('qcc_period_id', $periodId)->when($deptCodes, fn($q) => $q->whereIn('department_code', $deptCodes));
+        $submitted = [];
+        $approved = [];
+        $targetValue = QccTarget::where('qcc_period_id', $periodId)->when($deptCodes, fn ($q) => $q->whereIn('department_code', $deptCodes))->sum('target_amount');
+        $step0Query = QccCircle::where('qcc_period_id', $periodId)->when($deptCodes, fn ($q) => $q->whereIn('department_code', $deptCodes));
         $submitted[] = (clone $step0Query)->count();
         $approved[] = (clone $step0Query)->where('status', 'ACTIVE')->count();
-        for ($i = 1; $i <= 8; $i++) {
-            $baseQuery = QccCircleStepTransaction::where('qcc_step_id', $i)->whereHas('circle', function($q) use ($periodId, $deptCodes) {
+        for ($i = 1; $i <= 8; ++$i) {
+            $baseQuery = QccCircleStepTransaction::where('qcc_step_id', $i)->whereHas('circle', function ($q) use ($periodId, $deptCodes) {
                 $q->where('qcc_period_id', $periodId);
-                if ($deptCodes) $q->whereIn('department_code', $deptCodes);
+                if ($deptCodes) {
+                    $q->whereIn('department_code', $deptCodes);
+                }
             });
             $submitted[] = (clone $baseQuery)->count();
             $approved[] = (clone $baseQuery)->where('status', 'APPROVED')->count();
         }
-        return ['submitted' => $submitted, 'approved' => $approved, 'target' => array_fill(0, 9, (int)$targetValue)];
+
+        return ['submitted' => $submitted, 'approved' => $approved, 'target' => array_fill(0, 9, (int) $targetValue)];
     }
 
     private function calculateStats($periodId, $level, $divCode, $deptCode, $progressLineX, $periodSteps)
     {
         // Tentukan jangkauan Departemen berdasarkan filter
         $deptCodes = $deptCode ? [$deptCode] : null;
-        if(!$deptCodes && $divCode) { 
-            $deptCodes = Department::where('code_division', $divCode)->pluck('code'); 
+        if (!$deptCodes && $divCode) {
+            $deptCodes = Department::where('code_division', $divCode)->pluck('code');
         }
 
         // 1. Target dan Total Circle (Step 0)
         $target = QccTarget::where('qcc_period_id', $periodId)
-            ->when($deptCodes, fn($q) => $q->whereIn('department_code', $deptCodes))
+            ->when($deptCodes, fn ($q) => $q->whereIn('department_code', $deptCodes))
             ->sum('target_amount');
 
         $actual = QccCircle::where('qcc_period_id', $periodId)
-            ->when($deptCodes, fn($q) => $q->whereIn('department_code', $deptCodes))
+            ->when($deptCodes, fn ($q) => $q->whereIn('department_code', $deptCodes))
             ->count();
 
         // 2. LOGIKA NEED REVIEW (Step 0 + Step 1-8)
-        
+
         // Hitung Pending dari Step 0 (Registrasi Circle)
         $needReviewStep0 = QccCircle::where('qcc_period_id', $periodId)
             ->whereIn('status', ['WAITING SPV', 'WAITING KDP'])
-            ->when($deptCodes, fn($q) => $q->whereIn('department_code', $deptCodes))
+            ->when($deptCodes, fn ($q) => $q->whereIn('department_code', $deptCodes))
             ->count();
 
         // Hitung Pending dari Step 1-8 (Progres PDCA)
         $needReviewSteps = QccCircleStepTransaction::whereIn('status', ['WAITING SPV', 'WAITING KDP'])
-            ->whereHas('circle', function($q) use ($periodId, $deptCodes) {
+            ->whereHas('circle', function ($q) use ($periodId, $deptCodes) {
                 $q->where('qcc_period_id', $periodId);
-                if ($deptCodes) $q->whereIn('department_code', $deptCodes);
+                if ($deptCodes) {
+                    $q->whereIn('department_code', $deptCodes);
+                }
             })->count();
 
         // Total gabungan
@@ -204,21 +224,23 @@ class AdminQccController extends Controller
 
         // 3. Logika Circle Selesai berdasarkan Garis Merah
         $completedCount = 0;
-        $targetStepNumber = floor($progressLineX ?? 0); 
+        $targetStepNumber = floor($progressLineX ?? 0);
 
         if ($targetStepNumber == 0) {
             $completedCount = QccCircle::where('qcc_period_id', $periodId)
                 ->where('status', 'ACTIVE')
-                ->when($deptCodes, fn($q) => $q->whereIn('department_code', $deptCodes))
+                ->when($deptCodes, fn ($q) => $q->whereIn('department_code', $deptCodes))
                 ->count();
         } else {
             $targetStep = $periodSteps->where('step_number', $targetStepNumber)->first();
             if ($targetStep) {
                 $completedCount = QccCircleStepTransaction::where('qcc_step_id', $targetStep->step_id)
-                    ->where('status', 'APPROVED') 
-                    ->whereHas('circle', function($q) use ($periodId, $deptCodes) {
+                    ->where('status', 'APPROVED')
+                    ->whereHas('circle', function ($q) use ($periodId, $deptCodes) {
                         $q->where('qcc_period_id', $periodId);
-                        if ($deptCodes) $q->whereIn('department_code', $deptCodes);
+                        if ($deptCodes) {
+                            $q->whereIn('department_code', $deptCodes);
+                        }
                     })->count();
             }
         }
@@ -226,8 +248,8 @@ class AdminQccController extends Controller
         return [
             'total_circles' => $actual,
             'target_circles' => $target,
-            'need_review'   => $totalNeedReview, // Sekarang sudah termasuk Step 0
-            'completed'     => $completedCount,
+            'need_review' => $totalNeedReview, // Sekarang sudah termasuk Step 0
+            'completed' => $completedCount,
         ];
     }
 
@@ -236,7 +258,7 @@ class AdminQccController extends Controller
     {
         $user = Employee::with('job')->find(Auth::id());
         $selectedPeriod = $request->get('period_id');
-        $periods = QccPeriod::orderBy('year', 'desc')->get();
+        $periods = QccPeriod::where('status', 'ACTIVE')->orderBy('year', 'desc')->get();
 
         if (!$selectedPeriod) {
             $selectedPeriod = QccPeriod::where('status', 'ACTIVE')->value('id') ?? QccPeriod::orderBy('id', 'desc')->value('id');
@@ -248,16 +270,16 @@ class AdminQccController extends Controller
         $ganttData = [];
         if ($period && $period->periodSteps->count() > 0) {
             $steps = $period->periodSteps->sortBy('step.step_number');
-            
+
             // Titik awal adalah start_date periode
             $lastDate = $period->start_date;
 
             foreach ($steps as $ps) {
                 $ganttData[] = [
-                    'step_name' => 'Step ' . $ps->step->step_number . ': ' . $ps->step->step_name,
+                    'step_name' => 'Step '.$ps->step->step_number.': '.$ps->step->step_name,
                     'start' => $lastDate,
                     'end' => $ps->deadline_date,
-                    'color' => $this->getStepColor($ps->step->step_number)
+                    'color' => $this->getStepColor($ps->step->step_number),
                 ];
                 // Start date step berikutnya adalah deadline step ini
                 $lastDate = $ps->deadline_date;
@@ -268,11 +290,13 @@ class AdminQccController extends Controller
     }
 
     // Helper warna agar gantt chart berwarna-warni menarik
-    private function getStepColor($stepNumber) {
+    private function getStepColor($stepNumber)
+    {
         $colors = [
             0 => '#3b82f6', 1 => '#6366f1', 2 => '#8b5cf6', 3 => '#a855f7',
-            4 => '#d946ef', 5 => '#ec4899', 6 => '#f43f5e', 7 => '#f97316', 8 => '#10b981'
+            4 => '#d946ef', 5 => '#ec4899', 6 => '#f43f5e', 7 => '#f97316', 8 => '#10b981',
         ];
+
         return $colors[$stepNumber] ?? '#94a3b8';
     }
 
@@ -281,12 +305,12 @@ class AdminQccController extends Controller
     {
         $user = Employee::with('job')->find(Auth::id());
         $search = $request->get('search');
-        $perPage = $request->get('per_page', 10); 
+        $perPage = $request->get('per_page', 10);
 
-        $steps = QccStep::when($search, function($query) use ($search) {
-                $query->where('step_name', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
-            })
+        $steps = QccStep::when($search, function ($query) use ($search) {
+            $query->where('step_name', 'like', "%{$search}%")
+                ->orWhere('description', 'like', "%{$search}%");
+        })
             ->orderBy('step_number', 'asc')
             ->paginate($perPage)
             ->withQueryString();
@@ -306,7 +330,7 @@ class AdminQccController extends Controller
 
         if ($request->hasFile('template_file')) {
             $file = $request->file('template_file');
-            $fileName = 'Master_Template_Step_' . $request->step_number . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $fileName = 'Master_Template_Step_'.$request->step_number.'_'.time().'.'.$file->getClientOriginalExtension();
             $path = $file->storeAs('qcc/templates', $fileName, 'public');
 
             $data['template_file_name'] = $file->getClientOriginalName();
@@ -314,6 +338,7 @@ class AdminQccController extends Controller
         }
 
         QccStep::create($data);
+
         return redirect()->back()->with('success', 'Step baru dan template berhasil ditambahkan!');
     }
 
@@ -335,7 +360,7 @@ class AdminQccController extends Controller
             }
 
             $file = $request->file('template_file');
-            $fileName = 'Master_Template_Step_' . $step->step_number . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $fileName = 'Master_Template_Step_'.$step->step_number.'_'.time().'.'.$file->getClientOriginalExtension();
             $path = $file->storeAs('qcc/templates', $fileName, 'public');
 
             $data['template_file_name'] = $file->getClientOriginalName();
@@ -343,6 +368,7 @@ class AdminQccController extends Controller
         }
 
         $step->update($data);
+
         return redirect()->back()->with('success', 'Data Step dan Template berhasil diperbarui!');
     }
 
@@ -354,6 +380,7 @@ class AdminQccController extends Controller
             Storage::disk('public')->delete($step->template_file_path);
         }
         $step->delete();
+
         return redirect()->back()->with('success', 'Step berhasil dihapus!');
     }
 
@@ -365,7 +392,7 @@ class AdminQccController extends Controller
         $search = $request->get('search');
 
         $periods = QccPeriod::with('periodSteps.step')
-            ->when($search, function($query) use ($search) {
+            ->when($search, function ($query) use ($search) {
                 $query->where('period_name', 'like', "%{$search}%")
                       ->orWhere('period_code', 'like', "%{$search}%")
                       ->orWhere('year', 'like', "%{$search}%");
@@ -385,32 +412,33 @@ class AdminQccController extends Controller
         $request->validate([
             'period_code' => 'required|unique:m_qcc_periods,period_code',
             'period_name' => 'required|string|max:255',
-            'year'        => 'required|digits:4',
-            'start_date'  => 'required|date',
-            'end_date'    => 'required|date|after_or_equal:start_date',
+            'year' => 'required|digits:4',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
         ]);
 
         $newPeriod = DB::transaction(function () use ($request) {
             // Status otomatis ACTIVE saat pertama kali simpan
             $data = $request->all();
             $data['status'] = 'ACTIVE';
-            
+
             $period = QccPeriod::create($data);
 
             $steps = QccStep::orderBy('step_number', 'asc')->get();
             foreach ($steps as $step) {
                 QccPeriodStep::create([
                     'qcc_period_id' => $period->id,
-                    'qcc_step_id'   => $step->id,
-                    'deadline_date' => $request->end_date
+                    'qcc_step_id' => $step->id,
+                    'deadline_date' => $request->end_date,
                 ]);
             }
+
             return $period->load('periodSteps.step');
         });
 
         return redirect()->back()->with([
             'success' => 'Periode ACTIVE berhasil dibuat! Silahkan atur deadline langkah.',
-            'auto_open_deadline' => $newPeriod
+            'auto_open_deadline' => $newPeriod,
         ]);
     }
 
@@ -426,6 +454,7 @@ class AdminQccController extends Controller
                     ->where('qcc_step_id', $stepId)
                     ->update(['deadline_date' => $date]);
             }
+
             return redirect()->back()->with('success', 'Batas waktu (deadline) langkah berhasil diperbarui!');
         }
 
@@ -433,9 +462,9 @@ class AdminQccController extends Controller
         $request->validate([
             'period_code' => 'required|unique:m_qcc_periods,period_code,'.$id,
             'period_name' => 'required',
-            'year'        => 'required|digits:4',
-            'start_date'  => 'required|date',
-            'end_date'    => 'required|date|after_or_equal:start_date',
+            'year' => 'required|digits:4',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
         ]);
 
         $period->update($request->only(['period_code', 'period_name', 'year', 'start_date', 'end_date', 'status']));
@@ -447,6 +476,7 @@ class AdminQccController extends Controller
     {
         // Karena ada Cascade di database, m_qcc_period_steps akan otomatis terhapus
         QccPeriod::destroy($id);
+
         return redirect()->back()->with('success', 'Periode berhasil dihapus!');
     }
 
@@ -458,10 +488,10 @@ class AdminQccController extends Controller
         $search = $request->get('search');
 
         $targets = QccTarget::with(['period', 'department'])
-            ->whereHas('department', function($q) use ($search) {
+            ->whereHas('department', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%");
             })
-            ->orWhereHas('period', function($q) use ($search) {
+            ->orWhereHas('period', function ($q) use ($search) {
                 $q->where('period_name', 'like', "%{$search}%");
             })
             ->orderBy('created_at', 'desc')
@@ -478,17 +508,20 @@ class AdminQccController extends Controller
         $request->validate([
             'qcc_period_id' => 'required',
             'department_code' => 'required',
-            'target_amount' => 'required|numeric|min:1'
+            'target_amount' => 'required|numeric|min:1',
         ]);
 
         // Cek duplikasi
         $exists = QccTarget::where('qcc_period_id', $request->qcc_period_id)
                         ->where('department_code', $request->department_code)
                         ->exists();
-        
-        if($exists) return redirect()->back()->with('error', 'Target untuk Departemen ini di periode tersebut sudah ada!');
+
+        if ($exists) {
+            return redirect()->back()->with('error', 'Target untuk Departemen ini di periode tersebut sudah ada!');
+        }
 
         QccTarget::create($request->all());
+
         return redirect()->back()->with('success', 'Target berhasil ditetapkan!');
     }
 
@@ -496,12 +529,14 @@ class AdminQccController extends Controller
     {
         $target = QccTarget::findOrFail($id);
         $target->update($request->all());
+
         return redirect()->back()->with('success', 'Target berhasil diperbarui!');
     }
 
     public function deleteTarget($id)
     {
         QccTarget::destroy($id);
+
         return redirect()->back()->with('success', 'Target berhasil dihapus!');
     }
 
@@ -514,7 +549,7 @@ class AdminQccController extends Controller
         $search = $request->get('search');
 
         $employees = Employee::with(['job', 'subSection.section.department'])
-            ->when($search, function($query) use ($search) {
+            ->when($search, function ($query) use ($search) {
                 $query->where('nama', 'like', "%{$search}%")
                     ->orWhere('npk', 'like', "%{$search}%");
             })
@@ -540,6 +575,7 @@ class AdminQccController extends Controller
         ]);
 
         Employee::create($request->all());
+
         return redirect()->back()->with('success', 'Karyawan baru berhasil ditambahkan!');
     }
 
@@ -547,37 +583,40 @@ class AdminQccController extends Controller
     {
         $emp = Employee::findOrFail($id);
         $request->validate([
-            'npk' => 'required|unique:m_employees,npk,' . $id,
+            'npk' => 'required|unique:m_employees,npk,'.$id,
             'nama' => 'required',
         ]);
 
         $emp->update($request->all());
+
         return redirect()->back()->with('success', 'Data karyawan berhasil diperbarui!');
     }
 
     public function deleteEmployee($id)
     {
         Employee::destroy($id);
+
         return redirect()->back()->with('success', 'Data karyawan telah dihapus.');
     }
 
     public function allCircleProgress(Request $request)
     {
         $user = Employee::with('job')->find(Auth::id());
-        
+
         $selectedPeriod = $request->get('period_id');
         $selectedDiv = $request->get('division_code');
         $selectedDept = $request->get('department_code');
         $search = $request->get('search');
         $perPage = $request->get('per_page', 10);
 
-        $periods = QccPeriod::orderBy('year', 'desc')->get();
+        $periods = QccPeriod::where('status', 'ACTIVE')->orderBy('year', 'desc')->get();
+
         if (!$selectedPeriod) {
             $selectedPeriod = QccPeriod::where('status', 'ACTIVE')->value('id') ?? QccPeriod::orderBy('id', 'desc')->value('id');
         }
 
         $divisions = Division::all();
-        $departments = Department::when($selectedDiv, fn($q) => $q->where('code_division', $selectedDiv))->get();
+        $departments = Department::when($selectedDiv, fn ($q) => $q->where('code_division', $selectedDiv))->get();
 
         // Query Utama: Ambil Circle dan Progres Stepnya melalui Tema Aktif
         $query = QccCircle::with(['department', 'activeTheme.stepProgress.step'])
@@ -592,7 +631,7 @@ class AdminQccController extends Controller
         }
 
         if ($search) {
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('circle_name', 'like', "%{$search}%")
                 ->orWhere('circle_code', 'like', "%{$search}%");
             });
@@ -601,8 +640,8 @@ class AdminQccController extends Controller
         $circles = $query->orderBy('circle_name', 'asc')->paginate($perPage)->withQueryString();
 
         return view('qcc.admin.all_circle_progress', compact(
-            'user', 'circles', 'periods', 'divisions', 'departments', 
+            'user', 'circles', 'periods', 'divisions', 'departments',
             'selectedPeriod', 'selectedDiv', 'selectedDept', 'perPage'
         ));
     }
-}   
+}
