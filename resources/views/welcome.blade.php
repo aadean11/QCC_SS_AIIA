@@ -7,67 +7,67 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<style>
-    /* ... (semua style tetap sama seperti sebelumnya) ... */
-    body { font-family: 'Poppins', sans-serif; background-color: #F3F4F6; }
-    html, body { height: 100%; overflow: hidden; }
-    .sidebar-gradient { background: linear-gradient(180deg, #091E6E 0%, #130998 100%); transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; overflow-x: hidden; }
-    .sidebar-collapsed { width: 5rem !important; overflow: visible !important; }
-    .sidebar-collapsed .badge-number { display: none !important; }
-    .sidebar-collapsed .sidebar-link .relative { margin-right: 0 !important; }
-    .sidebar-collapsed .sidebar-link .relative span.bg-red-500 { top: -2px !important; right: -2px !important; width: 10px !important; height: 10px !important; }
-    .sidebar-collapsed .menu-text, .sidebar-collapsed .sidebar-header-text, .sidebar-collapsed .sidebar-footer, .sidebar-collapsed .dropdown-arrow { display: none; }
-    .sidebar-collapsed .sidebar-link { justify-content: center; padding-left: 0; padding-right: 0; }
-    .submenu { transition: all 0.3s ease-in-out; max-height: 0; overflow: hidden; opacity: 0; }
-    .submenu.show { max-height: 500px; opacity: 1; margin-top: 0.5rem; margin-bottom: 0.5rem; }
-    .submenu { position: relative; padding-left: 2.25rem !important; margin-top: 0.5rem; }
-    .submenu::before { content: ""; position: absolute; left: 20px; top: 6px; bottom: 6px; width: 1px; background-color: rgba(255,255,255,0.15); }
-    .submenu a { position: relative; display: block; padding: 0.5rem 0.75rem 0.5rem 1.25rem !important; border-radius: 8px; transition: all 0.2s ease; }
-    .submenu a::before { content: ""; position: absolute; left: -14px; top: 50%; width: 14px; height: 1px; background-color: rgba(255,255,255,0.15); transform: translateY(-50%); }
-    .submenu a::after { content: ""; position: absolute; left: -18px; top: 50%; width: 4px; height: 4px; background-color: rgba(255,255,255,0.4); border-radius: 50%; transform: translateY(-50%); }
-    .submenu a:hover { background-color: rgba(255,255,255,0.07); transform: translateX(4px); color: #ffffff !important; }
-    .submenu a.font-bold { background-color: rgba(255,255,255,0.1); color: #ffffff !important; }
-    .dropdown-arrow { transition: transform 0.3s ease; }
-    .rotate-180 { transform: rotate(180deg); }
-    .sidebar-link { transition: all 0.3s ease; border-left: 4px solid transparent; }
-    .sidebar-link:hover { background: rgba(255, 255, 255, 0.1); border-left: 4px solid #FBBF24; }
-    .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
-    .custom-scrollbar::-webkit-scrollbar { width: 3px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #707070; border-radius: 10px;}
-    .welcome-banner { background: linear-gradient(90deg, #091E6E 0%, #1035D1 100%); }
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    .animate-reveal { animation: fadeInUp 0.6s ease-out forwards; }
-    .sidebar-collapsed .group { position: relative; }
-    .floating-submenu { position: fixed !important; display: block !important; visibility: hidden; opacity: 0; width: 240px; background: #091E6E; border-radius: 0 1rem 1rem 0; padding: 1rem; box-shadow: 15px 5px 30px rgba(0, 0, 0, 0.4); z-index: 99999; border-left: 3px solid #FBBF24; max-height: 80vh !important; overflow-y: auto !important; transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease; transform: translateX(-10px); }
-    .floating-submenu.active { visibility: visible; opacity: 1; transform: translateX(0); }
-    .floating-submenu .menu-text { display: inline-block !important; color: #fff !important; white-space: nowrap; }
-    .floating-submenu a { padding: 0.75rem 1rem !important; display: flex !important; align-items: center !important; gap: 12px !important; transition: all 0.2s !important; border-radius: 0.5rem !important; margin-bottom: 0.25rem !important; color: #93C5FD !important; }
-    .floating-submenu a:hover { background: rgba(255, 255, 255, 0.15) !important; transform: translateX(5px) !important; color: white !important; }
-    .floating-submenu i { color: #93C5FD !important; width: 1.25rem !important; text-align: center !important; transition: color 0.2s; }
-    .floating-submenu a:hover i { color: white !important; }
-    .floating-submenu .text-xs { font-size: 0.8125rem !important; line-height: 1.5 !important; }
-    .sidebar-collapsed .sidebar-link:hover { background: rgba(255, 255, 255, 0.15) !important; border-left: 4px solid #FBBF24 !important; }
-    .menu-gap { position: absolute; left: 100%; top: 0; width: 20px; height: 100%; z-index: 99998; }
-    .swal2-shown { padding-right: 0 !important; }
-    body.swal2-height-auto { height: 100vh !important; }
-    .swal2-container { position: fixed !important; inset: 0 !important; }
-    .sidebar-collapsed ~ main { margin-left: 5rem !important; }
-    #sidebar { transition: transform 0.3s ease-in-out; }
-    #sidebarOverlay { transition: opacity 0.3s ease-in-out; z-index: 35; }
-    @media (min-width: 768px) {
-        #sidebar { transform: none !important; }
-        #sidebarOverlay { display: none !important; }
-    }
-</style>
-<!-- SCRIPT CEK STATUS SIDEBAR SEBELUM HALAMAN DI-RENDER -->
-<script>
-    (function() {
-        const state = localStorage.getItem('sidebar-state');
-        if (state === 'collapsed') {
-            document.documentElement.classList.add('sidebar-is-collapsed');
+    <style>
+        /* ... (semua style tetap sama seperti sebelumnya) ... */
+        body { font-family: 'Poppins', sans-serif; background-color: #F3F4F6; }
+        html, body { height: 100%; overflow: hidden; }
+        .sidebar-gradient { background: linear-gradient(180deg, #091E6E 0%, #130998 100%); transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; overflow-x: hidden; }
+        .sidebar-collapsed { width: 5rem !important; overflow: visible !important; }
+        .sidebar-collapsed .badge-number { display: none !important; }
+        .sidebar-collapsed .sidebar-link .relative { margin-right: 0 !important; }
+        .sidebar-collapsed .sidebar-link .relative span.bg-red-500 { top: -2px !important; right: -2px !important; width: 10px !important; height: 10px !important; }
+        .sidebar-collapsed .menu-text, .sidebar-collapsed .sidebar-header-text, .sidebar-collapsed .sidebar-footer, .sidebar-collapsed .dropdown-arrow { display: none; }
+        .sidebar-collapsed .sidebar-link { justify-content: center; padding-left: 0; padding-right: 0; }
+        .submenu { transition: all 0.3s ease-in-out; max-height: 0; overflow: hidden; opacity: 0; }
+        .submenu.show { max-height: 500px; opacity: 1; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+        .submenu { position: relative; padding-left: 2.25rem !important; margin-top: 0.5rem; }
+        .submenu::before { content: ""; position: absolute; left: 20px; top: 6px; bottom: 6px; width: 1px; background-color: rgba(255,255,255,0.15); }
+        .submenu a { position: relative; display: block; padding: 0.5rem 0.75rem 0.5rem 1.25rem !important; border-radius: 8px; transition: all 0.2s ease; }
+        .submenu a::before { content: ""; position: absolute; left: -14px; top: 50%; width: 14px; height: 1px; background-color: rgba(255,255,255,0.15); transform: translateY(-50%); }
+        .submenu a::after { content: ""; position: absolute; left: -18px; top: 50%; width: 4px; height: 4px; background-color: rgba(255,255,255,0.4); border-radius: 50%; transform: translateY(-50%); }
+        .submenu a:hover { background-color: rgba(255,255,255,0.07); transform: translateX(4px); color: #ffffff !important; }
+        .submenu a.font-bold { background-color: rgba(255,255,255,0.1); color: #ffffff !important; }
+        .dropdown-arrow { transition: transform 0.3s ease; }
+        .rotate-180 { transform: rotate(180deg); }
+        .sidebar-link { transition: all 0.3s ease; border-left: 4px solid transparent; }
+        .sidebar-link:hover { background: rgba(255, 255, 255, 0.1); border-left: 4px solid #FBBF24; }
+        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #707070; border-radius: 10px;}
+        .welcome-banner { background: linear-gradient(90deg, #091E6E 0%, #1035D1 100%); }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-reveal { animation: fadeInUp 0.6s ease-out forwards; }
+        .sidebar-collapsed .group { position: relative; }
+        .floating-submenu { position: fixed !important; display: block !important; visibility: hidden; opacity: 0; width: 240px; background: #091E6E; border-radius: 0 1rem 1rem 0; padding: 1rem; box-shadow: 15px 5px 30px rgba(0, 0, 0, 0.4); z-index: 99999; border-left: 3px solid #FBBF24; max-height: 80vh !important; overflow-y: auto !important; transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease; transform: translateX(-10px); }
+        .floating-submenu.active { visibility: visible; opacity: 1; transform: translateX(0); }
+        .floating-submenu .menu-text { display: inline-block !important; color: #fff !important; white-space: nowrap; }
+        .floating-submenu a { padding: 0.75rem 1rem !important; display: flex !important; align-items: center !important; gap: 12px !important; transition: all 0.2s !important; border-radius: 0.5rem !important; margin-bottom: 0.25rem !important; color: #93C5FD !important; }
+        .floating-submenu a:hover { background: rgba(255, 255, 255, 0.15) !important; transform: translateX(5px) !important; color: white !important; }
+        .floating-submenu i { color: #93C5FD !important; width: 1.25rem !important; text-align: center !important; transition: color 0.2s; }
+        .floating-submenu a:hover i { color: white !important; }
+        .floating-submenu .text-xs { font-size: 0.8125rem !important; line-height: 1.5 !important; }
+        .sidebar-collapsed .sidebar-link:hover { background: rgba(255, 255, 255, 0.15) !important; border-left: 4px solid #FBBF24 !important; }
+        .menu-gap { position: absolute; left: 100%; top: 0; width: 20px; height: 100%; z-index: 99998; }
+        .swal2-shown { padding-right: 0 !important; }
+        body.swal2-height-auto { height: 100vh !important; }
+        .swal2-container { position: fixed !important; inset: 0 !important; }
+        .sidebar-collapsed ~ main { margin-left: 5rem !important; }
+        #sidebar { transition: transform 0.3s ease-in-out; }
+        #sidebarOverlay { transition: opacity 0.3s ease-in-out; z-index: 35; }
+        @media (min-width: 768px) {
+            #sidebar { transform: none !important; }
+            #sidebarOverlay { display: none !important; }
         }
-    })();
-</script>
+    </style>
+    <!-- SCRIPT CEK STATUS SIDEBAR SEBELUM HALAMAN DI-RENDER -->
+    <script>
+        (function() {
+            const state = localStorage.getItem('sidebar-state');
+            if (state === 'collapsed') {
+                document.documentElement.classList.add('sidebar-is-collapsed');
+            }
+        })();
+    </script>
 </head>
 <body class="h-screen flex flex-col text-sm">
     <!-- TOPBAR -->
@@ -102,7 +102,6 @@
     <div class="flex flex-1 h-full">
         <!-- SIDEBAR -->
         <aside id="sidebar" class="w-72 sidebar-gradient flex flex-col p-4 shadow-2xl fixed top-20 left-0 h-[calc(100vh-5rem)] z-40 transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0">
-            <!-- Konten sidebar (sama seperti sebelumnya) -->
             <div class="flex-1 mt-1 overflow-y-auto custom-scrollbar pr-2">
                 <nav class="space-y-1">
                     <!-- 1. DASHBOARD (Universal) -->
@@ -181,10 +180,10 @@
                                     <i class="fa-solid fa-map-location-dot w-4"></i> <span class="menu-text">Monitoring Roadmap</span>
                                 </a>
                                 <a href="{{ route('qcc.karyawan.my_circle') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/my-circle') ? 'text-white font-bold' : '' }}">
-                                    <i class="fa-solid fa-circle-info w-4"></i> <span class="menu-text">Info Circle & Member</span>
+                                    <i class="fa-solid fa-users w-4"></i> <span class="menu-text">Master Circle & Member</span>
                                 </a>
                                 <a href="{{ route('qcc.karyawan.themes') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/themes') ? 'text-white font-bold' : '' }}">
-                                    <i class="fa-solid fa-lightbulb w-4"></i> <span class="menu-text">Manajemen Tema</span>
+                                    <i class="fa-solid fa-lightbulb w-4"></i> <span class="menu-text">Master Tema</span>
                                 </a>
                                 <a href="{{ route('qcc.karyawan.progress') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/progress') ? 'text-white font-bold' : '' }}">
                                     <i class="fa-solid fa-cloud-arrow-up w-4"></i> <span class="menu-text">Upload Progress</span>
@@ -228,17 +227,45 @@
                                     <i class="fa-solid fa-crosshairs w-4"></i> <span class="menu-text">Master Target</span>
                                 </a>
                                 <a href="{{ route('qcc.admin.all_progress') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/all-progress') ? 'text-white font-bold' : '' }}">
-                                    <i class="fa-solid fa-chart-pie w-4"></i> <span class="menu-text">Seluruh Progres Circle</span>
+                                    <i class="fa-solid fa-chart-pie w-4"></i> <span class="menu-text">Progress Circle</span>
                                 </a>
                             </div>
                         </div>
 
-                        <a href="#" class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl">
-                            <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg">
-                                <i class="fa-regular fa-lightbulb text-blue-200"></i>
+                        <!-- DROPDOWN MONITORING SS - BARU (Coming Soon) -->
+                        <div class="relative group" data-submenu="ssSubmenu">
+                            <button onclick="toggleSsDropdown()" class="sidebar-link w-full flex items-center justify-between text-white p-4 rounded-xl focus:outline-none">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg">
+                                        <i class="fa-regular fa-lightbulb text-blue-200"></i>
+                                    </div>
+                                    <span class="menu-text font-medium whitespace-nowrap text-sm">Monitoring SS</span>
+                                </div>
+                                <i id="ssArrow" class="fa-solid fa-chevron-down text-[10px] dropdown-arrow"></i>
+                            </button>
+                            <div class="menu-gap"></div>
+
+                            <div id="ssSubmenu" class="submenu pl-12 space-y-1">
+                                <a href="#" class="text-blue-100/70 hover:text-white text-xs py-2 block">
+                                    <i class="fa-solid fa-chart-line w-4"></i> <span class="menu-text">Dashboard SS</span>
+                                </a>
+                                <a href="#" class="text-blue-100/70 hover:text-white text-xs py-2 block">
+                                    <i class="fa-solid fa-list w-4"></i> <span class="menu-text">Daftar Ide</span>
+                                </a>
+                                <a href="#" class="text-blue-100/70 hover:text-white text-xs py-2 block">
+                                    <i class="fa-solid fa-check-double w-4"></i> <span class="menu-text">Penilaian</span>
+                                </a>
+                                <a href="#" class="text-blue-100/70 hover:text-white text-xs py-2 block">
+                                    <i class="fa-solid fa-trophy w-4"></i> <span class="menu-text">Hasil & Reward</span>
+                                </a>
+                                <a href="#" class="text-blue-100/70 hover:text-white text-xs py-2 block">
+                                    <i class="fa-solid fa-calendar-alt w-4"></i> <span class="menu-text">Rekap Bulanan</span>
+                                </a>
+                                <a href="#" class="text-blue-100/70 hover:text-white text-xs py-2 block">
+                                    <i class="fa-solid fa-gear w-4"></i> <span class="menu-text">Master SS</span>
+                                </a>
                             </div>
-                            <span class="menu-text font-medium whitespace-nowrap text-sm">Monitoring SS</span>
-                        </a>
+                        </div>
 
                         <a href="{{ route('admin.master_employee.index') }}" class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl {{ request()->is('admin/master-employee*') ? 'bg-white/10' : '' }}">
                             <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg">
@@ -247,6 +274,20 @@
                             <span class="menu-text font-medium whitespace-nowrap text-sm">Master Karyawan</span>
                         </a>
                     @endif
+
+                    <!-- <a href="#" class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl {{ request()->is('admin/master-employee*') ? 'bg-white/10' : '' }}">
+                            <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg">
+                                <i class="fa-solid fa-graduation-cap text-blue-200"></i>
+                            </div>
+                            <span class="menu-text font-medium whitespace-nowrap text-sm">Materi Training</span>
+                        </a>
+
+                        <a href="#" class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl {{ request()->is('admin/master-employee*') ? 'bg-white/10' : '' }}">
+                            <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg">
+                                <i class="fa-solid fa-history text-blue-200"></i>
+                            </div>
+                            <span class="menu-text font-medium whitespace-nowrap text-sm">Histori Training</span>
+                        </a> -->
                 </nav>
             </div>
 
@@ -273,6 +314,8 @@
         const qccArrow = document.getElementById('qccArrow');
         const karyawanSubmenu = document.getElementById('karyawanSubmenu');
         const karyawanArrow = document.getElementById('karyawanArrow');
+        const ssSubmenu = document.getElementById('ssSubmenu');
+        const ssArrow = document.getElementById('ssArrow');
 
         // Variabel global
         let hoverTimeout = null;
@@ -544,6 +587,14 @@
             if (isMobile() && sidebar.classList.contains('-translate-x-full')) return;
             if (karyawanSubmenu) karyawanSubmenu.classList.toggle('show');
             if (karyawanArrow) karyawanArrow.classList.toggle('rotate-180');
+        }
+
+        // Fungsi baru untuk dropdown SS
+        function toggleSsDropdown() {
+            if (isSidebarCollapsed && !isMobile()) return;
+            if (isMobile() && sidebar.classList.contains('-translate-x-full')) return;
+            if (ssSubmenu) ssSubmenu.classList.toggle('show');
+            if (ssArrow) ssArrow.classList.toggle('rotate-180');
         }
 
         // Flash message (sama)

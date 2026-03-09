@@ -48,6 +48,7 @@
         </h4>
         <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3 md:gap-4">
             @foreach($actualSteps as $s)
+                @continue($s->step_number > 8) {{-- Hanya step 1-8 --}}
                 @if($s->template_file_path)
                     <a href="{{ asset('storage/' . $s->template_file_path) }}" target="_blank" class="flex flex-col items-center justify-center p-2 md:p-4 bg-white rounded-xl md:rounded-3xl border border-gray-100 hover:shadow-md hover:scale-105 transition-all group">
                         <i class="fa-solid fa-file-powerpoint text-xl md:text-3xl text-red-500 mb-1 md:mb-2 group-hover:animate-bounce"></i>
@@ -63,9 +64,10 @@
         </div>
     </div>
 
-    <!-- AREA UPLOAD PER STEP -->
+    <!-- AREA UPLOAD PER STEP (STEP 1-8) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
         @foreach($actualSteps as $index => $step)
+            @continue($step->step_number > 8) {{-- Hanya step 1-8 --}}
             @php 
                 $up = $uploads[$step->id] ?? null; 
                 $isLocked = $step->is_locked; 

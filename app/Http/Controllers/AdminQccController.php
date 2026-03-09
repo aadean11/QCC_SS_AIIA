@@ -276,7 +276,7 @@ class AdminQccController extends Controller
 
             foreach ($steps as $ps) {
                 $ganttData[] = [
-                    'step_name' => 'Step '.$ps->step->step_number.': '.$ps->step->step_name,
+                    'step_name' => $ps->step->step_name,
                     'start' => $lastDate,
                     'end' => $ps->deadline_date,
                     'color' => $this->getStepColor($ps->step->step_number),
