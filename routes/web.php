@@ -66,6 +66,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/qcc/admin/master-circles', [AdminQccController::class, 'masterCircles'])->name('qcc.admin.master_circles');
     Route::post('/qcc/admin/master-circles', [AdminQccController::class, 'storeCircle'])->name('qcc.admin.store_circle');
 
+    // Master Seven Tools QCC
+    Route::get('/qcc/admin/master-seven-tools', [AdminQccController::class, 'masterSevenTools'])->name('qcc.admin.master_seven_tools');
+    Route::post('/qcc/admin/master-seven-tools', [AdminQccController::class, 'storeSevenTool'])->name('qcc.admin.store_seven_tool');
+    Route::put('/qcc/admin/master-seven-tools/{id}', [AdminQccController::class, 'updateSevenTool'])->name('qcc.admin.update_seven_tool');
+    Route::delete('/qcc/admin/master-seven-tools/{id}', [AdminQccController::class, 'deleteSevenTool'])->name('qcc.admin.delete_seven_tool');
+
     // Monitoring Progress (Monitoring File Transaksi Circle)
     Route::get('/qcc/admin/monitoring-progress/{circle_id}', [AdminQccController::class, 'monitoringProgress'])->name('qcc.admin.monitoring_progress');
 
@@ -94,5 +100,7 @@ Route::middleware(['auth'])->group(function () {
     // Approval Progres PDCA (Step 1-8)
     Route::get('/qcc/approval/progress', [QccApprovalController::class, 'index'])->name('qcc.approval.progress');
     Route::post('/qcc/approval/progress/process/{id}', [QccApprovalController::class, 'process'])->name('qcc.approval.process');
+
+
 });
 

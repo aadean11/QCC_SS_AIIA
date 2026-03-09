@@ -220,6 +220,9 @@
                                 <a href="{{ route('qcc.admin.master_steps') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/master-steps') ? 'text-white font-bold' : '' }}">
                                     <i class="fa-solid fa-list-ol w-4"></i> <span class="menu-text">Master Steps</span>
                                 </a>
+                                <a href="{{ route('qcc.admin.master_seven_tools') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/master-seven-tools*') ? 'text-white font-bold' : '' }}">
+                                    <i class="fa-solid fa-screwdriver-wrench w-4"></i> <span class="menu-text">Master Seven Tools</span>
+                                </a>
                                 <a href="{{ route('qcc.admin.master_periods') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/master-periods') ? 'text-white font-bold' : '' }}">
                                     <i class="fa-solid fa-calendar-days w-4"></i> <span class="menu-text">Master Periode</span>
                                 </a>

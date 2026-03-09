@@ -10,7 +10,7 @@ use App\Models\QccPeriod;
 use App\Models\QccPeriodStep;
 use App\Models\QccStep;
 use App\Models\QccTheme;
-use App\Models\User;
+use App\Models\QccSevenTool;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -430,6 +430,7 @@ class KaryawanQccController extends Controller
         $theme = QccTheme::with('circle')->findOrFail($themeId);
         $steps = QccStep::orderBy('step_number', 'asc')->get();
         $uploads = QccCircleStepTransaction::where('qcc_theme_id', $theme->id)->get()->keyBy('qcc_step_id');
+        $sevenTools = QccSevenTool::orderBy('tool_name', 'asc')->get();
 
         // 5. Logika Gembok
         $actualSteps = $steps->where('step_number', '>', 0)->values();
@@ -443,7 +444,7 @@ class KaryawanQccController extends Controller
             }
         }
 
-        return view('qcc.karyawan.progress', compact('user', 'theme', 'actualSteps', 'uploads', 'myThemes'));
+        return view('qcc.karyawan.progress', compact('user', 'theme', 'actualSteps', 'uploads', 'myThemes', 'sevenTools'));
     }
 
     public function uploadFile(Request $request)

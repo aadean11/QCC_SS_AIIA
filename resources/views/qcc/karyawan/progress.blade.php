@@ -41,26 +41,88 @@
         </div>
     </div>
 
-    <!-- CONTAINER TEMPLATE (STEP 1-8) -->
-    <div class="glass-card rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 border border-white shadow-sm mb-6 md:mb-10">
-        <h4 class="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-4 md:mb-6 flex items-center gap-2">
-            <i class="fa-solid fa-folder-open text-amber-500"></i> Download Template Progres (Resmi)
-        </h4>
-        <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3 md:gap-4">
-            @foreach($actualSteps as $s)
-                @continue($s->step_number > 8) {{-- Hanya step 1-8 --}}
-                @if($s->template_file_path)
-                    <a href="{{ asset('storage/' . $s->template_file_path) }}" target="_blank" class="flex flex-col items-center justify-center p-2 md:p-4 bg-white rounded-xl md:rounded-3xl border border-gray-100 hover:shadow-md hover:scale-105 transition-all group">
-                        <i class="fa-solid fa-file-powerpoint text-xl md:text-3xl text-red-500 mb-1 md:mb-2 group-hover:animate-bounce"></i>
-                        <span class="text-[8px] md:text-[10px] font-black text-[#091E6E] uppercase text-center">STEP {{ $s->step_number }}</span>
-                    </a>
-                @else
-                    <div class="flex flex-col items-center justify-center p-2 md:p-4 bg-gray-50 rounded-xl md:rounded-3xl border border-dashed border-gray-200 opacity-50 cursor-not-allowed">
-                        <i class="fa-solid fa-file-circle-xmark text-xl md:text-3xl text-gray-300 mb-1 md:mb-2"></i>
-                        <span class="text-[8px] md:text-[10px] font-black text-gray-400 uppercase">STEP {{ $s->step_number }}</span>
+    <!-- SEKSI TEMPLATE DOWNLOAD (SIDE-BY-SIDE) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-8 md:mb-10">
+        
+        <!-- KIRI: TEMPLATE PROGRES (STEP 1-8) -->
+        <div class="glass-card rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-6 border border-white shadow-sm flex flex-col bg-white">
+            <div class="flex items-center justify-between mb-4 md:mb-6">
+                <h4 class="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                    <i class="fa-solid fa-folder-open text-amber-500"></i> Download Template Progres
+                </h4>
+                <span class="text-[7px] md:text-[8px] bg-red-50 text-red-500 px-2 py-0.5 rounded-full font-bold uppercase border border-red-100">Official Template</span>
+            </div>
+            
+            <div class="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 lg:grid-cols-4 gap-2 md:gap-3">
+                @foreach($actualSteps as $s)
+                    @continue($s->step_number > 8)
+                    @if($s->template_file_path)
+                        <a href="{{ asset('storage/' . $s->template_file_path) }}" download="{{ $s->template_file_name }}"
+                           class="relative group flex flex-col items-center justify-center p-2 bg-gray-50/50 rounded-xl md:rounded-2xl border border-gray-100 hover:border-red-200 hover:bg-white hover:shadow-md transition-all">
+                            
+                            <!-- Tooltip Biasa -->
+                            <div class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover:block z-50">
+                                <div class="bg-gray-800 text-white text-[8px] py-1 px-2 rounded shadow-lg whitespace-nowrap">
+                                    {{ $s->step_name }}
+                                </div>
+                                <div class="w-2 h-2 bg-gray-800 rotate-45 mx-auto -mt-1"></div>
+                            </div>
+
+                            <i class="fa-solid fa-file-powerpoint text-lg md:text-xl text-red-500 mb-1"></i>
+                            <span class="text-[7px] md:text-[10px] font-black text-[#091E6E] uppercase text-center">Step-{{ $s->step_number }}</span>
+                        </a>
+                    @else
+                        <div class="flex flex-col items-center justify-center p-2 bg-gray-50 rounded-xl border border-dashed border-gray-200 opacity-40 cursor-not-allowed">
+                            <i class="fa-solid fa-file-circle-xmark text-lg md:text-xl text-gray-300 mb-1"></i>
+                            <span class="text-[7px] md:text-[10px] font-black text-gray-400 uppercase text-center">Step-{{ $s->step_number }}</span>
+                        </div>
+                    @endif
+                @endforeach
+            </div>
+        </div>
+
+        <!-- KANAN: TEMPLATE SEVEN TOOLS -->
+        <div class="glass-card rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-6 border border-white shadow-sm flex flex-col bg-white">
+            <div class="flex items-center justify-between mb-4 md:mb-6">
+                <h4 class="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                    <i class="fa-solid fa-screwdriver-wrench text-[#091E6E]"></i> Seven Tools Analisis
+                </h4>
+                <span class="text-[7px] md:text-[8px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full font-bold uppercase border border-emerald-100">Support Tools</span>
+            </div>
+
+            <div class="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 lg:grid-cols-4 gap-2 md:gap-3">
+                @forelse($sevenTools as $tool)
+                    @if($tool->template_file_path)
+                        <a href="{{ asset('storage/' . $tool->template_file_path) }}" download="{{ $tool->template_file_name }}"
+                           class="relative group flex flex-col items-center justify-center p-2 bg-gray-50/50 rounded-xl md:rounded-2xl border border-gray-100 hover:border-[#091E6E] hover:bg-white hover:shadow-md transition-all">
+                            
+                            <!-- Tooltip Biasa -->
+                            <div class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover:block z-50">
+                                <div class="bg-[#091E6E] text-white text-[8px] py-1 px-2 rounded shadow-lg whitespace-nowrap">
+                                    {{ $tool->tool_name }}
+                                </div>
+                                <div class="w-2 h-2 bg-[#091E6E] rotate-45 mx-auto -mt-1"></div>
+                            </div>
+
+                            <i class="fa-solid fa-file-excel text-lg md:text-xl text-emerald-500 mb-1"></i>
+                            <span class="text-[7px] md:text-[8px] font-black text-[#091E6E] uppercase text-center truncate w-full px-1">
+                                {{ Str::limit($tool->tool_name, 8) }}
+                            </span>
+                        </a>
+                    @else
+                        <div class="flex flex-col items-center justify-center p-2 bg-gray-50 rounded-xl border border-dashed border-gray-200 opacity-40 cursor-not-allowed">
+                            <i class="fa-solid fa-file-circle-xmark text-lg md:text-xl text-gray-300 mb-1"></i>
+                            <span class="text-[7px] md:text-[8px] font-black text-gray-400 uppercase text-center truncate w-full px-1">
+                                {{ Str::limit($tool->tool_name, 8) }}
+                            </span>
+                        </div>
+                    @endif
+                @empty
+                    <div class="col-span-full py-4 text-center text-gray-400 italic text-[8px] uppercase tracking-widest">
+                        Belum ada Seven Tools
                     </div>
-                @endif
-            @endforeach
+                @endforelse
+            </div>
         </div>
     </div>
 

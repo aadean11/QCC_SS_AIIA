@@ -11,6 +11,7 @@ use App\Models\QccPeriod;
 use App\Models\QccPeriodStep;
 use App\Models\QccStep;
 use App\Models\QccTarget;
+use App\Models\QccSevenTool;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -643,5 +644,82 @@ class AdminQccController extends Controller
             'user', 'circles', 'periods', 'divisions', 'departments',
             'selectedPeriod', 'selectedDiv', 'selectedDept', 'perPage'
         ));
+    }
+
+    // Master Seven Tools QCC
+    public function masterSevenTools(Request $request)
+    {
+        $user = Employee::with('job')->find(Auth::id());
+        $search = $request->get('search');
+        $perPage = $request->get('per_page', 10);
+
+        $tools = \App\Models\QccSevenTool::when($search, function($query) use ($search) {
+                $query->where('tool_name', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            })
+            ->orderBy('tool_name', 'asc')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        return view('qcc.admin.master_seven_tools', compact('user', 'tools', 'perPage'));
+    }
+
+    public function storeSevenTool(Request $request)
+    {
+        $request->validate([
+            'tool_name' => 'required|string|max:255',
+            'template_file' => 'nullable|mimes:ppt,pptx,xls,xlsx,pdf|max:10240',
+        ]);
+
+        $data = $request->only(['tool_name', 'description']);
+
+        if ($request->hasFile('template_file')) {
+            $file = $request->file('template_file');
+            $fileName = 'SevenTool_' . str_replace(' ', '_', $request->tool_name) . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('qcc/seven_tools', $fileName, 'public');
+
+            $data['template_file_name'] = $file->getClientOriginalName();
+            $data['template_file_path'] = $path;
+        }
+
+        \App\Models\QccSevenTool::create($data);
+        return redirect()->back()->with('success', 'Seven Tool berhasil ditambahkan!');
+    }
+
+    public function updateSevenTool(Request $request, $id)
+    {
+        $tool = \App\Models\QccSevenTool::findOrFail($id);
+        $request->validate([
+            'tool_name' => 'required',
+            'template_file' => 'nullable|mimes:ppt,pptx,xls,xlsx,pdf|max:10240',
+        ]);
+
+        $data = $request->only(['tool_name', 'description']);
+
+        if ($request->hasFile('template_file')) {
+            if ($tool->template_file_path && Storage::disk('public')->exists($tool->template_file_path)) {
+                Storage::disk('public')->delete($tool->template_file_path);
+            }
+
+            $file = $request->file('template_file');
+            $fileName = 'SevenTool_' . str_replace(' ', '_', $request->tool_name) . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('qcc/seven_tools', $fileName, 'public');
+
+            $data['template_file_name'] = $file->getClientOriginalName();
+            $data['template_file_path'] = $path;
+        }
+
+        $tool->update($data);
+        return redirect()->back()->with('success', 'Seven Tool berhasil diperbarui!');
+    }
+
+    public function deleteSevenTool($id)
+    {
+        $tool = \App\Models\QccSevenTool::findOrFail($id);
+        if ($tool->template_file_path && Storage::disk('public')->exists($tool->template_file_path)) {
+            Storage::disk('public')->delete($tool->template_file_path);
+        }
+        $tool->delete();
+        return redirect()->back()->with('success', 'Seven Tool berhasil dihapus!');
     }
 }
