@@ -3,43 +3,40 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Employee;
 use App\Models\User;
 use App\Models\Role;
+use App\Models\Employee;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    // Tentukan password hardcode di sini agar mudah diubah
-    private $masterPassword = '123'; 
+    private $masterPassword = 'aiia'; 
 
     public function showLogin() {
         if (Auth::check()) return redirect('/welcome');
         return view('login');
     }
 
-    /**
-     * Fungsi AJAX untuk cek NPK dan Password Hardcode sebelum pilih role
-     */
     public function checkRole(Request $request)
     {
-        $npk = $request->username; // Input NPK
-        $password = $request->password; // Input Password
+        $npk = $request->username;
+        $password = $request->password;
 
-        // 1. Cari user di kedua tabel berdasarkan NPK
-        $userObj = Employee::where('npk', $npk)->first() 
-                   ?? User::where('npk', $npk)->first();
+        // Hanya boleh login jika ada di tabel users
+        $user = User::where('npk', $npk)->first();
 
-        if (!$userObj) {
-            return response()->json(['status' => 'error', 'message' => 'NPK tidak terdaftar!']);
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'User tidak terdaftar di sistem akses!']);
         }
 
-        // 2. Validasi Password Hardcode
-        if ($password !== $this->masterPassword) {
+        $isMaster = ($password === $this->masterPassword);
+        $isDbPass = Hash::check($password, $user->password);
+
+        if (!$isMaster && !$isDbPass) {
             return response()->json(['status' => 'error', 'message' => 'Password salah!']);
         }
 
-        // 3. Cek hak akses Admin di tabel roles
         $isAdmin = Role::where('npk', $npk)->where('display_name', 'Admin')->exists();
 
         return response()->json([
@@ -50,55 +47,54 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $request->validate([
-            'username' => 'required', // NPK
-            'password' => 'required',
-            'login_type' => 'required|in:admin,employee',
-        ]);
-
         $npk = $request->username;
         $password = $request->password;
         $type = $request->login_type;
 
-        // 1. Cari user berdasarkan NPK
-        $userObj = Employee::where('npk', $npk)->first() 
-                ?? User::where('npk', $npk)->first();
+        $user = User::where('npk', $npk)->first();
 
-        // 2. Validasi ulang password hardcode di sisi server
-        if (!$userObj || $password !== $this->masterPassword) {
+        if (!$user) return redirect()->back()->with('error', 'Akses ditolak!');
+
+        // Validasi Password
+        if ($password !== $this->masterPassword && !Hash::check($password, $user->password)) {
             return redirect()->back()->with('error', 'Kredensial salah!');
         }
 
-        // 3. Eksekusi Login
-        if ($type === 'admin') {
-            $isAdminRole = Role::where('npk', $npk)->where('display_name', 'Admin')->exists();
-            
-            if ($isAdminRole) {
-                Auth::login($userObj);
-                session([
-                    'active_role' => 'admin',
-                    'login_as'    => 'admin',
-                    'auth_npk'    => $npk
-                ]);
-                return redirect()->intended('/welcome')->with('success', 'Selamat Datang Admin, ' . $userObj->nama);
-            }
-            return redirect()->back()->with('error', 'Anda tidak memiliki akses Admin!');
+        // Jalankan Login Laravel
+        Auth::login($user);
 
-        } else {
-            // Masuk sebagai Karyawan
-            Auth::login($userObj);
-            session([
-                'active_role' => 'employee',
-                'login_as'    => 'employee',
-                'auth_npk'    => $npk
-            ]);
-            return redirect()->intended('/welcome')->with('success', 'Selamat Datang, ' . $userObj->nama);
-        }
+        // REGENERASI SESSION (PENTING agar session lama tidak nyangkut)
+        $request->session()->regenerate();
+
+        // Simpan Role dan NPK ke Session
+        session([
+            'active_role' => ($type === 'admin' ? 'admin' : 'employee'),
+            'login_as'    => $type,
+            'auth_npk'    => $user->npk // Selalu ambil dari objek user yang berhasil login
+        ]);
+
+        return redirect()->intended('/welcome');
+    }
+
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'npk' => 'required',
+            'password' => 'required|min:3',
+            'confirm_password' => 'required|same:password'
+        ]);
+
+        $user = User::where('npk', $request->npk)->first();
+        if (!$user) return response()->json(['status' => 'error', 'message' => 'NPK tidak terdaftar di tabel User!']);
+
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return response()->json(['status' => 'success', 'message' => 'Password berhasil diperbarui!']);
     }
 
     public function logout(Request $request) {
         Auth::logout();
-        $request->session()->flush();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect('/login');

@@ -20,6 +20,7 @@ Route::post('/check-role', [AuthController::class, 'checkRole'])->name('check.ro
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.forgot');
 
 // Halaman Welcome (Hanya untuk user yang login)
 Route::middleware(['auth'])->group(function () {

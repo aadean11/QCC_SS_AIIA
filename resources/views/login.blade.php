@@ -11,25 +11,15 @@
         body { font-family: 'Poppins', sans-serif; overflow-x: hidden; }
         .bg-custom-gradient { background: linear-gradient(180deg, #FFFFFF 0%, #130998 100%); }
         .btn-gradient { background: linear-gradient(90deg, #091E6E 0%, #1035D1 100%); transition: all 0.3s ease; }
-        
-        /* Branding Style */
-        .text-brand {
-            background: linear-gradient(to right, #091E6E, #130998);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -1px;
-        }
-
+        .text-brand { background: linear-gradient(to right, #091E6E, #130998); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -1px; }
         @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0px); } }
         .animate-float { animation: float 4s ease-in-out infinite; }
-
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         .animate-reveal { opacity: 0; animation: fadeInUp 0.8s ease-out forwards; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
 
-    <!-- Header: Menyesuaikan padding di mobile agar tidak terlalu sempit -->
     <header class="bg-white h-20 px-6 md:px-10 shadow-md flex justify-between items-center shrink-0 relative z-50">
         <img src="{{ asset('assets/images/logo-aisin.png') }}" alt="Satu AISIN Logo" class="h-10 md:h-12">
         <div class="flex flex-col items-end leading-none">
@@ -46,22 +36,15 @@
                 </div>
                 <h1 class="text-2xl font-extrabold text-center leading-tight mb-2 uppercase">SIGITA</h1>
                 <p class="text-white-400 text-[13px] leading-relaxed px-4 text-center">
-                        <span class="font-bold text-white-900">S</span>istem
-                        <span class="font-bold text-white-900">I</span>ntegrasi
-                        <span class="font-bold text-white-900">G</span>agasan,
-                        <span class="font-bold text-white-900">I</span>novasi &
-                        <span class="font-bold text-white-900">T</span>indak lanjut
-                        <span class="font-bold text-white-900">A</span>IIA
+                        <span class="font-bold text-white-900">S</span>istem <span class="font-bold text-white-900">I</span>ntegrasi <span class="font-bold text-white-900">G</span>agasan, <span class="font-bold text-white-900">I</span>novasi & <span class="font-bold text-white-900">T</span>indak lanjut <span class="font-bold text-white-900">A</span>IIA
                 </p>
                 <br>
                 <p class="text-sm font-light text-center opacity-90 italic">"Satu ide, Satu Perubahan, Satu Kemajuan!"</p>
             </div>
 
-            <!-- Login Card: Padding disesuaikan (p-8 di mobile, p-10 di desktop) -->
             <div class="bg-white rounded-[2.5rem] shadow-2xl p-8 md:p-10 max-w-md w-full animate-reveal relative">
                 <div class="text-center mb-6 md:mb-10">
                     <div class="mb-4 inline-block">
-                        <!-- Ukuran teks SIGITA mengecil sedikit di mobile agar tidak bungkus (wrap) -->
                         <h2 class="text-4xl md:text-5xl font-extrabold tracking-tighter">
                             <span class="text-brand">SIGIT</span><span class="text-blue-500">A</span>
                         </h2>
@@ -86,7 +69,7 @@
                             class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] text-gray-700 bg-gray-50/50 transition-all">
                     </div>
 
-                    <div class="mb-8 relative">
+                    <div class="mb-4 relative">
                         <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Password</label>
                         <input type="password" id="password" placeholder="Masukkan Password Anda" required
                             class="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] text-gray-700 bg-gray-50/50 pr-12 transition-all">
@@ -95,11 +78,12 @@
                         </div>
                     </div>
 
-                    <button type="submit" id="btnCheck" class="w-full btn-gradient flex items-center justify-center gap-3
-                                text-white font-black py-4 rounded-2xl shadow-lg
-                                active:scale-95 uppercase tracking-widest text-sm">
-                        <i class="fa-solid fa-right-to-bracket"></i>
-                        Masuk Ke Sistem
+                    <div class="flex justify-end mb-6">
+                        <button type="button" onclick="openModal('modalForgot')" class="text-[11px] font-bold text-blue-600 hover:text-[#091E6E] transition-all">Lupa Password?</button>
+                    </div>
+
+                    <button type="submit" id="btnCheck" class="w-full btn-gradient flex items-center justify-center gap-3 text-white font-black py-4 rounded-2xl shadow-lg active:scale-95 uppercase tracking-widest text-sm">
+                        <i class="fa-solid fa-right-to-bracket"></i> Masuk Ke Sistem
                     </button>
                 </form>
                 
@@ -151,8 +135,37 @@
             </div>
         </div>
     </div>
+    
+    <!-- MODAL FORGOT PASSWORD (DESAIN DISAMAKAN) -->
+    <div id="modalForgot" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-[2rem] w-full max-w-md shadow-2xl animate-reveal overflow-hidden">
+                <div class="btn-gradient p-6 text-white flex justify-between items-center">
+                    <h3 class="text-lg font-bold uppercase tracking-widest">Reset Password</h3>
+                    <button onclick="closeModal('modalForgot')" class="text-white/70 hover:text-white text-2xl">&times;</button>
+                </div>
+                <div class="p-6 md:p-8">
+                    <form id="formForgot" class="space-y-4">
+                        @csrf
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Username (NPK)</label>
+                            <input type="text" id="forgot_npk" required class="w-full px-5 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] text-sm">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Password Baru</label>
+                            <input type="password" id="new_pass" required class="w-full px-5 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] text-sm">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Konfirmasi Password</label>
+                            <input type="password" id="confirm_pass" required class="w-full px-5 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] text-sm">
+                        </div>
+                        <button type="submit" class="w-full btn-gradient py-4 text-white rounded-xl font-black shadow-lg uppercase tracking-widest text-xs mt-4">Update Password</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <!-- Hidden Real Form -->
     <form id="realLoginForm" action="{{ route('login') }}" method="POST" class="hidden">
         @csrf
         <input type="hidden" name="username" id="real_user">
@@ -162,15 +175,14 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // JS Anda tetap utuh tanpa perubahan logika
-        function closeModal() { document.getElementById('modalRole').classList.add('hidden'); }
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
         document.getElementById('tempLoginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const btn = document.getElementById('btnCheck');
             const user = document.getElementById('username').value;
             const pass = document.getElementById('password').value;
-
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i> Checking...';
 
@@ -180,24 +192,42 @@
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                     body: JSON.stringify({ username: user, password: pass })
                 });
-
                 const data = await response.json();
-
                 if (data.status === 'success') {
-                    if (data.is_admin) {
-                        document.getElementById('modalRole').classList.remove('hidden');
-                    } else {
-                        finalSubmit('employee');
-                    }
+                    if (data.is_admin) openModal('modalRole');
+                    else finalSubmit('employee');
                 } else {
-                    Swal.fire({ icon: 'error', title: 'Login Gagal', text: data.message, confirmButtonColor: '#091E6E' });
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: data.message });
                 }
             } catch (err) {
-                console.error(err);
-                Swal.fire({ icon: 'error', title: 'Error', text: 'Terjadi kesalahan pada server.' });
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Server bermasalah.' });
             } finally {
                 btn.disabled = false;
                 btn.innerText = 'Masuk Ke Sistem';
+            }
+        });
+
+        document.getElementById('formForgot').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const npk = document.getElementById('forgot_npk').value;
+            const pass = document.getElementById('new_pass').value;
+            const confirm = document.getElementById('confirm_pass').value;
+
+            try {
+                const response = await fetch("{{ route('password.forgot') }}", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    body: JSON.stringify({ npk: npk, password: pass, confirm_password: confirm })
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    Swal.fire({ icon: 'success', title: 'Berhasil', text: data.message });
+                    closeModal('modalForgot');
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: data.message });
+                }
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Gagal menghubungi server.' });
             }
         });
 
@@ -216,10 +246,6 @@
             eyeIcon.classList.toggle('fa-eye');
             eyeIcon.classList.toggle('fa-eye-slash');
         });
-
-        @if(Session::has('error'))
-            Swal.fire({ icon: 'error', title: 'Gagal', text: "{{ Session::get('error') }}", confirmButtonColor: '#091E6E' });
-        @endif
     </script>
 </body>
 </html>

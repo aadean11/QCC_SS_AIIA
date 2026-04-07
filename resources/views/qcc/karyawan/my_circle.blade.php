@@ -13,6 +13,24 @@
         </ol>
     </nav>
 
+    <!-- INFO DOWNLOAD TEMPLATE STEP 0 (TAMBAHAN BARU) -->
+    @if($step0Master && $step0Master->template_file_path)
+    <div class="mb-6 bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-r-2xl shadow-sm flex flex-col md:flex-row justify-between items-center gap-4 animate-reveal">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600">
+                <i class="fa-solid fa-file-circle-check text-lg"></i>
+            </div>
+            <div>
+                <h4 class="text-sm font-bold text-indigo-900 tracking-tight">Persiapan Pendaftaran (Step 0)</h4>
+                <p class="text-[10px] text-indigo-600 font-medium tracking-tight">Silakan unduh template {{ $step0Master->step_name }}, lengkapi, dan lampirkan saat mendaftarkan circle baru.</p>
+            </div>
+        </div>
+        <a href="{{ asset('storage/' . $step0Master->template_file_path) }}" target="_blank" class="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-[10px] font-bold hover:bg-indigo-700 transition-all shadow-md active:scale-95 whitespace-nowrap">
+            <i class="fa-solid fa-download"></i> DOWNLOAD TEMPLATE STEP 0
+        </a>
+    </div>
+    @endif
+
     <!-- Header & Search -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 md:mb-8 gap-4">
         <div>
@@ -72,7 +90,14 @@
 
                         <td class="px-3 md:px-6 py-2 md:py-3 border-y border-gray-100">
                             <p class="font-bold text-[#091E6E] text-xs md:text-sm group-hover:text-[#130998]">{{ $c->circle_name }}</p>
-                            <p class="text-[8px] md:text-[10px] text-gray-400 font-bold uppercase tracking-tighter">{{ $c->circle_code }}</p>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <p class="text-[8px] md:text-[10px] text-gray-400 font-bold uppercase tracking-tighter">{{ $c->circle_code }}</p>
+                                @if($c->step0_file_path)
+                                    <a href="{{ asset('storage/' . $c->step0_file_path) }}" target="_blank" class="flex items-center gap-1 text-[9px] text-blue-600 font-bold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 hover:bg-blue-600 hover:text-white transition-all shadow-sm">
+                                        <i class="fa-solid fa-file-pdf"></i> STEP 0
+                                    </a>
+                                @endif
+                            </div>
                         </td>
 
                         <td class="px-3 md:px-6 py-2 md:py-3 border-y border-gray-100 text-gray-600 text-[10px] md:text-xs font-medium">
@@ -168,13 +193,22 @@
                 <button onclick="closeModal('modalCreateCircle')" class="text-white/70 hover:text-white text-xl md:text-2xl">&times;</button>
             </div>
 
-            <form id="formStoreCircle" action="{{ route('qcc.karyawan.store_circle') }}" method="POST" class="p-4 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+            <form id="formStoreCircle" action="{{ route('qcc.karyawan.store_circle') }}" method="POST" enctype="multipart/form-data" class="p-4 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                 @csrf
                 <div class="space-y-4 md:space-y-6">
                     <h4 class="text-[10px] md:text-xs font-bold text-[#091E6E] uppercase border-b pb-2">1. Detail Kelompok</h4>
                     <div>
                         <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Circle</label>
                         <input type="text" name="circle_name" required placeholder="Masukkan nama unik..." class="w-full mt-2 px-3 md:px-5 py-2 md:py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:rounded-2xl focus:ring-2 focus:ring-[#091E6E] outline-none font-medium text-[#091E6E] text-xs md:text-sm">
+                    </div>
+
+                    <!-- INPUT UPLOAD STEP 0 -->
+                    <div>
+                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Upload File Step 0 (PDF)</label>
+                        <div class="mt-2 relative">
+                            <input type="file" name="step0_file" required accept="application/pdf" class="w-full px-3 py-2 bg-white border-2 border-dashed border-gray-200 rounded-xl text-[10px] text-gray-500 file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-bold file:bg-blue-50 file:text-[#091E6E] hover:file:bg-blue-100 cursor-pointer transition-all">
+                        </div>
+                        <p class="mt-1 text-[7px] md:text-[9px] text-gray-400 italic font-medium">*Wajib melampirkan dokumen Step 0 format PDF.</p>
                     </div>
 
                     <!-- BOX INFORMASI HIERARKI USER -->

@@ -14,7 +14,8 @@ class QccCircle extends Model
     protected $table = 'm_qcc_circles';
 
     protected $fillable = [
-        'circle_code', 'circle_name', 'theme', 'department_code', 'qcc_period_id', 'status', 'spv_note', 'kdp_note'
+    'circle_code', 'circle_name', 'department_code', 
+    'qcc_period_id', 'status', 'step0_file_name', 'step0_file_path'
     ];
 
     public function period()

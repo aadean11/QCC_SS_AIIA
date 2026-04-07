@@ -8,7 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* ... (semua style tetap sama seperti sebelumnya) ... */
         body { font-family: 'Poppins', sans-serif; background-color: #F3F4F6; }
         html, body { height: 100%; overflow: hidden; }
         .sidebar-gradient { background: linear-gradient(180deg, #091E6E 0%, #130998 100%); transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; overflow-x: hidden; }
@@ -20,17 +19,69 @@
         .sidebar-collapsed .sidebar-link { justify-content: center; padding-left: 0; padding-right: 0; }
         .submenu { transition: all 0.3s ease-in-out; max-height: 0; overflow: hidden; opacity: 0; }
         .submenu.show { max-height: 500px; opacity: 1; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+        /* Perbaikan: padding-left konsisten 2.25rem (36px) untuk semua submenu */
         .submenu { position: relative; padding-left: 2.25rem !important; margin-top: 0.5rem; }
         .submenu::before { content: ""; position: absolute; left: 20px; top: 6px; bottom: 6px; width: 1px; background-color: rgba(255,255,255,0.15); }
-        .submenu a { position: relative; display: block; padding: 0.5rem 0.75rem 0.5rem 1.25rem !important; border-radius: 8px; transition: all 0.2s ease; }
-        .submenu a::before { content: ""; position: absolute; left: -14px; top: 50%; width: 14px; height: 1px; background-color: rgba(255,255,255,0.15); transform: translateY(-50%); }
-        .submenu a::after { content: ""; position: absolute; left: -18px; top: 50%; width: 4px; height: 4px; background-color: rgba(255,255,255,0.4); border-radius: 50%; transform: translateY(-50%); }
+        .submenu a {
+            position: relative;
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.75rem !important;
+            padding: 0.5rem 0.75rem 0.5rem 1rem !important;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-size: 0.75rem;
+            line-height: 1.25rem;
+            color: #bfd9ff;
+        }
+        /* Garis horizontal dan titik di kiri link submenu - posisi disamakan */
+        .submenu a::before {
+            content: "";
+            position: absolute;
+            left: -14px;
+            top: 50%;
+            width: 14px;
+            height: 1px;
+            background-color: rgba(255,255,255,0.15);
+            transform: translateY(-50%);
+        }
+        .submenu a::after {
+            content: "";
+            position: absolute;
+            left: -18px;
+            top: 50%;
+            width: 4px;
+            height: 4px;
+            background-color: rgba(255,255,255,0.4);
+            border-radius: 50%;
+            transform: translateY(-50%);
+        }
         .submenu a:hover { background-color: rgba(255,255,255,0.07); transform: translateX(4px); color: #ffffff !important; }
         .submenu a.font-bold { background-color: rgba(255,255,255,0.1); color: #ffffff !important; }
+        .submenu i { width: 1rem; text-align: center; font-size: 0.75rem; }
         .dropdown-arrow { transition: transform 0.3s ease; }
         .rotate-180 { transform: rotate(180deg); }
-        .sidebar-link { transition: all 0.3s ease; border-left: 4px solid transparent; }
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            color: white;
+        }
         .sidebar-link:hover { background: rgba(255, 255, 255, 0.1); border-left: 4px solid #FBBF24; }
+        .sidebar-link .icon-box {
+            width: 2rem;
+            height: 2rem;
+            min-width: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.1);
+            border-radius: 0.5rem;
+        }
         .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
         .custom-scrollbar::-webkit-scrollbar { width: 3px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #707070; border-radius: 10px;}
@@ -38,14 +89,13 @@
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .animate-reveal { animation: fadeInUp 0.6s ease-out forwards; }
         .sidebar-collapsed .group { position: relative; }
-        .floating-submenu { position: fixed !important; display: block !important; visibility: hidden; opacity: 0; width: 240px; background: #091E6E; border-radius: 0 1rem 1rem 0; padding: 1rem; box-shadow: 15px 5px 30px rgba(0, 0, 0, 0.4); z-index: 99999; border-left: 3px solid #FBBF24; max-height: 80vh !important; overflow-y: auto !important; transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease; transform: translateX(-10px); }
+        .floating-submenu { position: fixed !important; display: block !important; visibility: hidden; opacity: 0; width: 240px; background: #091E6E; border-radius: 0 1rem 1rem 0; padding: 0.75rem; box-shadow: 15px 5px 30px rgba(0, 0, 0, 0.4); z-index: 99999; border-left: 3px solid #FBBF24; max-height: 80vh !important; overflow-y: auto !important; transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease; transform: translateX(-10px); }
         .floating-submenu.active { visibility: visible; opacity: 1; transform: translateX(0); }
         .floating-submenu .menu-text { display: inline-block !important; color: #fff !important; white-space: nowrap; }
-        .floating-submenu a { padding: 0.75rem 1rem !important; display: flex !important; align-items: center !important; gap: 12px !important; transition: all 0.2s !important; border-radius: 0.5rem !important; margin-bottom: 0.25rem !important; color: #93C5FD !important; }
+        .floating-submenu a { padding: 0.5rem 0.75rem !important; display: flex !important; align-items: center !important; gap: 0.75rem !important; transition: all 0.2s !important; border-radius: 0.5rem !important; margin-bottom: 0.25rem !important; color: #93C5FD !important; font-size: 0.75rem; }
         .floating-submenu a:hover { background: rgba(255, 255, 255, 0.15) !important; transform: translateX(5px) !important; color: white !important; }
-        .floating-submenu i { color: #93C5FD !important; width: 1.25rem !important; text-align: center !important; transition: color 0.2s; }
+        .floating-submenu i { color: #93C5FD !important; width: 1rem !important; text-align: center !important; transition: color 0.2s; }
         .floating-submenu a:hover i { color: white !important; }
-        .floating-submenu .text-xs { font-size: 0.8125rem !important; line-height: 1.5 !important; }
         .sidebar-collapsed .sidebar-link:hover { background: rgba(255, 255, 255, 0.15) !important; border-left: 4px solid #FBBF24 !important; }
         .menu-gap { position: absolute; left: 100%; top: 0; width: 20px; height: 100%; z-index: 99998; }
         .swal2-shown { padding-right: 0 !important; }
@@ -58,8 +108,19 @@
             #sidebar { transform: none !important; }
             #sidebarOverlay { display: none !important; }
         }
+        .submenu .badge-number {
+            margin-left: auto;
+            background-color: #EF4444;
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            line-height: 1.25;
+            min-width: 1.5rem;
+            text-align: center;
+        }
     </style>
-    <!-- SCRIPT CEK STATUS SIDEBAR SEBELUM HALAMAN DI-RENDER -->
     <script>
         (function() {
             const state = localStorage.getItem('sidebar-state');
@@ -96,7 +157,6 @@
         </div>
     </header>
 
-    <!-- Overlay untuk mobile -->
     <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden transition-opacity" onclick="toggleMobileSidebar()"></div>
 
     <div class="flex flex-1 h-full">
@@ -104,193 +164,167 @@
         <aside id="sidebar" class="w-72 sidebar-gradient flex flex-col p-4 shadow-2xl fixed top-20 left-0 h-[calc(100vh-5rem)] z-40 transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0">
             <div class="flex-1 mt-1 overflow-y-auto custom-scrollbar pr-2">
                 <nav class="space-y-1">
-                    <!-- 1. DASHBOARD (Universal) -->
-                    <a href="{{ route('welcome') }}" class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl {{ request()->is('welcome') ? 'bg-white/20 border-l-4 border-yellow-400' : '' }}">
-                        <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg">
+                    <!-- DASHBOARD OVERVIEW -->
+                    <a href="{{ route('welcome') }}" class="sidebar-link {{ request()->is('welcome') ? 'bg-white/20 border-l-4 border-yellow-400' : '' }}">
+                        <div class="icon-box">
                             <i class="fa-solid fa-chart-pie text-blue-200"></i>
                         </div>
                         <span class="menu-text font-medium whitespace-nowrap">Dashboard Overview</span>
                     </a>
 
-                    <a href="{{ route('qcc.admin.master_schedule') }}" class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl {{ request()->is('*/master-schedule*') ? 'bg-white/20 border-l-4 border-yellow-400' : '' }}">
-                        <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg">
+                    <a href="{{ route('qcc.admin.master_schedule') }}" class="sidebar-link {{ request()->is('*/master-schedule*') ? 'bg-white/20 border-l-4 border-yellow-400' : '' }}">
+                        <div class="icon-box">
                             <i class="fa-solid fa-calendar-check text-blue-200"></i>
                         </div>
-                        <span class="menu-text font-medium whitespace-nowrap text-sm">Master Schedule</span>
+                        <span class="menu-text font-medium whitespace-nowrap">Master Schedule</span>
                     </a>
 
-                    <!-- MONITORING DASHBOARD (Conditional for GMR, KDP, SPV) -->
-                    @if(in_array($user->occupation, ['GMR', 'KDP', 'SPV']))
-                        <a href="{{ route('qcc.admin.dashboard') }}" class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl {{ request()->is('*/dashboard*') ? 'bg-white/20 border-l-4 border-yellow-400' : '' }}">
-                            <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg">
-                                <i class="fa-solid fa-chart-line text-blue-200"></i>
-                            </div>
-                            <span class="menu-text font-medium whitespace-nowrap text-sm">Monitoring Progres QCC</span>
-                        </a>
-                    @endif
-
-                    <!-- 2. APPROVAL CIRCLE (Conditional) -->
-                    @if($user->occupation === 'SPV' || $user->occupation === 'KDP')
-                        <a href="{{ route('qcc.approval.circle') }}" class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl {{ request()->is('*/approval/circle*') ? 'bg-white/10' : '' }}">
-                            <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg relative">
-                                <i class="fa-solid fa-user-check text-blue-200"></i>
-                                @if(isset($countCircle) && $countCircle > 0) 
-                                    <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-[#091E6E]"></span> 
-                                @endif
-                            </div>
-                            <span class="menu-text font-medium whitespace-nowrap text-sm">Approve Circle</span>
-                            @if(isset($countCircle) && $countCircle > 0) 
-                                <span class="badge-number ml-auto bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-black">{{ $countCircle }}</span> 
-                            @endif
-                        </a>
-
-                        <a href="{{ route('qcc.approval.progress') }}" class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl {{ request()->is('*/approval/progress*') ? 'bg-white/10' : '' }}">
-                            <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg relative">
-                                <i class="fa-solid fa-file-signature text-blue-200"></i>
-                                @if(isset($countProgress) && $countProgress > 0) 
-                                    <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-[#091E6E]"></span> 
-                                @endif
-                            </div>
-                            <span class="menu-text font-medium whitespace-nowrap text-sm">Approve Progres</span>
-                            @if(isset($countProgress) && $countProgress > 0) 
-                                <span class="badge-number ml-auto bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-black">{{ $countProgress }}</span> 
-                            @endif
-                        </a>
-                    @endif
-
-                    <!-- 3. KARYAWAN QCC ACTIVITY (Conditional) -->
-                    @if(session('active_role') === 'employee')
-                        <div class="relative group" data-submenu="karyawanSubmenu">
-                            <button onclick="toggleKaryawanDropdown()" class="sidebar-link w-full flex items-center justify-between text-white p-4 rounded-xl focus:outline-none {{ request()->is('qcc/karyawan*') ? 'bg-white/10' : '' }}">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg">
-                                        <i class="fa-solid fa-users-gear text-blue-200"></i>
-                                    </div>
-                                    <span class="menu-text font-medium whitespace-nowrap text-sm">Circle QCC Saya</span>
-                                </div>
-                                <i id="karyawanArrow" class="fa-solid fa-chevron-down text-[10px] dropdown-arrow"></i>
-                            </button>
-                            <div class="menu-gap"></div>
-
-                            <div id="karyawanSubmenu" class="submenu pl-12 space-y-1 {{ request()->is('qcc/karyawan*') ? 'show' : '' }}">
-                                <a href="{{ route('qcc.karyawan.dashboard') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/dashboard') ? 'text-white font-bold' : '' }}">
-                                    <i class="fa-solid fa-chart-line w-4"></i> <span class="menu-text">Dashboard Progres</span>
-                                </a>
-                                <a href="{{ route('qcc.karyawan.roadmap') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/roadmap') ? 'text-white font-bold' : '' }}">
-                                    <i class="fa-solid fa-map-location-dot w-4"></i> <span class="menu-text">Monitoring Roadmap</span>
-                                </a>
-                                <a href="{{ route('qcc.karyawan.my_circle') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/my-circle') ? 'text-white font-bold' : '' }}">
-                                    <i class="fa-solid fa-users w-4"></i> <span class="menu-text">Master Circle & Member</span>
-                                </a>
-                                <a href="{{ route('qcc.karyawan.themes') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/themes') ? 'text-white font-bold' : '' }}">
-                                    <i class="fa-solid fa-lightbulb w-4"></i> <span class="menu-text">Master Tema</span>
-                                </a>
-                                <a href="{{ route('qcc.karyawan.progress') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/progress') ? 'text-white font-bold' : '' }}">
-                                    <i class="fa-solid fa-cloud-arrow-up w-4"></i> <span class="menu-text">Upload Progress</span>
-                                </a>
-                            </div>
-                        </div>
-
-                        <a href="#" class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl">
-                            <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg">
-                                <i class="fa-solid fa-lightbulb text-blue-200"></i>
-                            </div>
-                            <span class="menu-text font-medium whitespace-nowrap text-sm">Input SS Baru</span>
-                        </a>
-                    @endif
-
-                    <!-- 4. ADMIN SYSTEM MANAGEMENT (Conditional) -->
-                    @if(session('active_role') === 'admin')
+                    <!-- ==================== MONITORING QCC DROPDOWN (UNIFIED) ==================== -->
+                    @if(session('active_role') === 'admin' || in_array($user->occupation, ['GMR', 'KDP', 'SPV']))
                         <div class="relative group" data-submenu="qccSubmenu">
-                            <button onclick="toggleQccDropdown()" class="sidebar-link w-full flex items-center justify-between text-white p-4 rounded-xl focus:outline-none {{ request()->is('qcc/admin*') ? 'bg-white/10' : '' }}">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg">
+                            <button type="button" class="sidebar-link w-full justify-between dropdown-toggle {{ request()->is('qcc/admin*') || request()->is('qcc/approval*') || request()->is('qcc/dashboard*') ? 'bg-white/10' : '' }}" data-dropdown="qcc">
+                                <div class="flex items-center gap-3">
+                                    <div class="icon-box">
                                         <i class="fa-solid fa-people-group text-blue-200"></i>
                                     </div>
-                                    <span class="menu-text font-medium whitespace-nowrap text-sm">Monitoring QCC</span>
+                                    <span class="menu-text font-medium whitespace-nowrap">Monitoring QCC</span>
                                 </div>
-                                <i id="qccArrow" class="fa-solid fa-chevron-down text-[10px] dropdown-arrow"></i>
+                                <i class="fa-solid fa-chevron-down text-[10px] dropdown-arrow {{ request()->is('qcc/admin*') || request()->is('qcc/approval*') || request()->is('qcc/dashboard*') ? 'rotate-180' : '' }}" data-dropdown="qcc"></i>
                             </button>
                             <div class="menu-gap"></div>
 
-                            <div id="qccSubmenu" class="submenu pl-12 space-y-1 {{ request()->is('qcc/admin*') ? 'show' : '' }}">
-                                <a href="{{ route('qcc.admin.dashboard') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/dashboard') ? 'text-white font-bold' : '' }}">
-                                    <i class="fa-solid fa-chart-line w-4"></i> <span class="menu-text">Dashboard QCC</span>
-                                </a>
-                                <a href="{{ route('qcc.admin.master_steps') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/master-steps') ? 'text-white font-bold' : '' }}">
-                                    <i class="fa-solid fa-list-ol w-4"></i> <span class="menu-text">Master Steps</span>
-                                </a>
-                                <a href="{{ route('qcc.admin.master_seven_tools') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/master-seven-tools*') ? 'text-white font-bold' : '' }}">
-                                    <i class="fa-solid fa-screwdriver-wrench w-4"></i> <span class="menu-text">Master Seven Tools</span>
-                                </a>
-                                <a href="{{ route('qcc.admin.master_periods') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/master-periods') ? 'text-white font-bold' : '' }}">
-                                    <i class="fa-solid fa-calendar-days w-4"></i> <span class="menu-text">Master Periode</span>
-                                </a>
-                                <a href="{{ route('qcc.admin.master_targets') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/master-targets') ? 'text-white font-bold' : '' }}">
-                                    <i class="fa-solid fa-crosshairs w-4"></i> <span class="menu-text">Master Target</span>
-                                </a>
-                                <a href="{{ route('qcc.admin.all_progress') }}" class="text-blue-100/70 hover:text-white text-xs py-2 block {{ request()->is('*/all-progress') ? 'text-white font-bold' : '' }}">
-                                    <i class="fa-solid fa-chart-pie w-4"></i> <span class="menu-text">Progress Circle</span>
-                                </a>
+                            <div id="qccSubmenu" class="submenu space-y-1 {{ request()->is('qcc/admin*') || request()->is('qcc/approval*') || request()->is('qcc/dashboard*') ? 'show' : '' }}">
+                                @if(session('active_role') === 'admin')
+                                    <a href="{{ route('qcc.admin.dashboard') }}" class="{{ request()->is('qcc/admin/dashboard') ? 'font-bold' : '' }}">
+                                        <i class="fa-solid fa-chart-line"></i>
+                                        <span class="menu-text">Dashboard QCC</span>
+                                    </a>
+                                    <a href="{{ route('qcc.admin.master_steps') }}" class="{{ request()->is('qcc/admin/master-steps') ? 'font-bold' : '' }}">
+                                        <i class="fa-solid fa-list-ol"></i>
+                                        <span class="menu-text">Master Steps</span>
+                                    </a>
+                                    <a href="{{ route('qcc.admin.master_seven_tools') }}" class="{{ request()->is('qcc/admin/master-seven-tools*') ? 'font-bold' : '' }}">
+                                        <i class="fa-solid fa-screwdriver-wrench"></i>
+                                        <span class="menu-text">Master Seven Tools</span>
+                                    </a>
+                                    <a href="{{ route('qcc.admin.master_periods') }}" class="{{ request()->is('qcc/admin/master-periods') ? 'font-bold' : '' }}">
+                                        <i class="fa-solid fa-calendar-days"></i>
+                                        <span class="menu-text">Master Periode</span>
+                                    </a>
+                                    <a href="{{ route('qcc.admin.master_targets') }}" class="{{ request()->is('qcc/admin/master-targets') ? 'font-bold' : '' }}">
+                                        <i class="fa-solid fa-crosshairs"></i>
+                                        <span class="menu-text">Master Target</span>
+                                    </a>
+                                    <a href="{{ route('qcc.admin.all_progress') }}" class="{{ request()->is('qcc/admin/all-progress') ? 'font-bold' : '' }}">
+                                        <i class="fa-solid fa-chart-pie"></i>
+                                        <span class="menu-text">Progress Circle</span>
+                                    </a>
+                                @endif
+
+                                @if(in_array($user->occupation, ['GMR', 'KDP', 'SPV']))
+                                    <a href="{{ route('qcc.admin.dashboard') }}" class="{{ request()->is('qcc/admin/dashboard') ? 'font-bold' : '' }}">
+                                        <i class="fa-solid fa-chart-line"></i>
+                                        <span class="menu-text">Dashboard Progres QCC</span>
+                                    </a>
+                                @endif
+
+                                @if(in_array($user->occupation, ['KDP', 'SPV']))
+                                    <a href="{{ route('qcc.approval.circle') }}" class="{{ request()->is('*/approval/circle*') ? 'font-bold' : '' }}">
+                                        <i class="fa-solid fa-user-check"></i>
+                                        <span class="menu-text">Approve Circle</span>
+                                        @if(isset($countCircle) && $countCircle > 0)
+                                            <span class="badge-number">{{ $countCircle }}</span>
+                                        @endif
+                                    </a>
+                                    <a href="{{ route('qcc.approval.progress') }}" class="{{ request()->is('*/approval/progress*') ? 'font-bold' : '' }}">
+                                        <i class="fa-solid fa-file-signature"></i>
+                                        <span class="menu-text">Approve Progres</span>
+                                        @if(isset($countProgress) && $countProgress > 0)
+                                            <span class="badge-number">{{ $countProgress }}</span>
+                                        @endif
+                                    </a>
+                                @endif
                             </div>
                         </div>
+                    @endif
 
-                        <!-- DROPDOWN MONITORING SS - BARU (Coming Soon) -->
-                        <div class="relative group" data-submenu="ssSubmenu">
-                            <button onclick="toggleSsDropdown()" class="sidebar-link w-full flex items-center justify-between text-white p-4 rounded-xl focus:outline-none">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg">
-                                        <i class="fa-regular fa-lightbulb text-blue-200"></i>
+                    <!-- KARYAWAN QCC ACTIVITY -->
+                    @if(session('active_role') === 'employee')
+                        <div class="relative group" data-submenu="karyawanSubmenu">
+                            <button type="button" class="sidebar-link w-full justify-between dropdown-toggle {{ request()->is('qcc/karyawan*') ? 'bg-white/10' : '' }}" data-dropdown="karyawan">
+                                <div class="flex items-center gap-3">
+                                    <div class="icon-box">
+                                        <i class="fa-solid fa-users-gear text-blue-200"></i>
                                     </div>
-                                    <span class="menu-text font-medium whitespace-nowrap text-sm">Monitoring SS</span>
+                                    <span class="menu-text font-medium whitespace-nowrap">Circle QCC Saya</span>
                                 </div>
-                                <i id="ssArrow" class="fa-solid fa-chevron-down text-[10px] dropdown-arrow"></i>
+                                <i class="fa-solid fa-chevron-down text-[10px] dropdown-arrow {{ request()->is('qcc/karyawan*') ? 'rotate-180' : '' }}" data-dropdown="karyawan"></i>
                             </button>
                             <div class="menu-gap"></div>
 
-                            <div id="ssSubmenu" class="submenu pl-12 space-y-1">
-                                <a href="#" class="text-blue-100/70 hover:text-white text-xs py-2 block">
-                                    <i class="fa-solid fa-chart-line w-4"></i> <span class="menu-text">Dashboard SS</span>
+                            <div id="karyawanSubmenu" class="submenu space-y-1 {{ request()->is('qcc/karyawan*') ? 'show' : '' }}">
+                                <a href="{{ route('qcc.karyawan.dashboard') }}" class="{{ request()->is('qcc/karyawan/dashboard') ? 'font-bold' : '' }}">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                    <span class="menu-text">Dashboard Progres</span>
                                 </a>
-                                <a href="#" class="text-blue-100/70 hover:text-white text-xs py-2 block">
-                                    <i class="fa-solid fa-list w-4"></i> <span class="menu-text">Daftar Ide</span>
+                                <a href="{{ route('qcc.karyawan.roadmap') }}" class="{{ request()->is('qcc/karyawan/roadmap') ? 'font-bold' : '' }}">
+                                    <i class="fa-solid fa-map-location-dot"></i>
+                                    <span class="menu-text">Monitoring Roadmap</span>
                                 </a>
-                                <a href="#" class="text-blue-100/70 hover:text-white text-xs py-2 block">
-                                    <i class="fa-solid fa-check-double w-4"></i> <span class="menu-text">Penilaian</span>
+                                <a href="{{ route('qcc.karyawan.my_circle') }}" class="{{ request()->is('qcc/karyawan/my-circle') ? 'font-bold' : '' }}">
+                                    <i class="fa-solid fa-users"></i>
+                                    <span class="menu-text">Master Circle & Member</span>
                                 </a>
-                                <a href="#" class="text-blue-100/70 hover:text-white text-xs py-2 block">
-                                    <i class="fa-solid fa-trophy w-4"></i> <span class="menu-text">Hasil & Reward</span>
+                                <a href="{{ route('qcc.karyawan.themes') }}" class="{{ request()->is('qcc/karyawan/themes') ? 'font-bold' : '' }}">
+                                    <i class="fa-solid fa-lightbulb"></i>
+                                    <span class="menu-text">Master Tema</span>
                                 </a>
-                                <a href="#" class="text-blue-100/70 hover:text-white text-xs py-2 block">
-                                    <i class="fa-solid fa-calendar-alt w-4"></i> <span class="menu-text">Rekap Bulanan</span>
-                                </a>
-                                <a href="#" class="text-blue-100/70 hover:text-white text-xs py-2 block">
-                                    <i class="fa-solid fa-gear w-4"></i> <span class="menu-text">Master SS</span>
+                                <a href="{{ route('qcc.karyawan.progress') }}" class="{{ request()->is('qcc/karyawan/progress') ? 'font-bold' : '' }}">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                    <span class="menu-text">Upload Progress</span>
                                 </a>
                             </div>
                         </div>
 
-                        <a href="{{ route('admin.master_employee.index') }}" class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl {{ request()->is('admin/master-employee*') ? 'bg-white/10' : '' }}">
-                            <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg">
-                                <i class="fa-solid fa-users-gear text-blue-200"></i>
+                        <a href="#" class="sidebar-link">
+                            <div class="icon-box">
+                                <i class="fa-solid fa-lightbulb text-blue-200"></i>
                             </div>
-                            <span class="menu-text font-medium whitespace-nowrap text-sm">Master Karyawan</span>
+                            <span class="menu-text font-medium whitespace-nowrap">Input SS Baru</span>
                         </a>
                     @endif
 
-                    <!-- <a href="#" class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl {{ request()->is('admin/master-employee*') ? 'bg-white/10' : '' }}">
-                            <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg">
-                                <i class="fa-solid fa-graduation-cap text-blue-200"></i>
-                            </div>
-                            <span class="menu-text font-medium whitespace-nowrap text-sm">Materi Training</span>
-                        </a>
+                    <!-- ADMIN SYSTEM MANAGEMENT -->
+                    @if(session('active_role') === 'admin')
+                        <div class="relative group" data-submenu="ssSubmenu">
+                            <button type="button" class="sidebar-link w-full justify-between dropdown-toggle" data-dropdown="ss">
+                                <div class="flex items-center gap-3">
+                                    <div class="icon-box">
+                                        <i class="fa-regular fa-lightbulb text-blue-200"></i>
+                                    </div>
+                                    <span class="menu-text font-medium whitespace-nowrap">Monitoring SS</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-down text-[10px] dropdown-arrow" data-dropdown="ss"></i>
+                            </button>
+                            <div class="menu-gap"></div>
 
-                        <a href="#" class="sidebar-link flex items-center gap-4 text-white p-4 rounded-xl {{ request()->is('admin/master-employee*') ? 'bg-white/10' : '' }}">
-                            <div class="w-8 h-8 min-w-[2rem] flex items-center justify-center bg-white/10 rounded-lg">
-                                <i class="fa-solid fa-history text-blue-200"></i>
+                            <div id="ssSubmenu" class="submenu space-y-1">
+                                <a href="#"><i class="fa-solid fa-chart-line"></i><span class="menu-text">Dashboard SS</span></a>
+                                <a href="#"><i class="fa-solid fa-list"></i><span class="menu-text">Daftar Ide</span></a>
+                                <a href="#"><i class="fa-solid fa-check-double"></i><span class="menu-text">Penilaian</span></a>
+                                <a href="#"><i class="fa-solid fa-trophy"></i><span class="menu-text">Hasil & Reward</span></a>
+                                <a href="#"><i class="fa-solid fa-calendar-alt"></i><span class="menu-text">Rekap Bulanan</span></a>
+                                <a href="#"><i class="fa-solid fa-gear"></i><span class="menu-text">Master SS</span></a>
                             </div>
-                            <span class="menu-text font-medium whitespace-nowrap text-sm">Histori Training</span>
-                        </a> -->
+                        </div>
+
+                        <a href="{{ route('admin.master_employee.index') }}" class="sidebar-link {{ request()->is('admin/master-employee*') ? 'bg-white/10' : '' }}">
+                            <div class="icon-box">
+                                <i class="fa-solid fa-users-gear text-blue-200"></i>
+                            </div>
+                            <span class="menu-text font-medium whitespace-nowrap">Master Karyawan</span>
+                        </a>
+                    @endif
                 </nav>
             </div>
 
@@ -304,7 +338,6 @@
         </main>
     </div>
 
-    <!-- SCRIPTS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     @stack('scripts')
@@ -313,14 +346,7 @@
         const sidebar = document.getElementById('sidebar');
         const sidebarToggle = document.getElementById('sidebarToggle');
         const overlay = document.getElementById('sidebarOverlay');
-        const qccSubmenu = document.getElementById('qccSubmenu');
-        const qccArrow = document.getElementById('qccArrow');
-        const karyawanSubmenu = document.getElementById('karyawanSubmenu');
-        const karyawanArrow = document.getElementById('karyawanArrow');
-        const ssSubmenu = document.getElementById('ssSubmenu');
-        const ssArrow = document.getElementById('ssArrow');
 
-        // Variabel global
         let hoverTimeout = null;
         let activeFloatingMenu = null;
         let isSidebarCollapsed = false;
@@ -330,17 +356,14 @@
             return window.innerWidth < 768;
         }
 
-        // Toggle mobile sidebar (off-canvas)
         function toggleMobileSidebar(open) {
             if (open === undefined) {
                 const isOpen = !sidebar.classList.contains('-translate-x-full');
                 if (isOpen) {
-                    // Tutup
                     sidebar.classList.add('-translate-x-full');
                     overlay.classList.add('hidden');
                     overlay.classList.remove('flex');
                 } else {
-                    // Buka – pastikan collapsed class dihapus agar lebar penuh
                     sidebar.classList.remove('sidebar-collapsed');
                     sidebar.classList.remove('-translate-x-full');
                     overlay.classList.remove('hidden');
@@ -360,7 +383,26 @@
             }
         }
 
-        // Inisialisasi
+        function toggleDropdown(dropdownId, event) {
+            if (event) event.stopPropagation();
+            if (isSidebarCollapsed && !isMobile()) return;
+            if (isMobile() && sidebar.classList.contains('-translate-x-full')) return;
+            const submenu = document.getElementById(dropdownId);
+            const arrow = submenu?.parentElement?.querySelector('.dropdown-arrow');
+            if (submenu) submenu.classList.toggle('show');
+            if (arrow) arrow.classList.toggle('rotate-180');
+        }
+
+        document.querySelectorAll('.dropdown-toggle').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const dropdown = btn.getAttribute('data-dropdown');
+                if (dropdown === 'qcc') toggleDropdown('qccSubmenu', e);
+                else if (dropdown === 'karyawan') toggleDropdown('karyawanSubmenu', e);
+                else if (dropdown === 'ss') toggleDropdown('ssSubmenu', e);
+            });
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
             const state = localStorage.getItem('sidebar-state');
             if (state === 'collapsed') {
@@ -377,7 +419,6 @@
             }
         });
 
-        // Floating menu (sama seperti sebelumnya)
         function createFloatingSubmenu(parentButton, submenuId) {
             const existingFloating = document.querySelector('.floating-submenu');
             if (existingFloating) {
@@ -444,7 +485,7 @@
         function setupFloatingMenuListeners() {
             const groups = document.querySelectorAll('.group[data-submenu]');
             groups.forEach(group => {
-                const button = group.querySelector('button');
+                const button = group.querySelector('.dropdown-toggle');
                 const menuGap = group.querySelector('.menu-gap');
                 const submenuId = group.getAttribute('data-submenu');
                 if (!button || !submenuId) return;
@@ -502,7 +543,7 @@
             });
             window.addEventListener('scroll', () => {
                 if (activeFloatingMenu && isSidebarCollapsed && !isMobile()) {
-                    const button = document.querySelector('.group:hover button');
+                    const button = document.querySelector('.group:hover .dropdown-toggle');
                     if (button) {
                         const parentRect = button.getBoundingClientRect();
                         let topPosition = parentRect.top - 10;
@@ -514,7 +555,6 @@
             });
         }
 
-        // Toggle sidebar utama
         sidebarToggle.addEventListener('click', () => {
             if (isMobile()) {
                 toggleMobileSidebar();
@@ -535,21 +575,14 @@
 
         overlay.addEventListener('click', () => toggleMobileSidebar(false));
 
-        // Resize handler: menangani perpindahan mode mobile/desktop
         window.addEventListener('resize', function() {
             if (isMobile()) {
-                // Masuk mode mobile: hapus collapsed class agar sidebar penuh saat dibuka
-                if (sidebar.classList.contains('sidebar-collapsed')) {
-                    sidebar.classList.remove('sidebar-collapsed');
-                    // Jangan ubah localStorage, tetap ingat untuk desktop
-                }
-                // Pastikan sidebar tersembunyi
+                if (sidebar.classList.contains('sidebar-collapsed')) sidebar.classList.remove('sidebar-collapsed');
                 sidebar.classList.add('-translate-x-full');
                 overlay.classList.add('hidden');
                 overlay.classList.remove('flex');
-                isSidebarCollapsed = false; // di mobile tidak ada collapsed
+                isSidebarCollapsed = false;
             } else {
-                // Masuk mode desktop: pulihkan status collapsed dari localStorage
                 const state = localStorage.getItem('sidebar-state');
                 if (state === 'collapsed') {
                     sidebar.classList.add('sidebar-collapsed');
@@ -558,14 +591,10 @@
                     sidebar.classList.remove('sidebar-collapsed');
                     isSidebarCollapsed = false;
                 }
-                // Pastikan sidebar terlihat
                 sidebar.classList.remove('-translate-x-full');
                 overlay.classList.add('hidden');
                 overlay.classList.remove('flex');
-                // Setup ulang floating menu jika perlu
-                if (isSidebarCollapsed) {
-                    setupFloatingMenuListeners();
-                }
+                if (isSidebarCollapsed) setupFloatingMenuListeners();
             }
         });
 
@@ -574,33 +603,6 @@
             document.querySelectorAll('.dropdown-arrow').forEach(el => el.classList.remove('rotate-180'));
         }
 
-        // Fungsi dropdown yang sudah diperbaiki untuk mobile
-        function toggleQccDropdown() {
-            // Di desktop collapsed, dropdown diganti floating menu → jangan toggle
-            if (isSidebarCollapsed && !isMobile()) return;
-            // Di mobile, hanya boleh toggle jika sidebar terbuka
-            if (isMobile() && sidebar.classList.contains('-translate-x-full')) return;
-            // Selain itu, toggle biasa
-            if (qccSubmenu) qccSubmenu.classList.toggle('show');
-            if (qccArrow) qccArrow.classList.toggle('rotate-180');
-        }
-
-        function toggleKaryawanDropdown() {
-            if (isSidebarCollapsed && !isMobile()) return;
-            if (isMobile() && sidebar.classList.contains('-translate-x-full')) return;
-            if (karyawanSubmenu) karyawanSubmenu.classList.toggle('show');
-            if (karyawanArrow) karyawanArrow.classList.toggle('rotate-180');
-        }
-
-        // Fungsi baru untuk dropdown SS
-        function toggleSsDropdown() {
-            if (isSidebarCollapsed && !isMobile()) return;
-            if (isMobile() && sidebar.classList.contains('-translate-x-full')) return;
-            if (ssSubmenu) ssSubmenu.classList.toggle('show');
-            if (ssArrow) ssArrow.classList.toggle('rotate-180');
-        }
-
-        // Flash message (sama)
         document.addEventListener('DOMContentLoaded', function() {
             @if(session('success'))
                 Swal.fire({ icon: 'success', title: 'Berhasil!', text: "{{ session('success') }}", confirmButtonColor: '#091E6E', scrollbarPadding: false });

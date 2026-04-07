@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="animate-reveal pb-20">
-    <!-- Breadcrumb -->
+    <!-- Breadcrumb (Tetap Sama) -->
     <nav class="flex mb-4 md:mb-6 text-xs md:text-sm text-gray-400">
         <ol class="inline-flex items-center space-x-1 md:space-x-3 text-gray-400">
             <li class="inline-flex items-center">Monitoring QCC</li>
@@ -13,7 +13,7 @@
         </ol>
     </nav>
 
-    <!-- Filter Area -->
+    <!-- Filter Area (Tetap Sama) -->
     <div class="glass-card rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-6 mb-6 md:mb-8 border border-white shadow-sm">
         <form action="{{ route('qcc.admin.all_progress') }}" method="GET" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 items-end">
             <div>
@@ -51,14 +51,14 @@
 
     <!-- Table Section -->
     <div class="glass-card rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-6 shadow-sm border border-white">
-        <div class="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0"> <!-- Agar scroll tidak terpotong padding di mobile -->
-            <table class="w-full text-left border-separate border-spacing-y-2 min-w-[900px] md:min-w-full"> <!-- Minimum width untuk mobile -->
+        <div class="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">
+            <table class="w-full text-left border-separate border-spacing-y-2 min-w-[900px] md:min-w-full">
                 <thead>
                     <tr class="sidebar-gradient shadow-md">
                         <th class="px-2 md:px-4 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-widest font-bold rounded-tl-2xl text-center w-12">No</th>
                         <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-widest font-bold">Circle & Tema</th>
                         <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-widest font-bold">Departemen</th>
-                        <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-widest font-bold text-center">Roadmap Progress (Step 1-8)</th>
+                        <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-widest font-bold text-center">Roadmap Progress (Step 0-8)</th>
                         <th class="px-3 md:px-6 py-3 md:py-4 text-center text-white text-[8px] md:text-[10px] uppercase tracking-widest font-bold rounded-tr-2xl">Opsi</th>
                     </tr>
                 </thead>
@@ -80,6 +80,27 @@
 
                         <td class="px-3 md:px-6 py-3 md:py-4 border-y border-gray-100">
                             <div class="flex items-center justify-center gap-1 md:gap-1.5 flex-wrap">
+                                
+                                <!-- STEP 0 (DIAMBIL DARI m_qcc_circles) -->
+                                @php
+                                    $step0Color = 'bg-gray-100 text-gray-300 border-gray-200';
+                                    $step0Click = '';
+                                    if($c->step0_file_path) {
+                                        if($c->status === 'ACTIVE') $step0Color = 'bg-emerald-500 text-white border-emerald-600';
+                                        elseif($c->status === 'WAITING SPV') $step0Color = 'bg-yellow-400 text-white border-yellow-500 animate-pulse';
+                                        elseif($c->status === 'WAITING KDP') $step0Color = 'bg-blue-500 text-white border-blue-600';
+                                        elseif(str_contains($c->status, 'REJECTED')) $step0Color = 'bg-red-500 text-white border-red-600';
+                                        
+                                        $fileUrl0 = asset('storage/' . $c->step0_file_path);
+                                        $step0Click = "onclick=\"openFilePreview('$fileUrl0', 'Step 0 - Registration - $c->circle_name')\"";
+                                    }
+                                @endphp
+                                <button {!! $step0Click !!} title="Step 0: Pendaftaran Circle ({{ $c->status }})"
+                                    class="w-6 h-6 md:w-7 md:h-7 rounded-full border flex items-center justify-center text-[8px] md:text-[10px] font-black transition-all {{ $step0Color }} {{ $c->step0_file_path ? 'hover:scale-125 cursor-pointer shadow-sm' : 'cursor-default' }}">
+                                    0
+                                </button>
+
+                                <!-- STEP 1 - 8 (DIAMBIL DARI t_qcc_circle_steps) -->
                                 @for($i = 1; $i <= 8; $i++)
                                     @php
                                         $stepData = $c->activeTheme ? $c->activeTheme->stepProgress->where('qcc_step_id', $i)->first() : null;
@@ -125,7 +146,7 @@
     </div>
 </div>
 
-<!-- Modal Preview PDF -->
+<!-- Modal Preview PDF (Tetap Sama) -->
 <div id="modalFilePreview" class="fixed inset-0 z-[110] hidden overflow-y-auto bg-black/70 backdrop-blur-md">
     <div class="flex items-center justify-center min-h-screen p-2 md:p-4">
         <div class="bg-white rounded-[1.5rem] md:rounded-[2rem] w-full max-w-5xl h-[90vh] shadow-2xl animate-reveal overflow-hidden flex flex-col">

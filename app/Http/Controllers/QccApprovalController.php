@@ -7,15 +7,22 @@ use App\Models\QccCircleStepTransaction;
 use App\Models\Employee;
 use App\Models\QccCircle;
 use App\Models\Department;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class QccApprovalController extends Controller
 {
+    /**
+     * Helper: Ambil profil Employee berdasarkan User yang sedang login via Auth.
+     * Mencegah NPK berubah-ubah karena mengambil langsung dari identitas Laravel Auth.
+     */
     private function getCurrentUser()
     {
-        $npk = session('auth_npk');
+        if (!Auth::check()) return null;
+
+        // Ambil NPK langsung dari sumber autentikasi (tabel users)
+        $npk = Auth::user()->npk;
         
-        // Eager load semua kemungkinan jalur ke department
         $user = Employee::with([
             'subSection.section.department', 
             'section.department', 
@@ -23,29 +30,45 @@ class QccApprovalController extends Controller
         ])->where('npk', $npk)->first();
 
         if ($user) {
-            // Logika Tambahan: Jika dia KDP, pastikan kita ambil kode Dept dari tabel m_departments
-            // karena biasanya KDP tidak punya sub_section di profilnya.
-            $dept = $user->getDeptCode();
-            
-            Log::info("Debug Dept Detection", [
+            // Logika sinkronisasi session jika diperlukan
+            if (session('auth_npk') !== $user->npk) {
+                session(['auth_npk' => $user->npk]);
+            }
+
+            Log::info("Approval Access Debug", [
                 "NPK" => $user->npk,
                 "Jabatan" => $user->occupation,
-                "Dept_Terdeteksi" => $dept
+                "Dept_Code" => $user->getDeptCode()
             ]);
         }
 
         return $user;
     }
 
+    /**
+     * Helper: Proteksi Role.
+     * Memastikan user yang masuk adalah role 'employee' (SPV/KDP masuk lewat jalur ini).
+     */
+    private function checkAccess()
+    {
+        if (!Auth::check() || session('active_role') !== 'employee') {
+            return false;
+        }
+        return true;
+    }
+
     // --- APPROVAL PROGRES (STEP 1-8) ---
     public function index(Request $request)
     {
+        if (!$this->checkAccess()) return redirect('/login');
+        
         $user = $this->getCurrentUser();
+        if (!$user) return redirect('/login');
+
         $myDept = $user->getDeptCode();
         $perPage = $request->get('per_page', 10);
         $search = $request->get('search');
 
-        // Query Dasar: Kita ambil TEMA, bukan transaksi per langkah
         $query = \App\Models\QccTheme::with(['circle', 'stepProgress.step', 'stepProgress.uploader'])
             ->whereHas('circle', function($q) use ($myDept) {
                 $q->where('department_code', $myDept);
@@ -60,7 +83,6 @@ class QccApprovalController extends Controller
             });
         }
 
-        // Urutkan berdasarkan yang terbaru aktif
         $pendingThemes = $query->orderBy('updated_at', 'desc')
                             ->paginate($perPage)
                             ->withQueryString();
@@ -71,6 +93,8 @@ class QccApprovalController extends Controller
     // Progres Approval (Step 1-8)
     public function process(Request $request, $id)
     {
+        if (!$this->checkAccess()) return redirect('/login');
+
         $request->validate([
             'action' => 'required|in:approve,reject',
             'note' => 'nullable|string|max:500'
@@ -79,17 +103,14 @@ class QccApprovalController extends Controller
         $step = QccCircleStepTransaction::findOrFail($id);
         $user = $this->getCurrentUser();
         
-        if (!$user) {
-            return redirect('/login')->with('error', 'Sesi telah berakhir.');
-        }
+        if (!$user) return redirect('/login')->with('error', 'Sesi telah berakhir.');
 
-        // Verifikasi: apakah user berhak menyetujui circle di department ini?
+        // Verifikasi Departemen
         $circleDept = $step->circle->department_code ?? null;
         $userDept = $user->getDeptCode();
         
         if ($circleDept !== $userDept) {
-            return redirect()->back()
-                ->with('error', 'Anda tidak memiliki akses untuk menyetujui progres di department ini.');
+            return redirect()->back()->with('error', 'Akses ditolak: Departemen tidak sesuai.');
         }
 
         if ($request->action === 'approve') {
@@ -111,20 +132,18 @@ class QccApprovalController extends Controller
             }
         } else {
             // Action: reject
-            if ($user->occupation === 'SPV') {
-                $step->update([
-                    'status' => 'REJECTED BY SPV',
-                    'spv_rejected_at' => now(),
-                    'spv_note' => $request->note
-                ]);
-            } elseif ($user->occupation === 'KDP') {
-                $step->update([
-                    'status' => 'REJECTED BY KDP',
-                    'kdp_rejected_at' => now(),
-                    'kdp_note' => $request->note
-                ]);
-            }
+            $status = ($user->occupation === 'KDP') ? 'REJECTED BY KDP' : 'REJECTED BY SPV';
             
+            $updateData = ['status' => $status];
+            if ($user->occupation === 'SPV') {
+                $updateData['spv_rejected_at'] = now();
+                $updateData['spv_note'] = $request->note;
+            } else {
+                $updateData['kdp_rejected_at'] = now();
+                $updateData['kdp_note'] = $request->note;
+            }
+
+            $step->update($updateData);
             return redirect()->back()->with('success', 'Progres telah ditolak.');
         }
     }
@@ -132,12 +151,15 @@ class QccApprovalController extends Controller
     // --- APPROVAL CIRCLE BARU ---
     public function indexCircle(Request $request)
     {
+        if (!$this->checkAccess()) return redirect('/login');
+
         $user = $this->getCurrentUser();
+        if (!$user) return redirect('/login');
+
         $myDept = $user->getDeptCode();
         $perPage = $request->get('per_page', 10);
         $search = $request->get('search');
 
-        // Ambil SEMUA data Circle di departemen user (Tanpa filter status pending saja)
         $query = QccCircle::with(['members.employee'])
             ->where('department_code', $myDept);
 
@@ -157,6 +179,8 @@ class QccApprovalController extends Controller
 
     public function processCircle(Request $request, $id)
     {
+        if (!$this->checkAccess()) return redirect('/login');
+
         $request->validate([
             'action' => 'required|in:approve,reject',
             'note' => 'nullable|string|max:500'
@@ -165,14 +189,11 @@ class QccApprovalController extends Controller
         $circle = QccCircle::findOrFail($id);
         $user = $this->getCurrentUser();
         
-        if (!$user) {
-            return redirect('/login')->with('error', 'Sesi telah berakhir.');
-        }
+        if (!$user) return redirect('/login')->with('error', 'Sesi telah berakhir.');
 
         // Verifikasi department
         if ($circle->department_code !== $user->getDeptCode()) {
-            return redirect()->back()
-                ->with('error', 'Anda tidak memiliki akses untuk menyetujui circle di department ini.');
+            return redirect()->back()->with('error', 'Akses ditolak: Departemen tidak sesuai.');
         }
 
         if ($request->action === 'approve') {
@@ -196,20 +217,16 @@ class QccApprovalController extends Controller
             // Action: reject
             $status = ($user->occupation === 'KDP') ? 'REJECTED BY KDP' : 'REJECTED BY SPV';
             
+            $updateData = ['status' => $status];
             if ($user->occupation === 'SPV') {
-                $circle->update([
-                    'status' => $status,
-                    'spv_rejected_at' => now(),
-                    'spv_note' => $request->note
-                ]);
-            } elseif ($user->occupation === 'KDP') {
-                $circle->update([
-                    'status' => $status,
-                    'kdp_rejected_at' => now(),
-                    'kdp_note' => $request->note
-                ]);
+                $updateData['spv_rejected_at'] = now();
+                $updateData['spv_note'] = $request->note;
+            } else {
+                $updateData['kdp_rejected_at'] = now();
+                $updateData['kdp_note'] = $request->note;
             }
             
+            $circle->update($updateData);
             return redirect()->back()->with('success', 'Pendaftaran Circle ditolak.');
         }
     }

@@ -45,7 +45,7 @@
                     <tr class="sidebar-gradient shadow-md">
                         <th class="px-2 md:px-4 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-widest font-bold rounded-tl-2xl text-center w-12">No</th>
                         <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-widest font-bold">Circle & Tema Aktif</th>
-                        <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-widest font-bold text-center">Roadmap Progress (Step 1-8)</th>
+                        <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-widest font-bold text-center">Roadmap Progress (Step 0-8)</th>
                         <th class="px-3 md:px-6 py-3 md:py-4 text-center text-white text-[8px] md:text-[10px] uppercase tracking-widest font-bold rounded-tr-2xl">Opsi</th>
                     </tr>
                 </thead>
@@ -67,6 +67,27 @@
 
                         <td class="px-3 md:px-6 py-2 md:py-4 border-y border-gray-100">
                             <div class="flex items-center justify-center gap-1 md:gap-1.5 flex-wrap">
+                                
+                                <!-- STEP 0 (DIAMBIL DARI m_qcc_circles) -->
+                                @php
+                                    $step0Color = 'bg-gray-100 text-gray-300 border-gray-200';
+                                    $step0Click = '';
+                                    if($c->step0_file_path) {
+                                        if($c->status === 'ACTIVE') $step0Color = 'bg-emerald-500 text-white border-emerald-600 shadow-sm';
+                                        elseif($c->status === 'WAITING SPV') $step0Color = 'bg-yellow-400 text-white border-yellow-500 animate-pulse';
+                                        elseif($c->status === 'WAITING KDP') $step0Color = 'bg-blue-500 text-white border-blue-600';
+                                        elseif(str_contains($c->status, 'REJECTED')) $step0Color = 'bg-red-500 text-white border-red-600';
+                                        
+                                        $fileUrl0 = asset('storage/' . $c->step0_file_path);
+                                        $step0Click = "onclick=\"openFilePreview('$fileUrl0', 'Step 0 - Registration - $c->circle_name')\"";
+                                    }
+                                @endphp
+                                <button {!! $step0Click !!} title="Step 0: Pendaftaran Circle ({{ $c->status }})"
+                                    class="w-6 h-6 md:w-8 md:h-8 rounded-full border flex items-center justify-center text-[8px] md:text-[10px] font-black transition-all {{ $step0Color }} {{ $c->step0_file_path ? 'hover:scale-125 cursor-pointer' : 'cursor-default' }}">
+                                    0
+                                </button>
+
+                                <!-- STEP 1 - 8 (DIAMBIL DARI t_qcc_circle_steps) -->
                                 @for($i = 1; $i <= 8; $i++)
                                     @php
                                         $stepData = $c->activeTheme ? $c->activeTheme->stepProgress->where('qcc_step_id', $i)->first() : null;
@@ -98,7 +119,7 @@
                                     <i class="fa-solid fa-cloud-arrow-up text-[9px] md:text-xs"></i> UPDATE
                                 </a>
                             @else
-                                <span class="text-[8px] md:text-[10px] text-gray-400 italic">Set Tema Terlebih Dahulu</span>
+                                <span class="text-[8px] md:text-[10px] text-gray-400 italic font-bold">SET TEMA DULU</span>
                             @endif
                         </td>
                     </tr>
@@ -112,7 +133,7 @@
         </div>
     </div>
 
-    <!-- Legend Info -->
+    <!-- Legend Info (Tetap Sama) -->
     <div class="flex flex-wrap gap-2 md:gap-4 justify-center mt-6 md:mt-8 bg-white/50 p-3 md:p-4 rounded-xl md:rounded-2xl border border-white">
         <div class="flex items-center gap-1 md:gap-2 text-[7px] md:text-[9px] font-bold text-gray-500 uppercase"><span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-gray-100 border"></span> Belum Upload</div>
         <div class="flex items-center gap-1 md:gap-2 text-[7px] md:text-[9px] font-bold text-gray-500 uppercase"><span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-yellow-400"></span> Menunggu SPV</div>
@@ -122,7 +143,7 @@
     </div>
 </div>
 
-<!-- Modal Preview PDF -->
+<!-- Modal Preview PDF (Tetap Sama) -->
 <div id="modalFilePreview" class="fixed inset-0 z-[110] hidden overflow-y-auto bg-black/70 backdrop-blur-md">
     <div class="flex items-center justify-center min-h-screen p-2 md:p-4">
         <div class="bg-white rounded-[1.5rem] md:rounded-[2rem] w-full max-w-5xl h-[90vh] shadow-2xl animate-reveal overflow-hidden flex flex-col">

@@ -115,6 +115,14 @@
                                     <i class="fa-solid fa-eye text-[9px] md:text-xs"></i>
                                 </button>
 
+                                <!-- TOMBOL PREVIEW PDF STEP 0 (TAMBAHAN) -->
+                                @if($pc->step0_file_path)
+                                <button onclick="openPdfPreview('{{ asset('storage/' . $pc->step0_file_path) }}')" 
+                                    class="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm" title="Preview Dokumen Step 0">
+                                    <i class="fa-solid fa-file-pdf text-[9px] md:text-xs"></i>
+                                </button>
+                                @endif
+
                                 @if($canProcess)
                                     <button onclick="openCircleAction('approve', {{ $pc->id }}, '{{ $pc->circle_name }}')" 
                                         class="bg-emerald-500 text-white px-3 md:px-5 py-1.5 md:py-2 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-bold uppercase shadow-lg shadow-emerald-100 hover:bg-emerald-600 active:scale-95 transition-all">
@@ -146,6 +154,24 @@
             </div>
             <div class="custom-pagination">
                 {{ $pendingCircles->links('pagination::tailwind') }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL PREVIEW PDF (TAMBAHAN) ================= -->
+<div id="modalPdfPreview" class="fixed inset-0 z-[120] hidden overflow-y-auto bg-black/60 backdrop-blur-sm">
+    <div class="flex items-center justify-center min-h-screen p-2 md:p-4 text-left">
+        <div class="bg-white rounded-[1.5rem] md:rounded-[2rem] w-full max-w-5xl h-[90vh] shadow-2xl animate-reveal overflow-hidden flex flex-col">
+            <div class="sidebar-gradient p-4 md:p-6 text-white flex justify-between items-center">
+                <h3 class="text-base md:text-xl font-bold"><i class="fa-solid fa-file-pdf mr-2"></i> Preview Dokumen Pendaftaran (Step 0)</h3>
+                <button onclick="closeModal('modalPdfPreview')" class="text-white/70 hover:text-white text-xl md:text-2xl">&times;</button>
+            </div>
+            <div class="flex-1 bg-gray-100">
+                <iframe id="pdfFrame" src="" class="w-full h-full border-none"></iframe>
+            </div>
+            <div class="p-4 bg-white border-t text-right">
+                <button onclick="closeModal('modalPdfPreview')" class="px-6 py-2 bg-gray-100 text-gray-500 rounded-xl font-bold uppercase text-[10px] hover:bg-gray-200 transition-all">Tutup Preview</button>
             </div>
         </div>
     </div>
@@ -240,6 +266,12 @@
 </style>
 
 <script>
+    // --- FUNGSI PREVIEW PDF (TAMBAHAN) ---
+    function openPdfPreview(url) {
+        document.getElementById('pdfFrame').src = url;
+        openModal('modalPdfPreview');
+    }
+
     // --- FUNGSI LIAT DETAIL ---
     function openViewDetail(circle) {
         document.getElementById('detCircleName').innerText = circle.circle_name;
@@ -311,6 +343,8 @@
     function closeModal(id) { 
         document.getElementById(id).classList.add('hidden'); 
         document.body.style.overflow = 'auto'; 
+        // Reset iframe src saat tutup modal preview
+        if(id === 'modalPdfPreview') document.getElementById('pdfFrame').src = '';
     }
 </script>
 @endpush
