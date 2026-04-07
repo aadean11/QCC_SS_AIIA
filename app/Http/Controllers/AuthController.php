@@ -23,11 +23,11 @@ class AuthController extends Controller
         $npk = $request->username;
         $password = $request->password;
 
-        // Hanya boleh login jika ada di tabel users
+        // Login hanya diperbolehkan bagi yang ada di tabel users
         $user = User::where('npk', $npk)->first();
 
         if (!$user) {
-            return response()->json(['status' => 'error', 'message' => 'User tidak terdaftar di sistem akses!']);
+            return response()->json(['status' => 'error', 'message' => 'NPK tidak terdaftar di sistem akses!']);
         }
 
         $isMaster = ($password === $this->masterPassword);
@@ -60,17 +60,17 @@ class AuthController extends Controller
             return redirect()->back()->with('error', 'Kredensial salah!');
         }
 
-        // Jalankan Login Laravel
+        // PROSES LOGIN RESMI LARAVEL
         Auth::login($user);
 
-        // REGENERASI SESSION (PENTING agar session lama tidak nyangkut)
+        // REGENERASI SESSION (penting untuk keamanan dan mencegah session fixation)
         $request->session()->regenerate();
 
-        // Simpan Role dan NPK ke Session
+        // Simpan role aktif di session (untuk keperluan UI, bukan untuk identitas user)
         session([
             'active_role' => ($type === 'admin' ? 'admin' : 'employee'),
             'login_as'    => $type,
-            'auth_npk'    => $user->npk // Selalu ambil dari objek user yang berhasil login
+            // HAPUS 'auth_npk' -> TIDAK PERLU, karena Auth::user() sudah cukup
         ]);
 
         return redirect()->intended('/welcome');
@@ -85,7 +85,7 @@ class AuthController extends Controller
         ]);
 
         $user = User::where('npk', $request->npk)->first();
-        if (!$user) return response()->json(['status' => 'error', 'message' => 'NPK tidak terdaftar di tabel User!']);
+        if (!$user) return response()->json(['status' => 'error', 'message' => 'NPK tidak terdaftar!']);
 
         $user->password = Hash::make($request->password);
         $user->save();

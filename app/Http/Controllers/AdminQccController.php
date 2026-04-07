@@ -20,9 +20,25 @@ use Illuminate\Support\Facades\Storage;
 
 class AdminQccController extends Controller
 {
+    /**
+     * Ambil data employee dari user yang sedang login.
+     * Jika tidak ada, return null.
+     */
+    private function getCurrentEmployee()
+    {
+        $user = Auth::user();
+        if (!$user) return null;
+        return $user->employee;
+    }
+
     public function index(Request $request)
     {
-        $user = Employee::with(['subSection.section.department.division', 'section.department.division'])->find(Auth::id());
+        $employee = $this->getCurrentEmployee();
+        if (!$employee) {
+            return redirect('/login')->with('error', 'Data karyawan tidak ditemukan.');
+        }
+        // Untuk kompatibilitas view, kita tetap pakai nama variabel $user yang berisi Employee
+        $user = $employee;
 
         $viewLevel = $request->get('view_level', 'company');
         $selectedPeriod = $request->get('period_id');
@@ -35,9 +51,8 @@ class AdminQccController extends Controller
             $selectedPeriod = QccPeriod::where('status', 'ACTIVE')->value('id') ?? QccPeriod::orderBy('id', 'desc')->value('id');
         }
 
-        // --- LOGIKA PROGRESS LINE (DISKRIT / MELOMPAT) ---
         $today = Carbon::now();
-        $todayDate = $today->format('d/m/Y'); // <--- TAMBAHKAN BARIS INI UNTUK MEMPERBAIKI ERROR
+        $todayDate = $today->format('d/m/Y');
 
         $progressLineX = 0;
         $period = QccPeriod::find($selectedPeriod);
@@ -58,7 +73,6 @@ class AdminQccController extends Controller
             }
         }
 
-        // --- GENERATE LABEL BULAN PER STEP ---
         $stepMonths = [];
         if ($period) {
             $stepMonths[] = Carbon::parse($period->start_date)->translatedFormat('M');
@@ -70,7 +84,6 @@ class AdminQccController extends Controller
             $stepMonths[] = '';
         }
 
-        // Tentukan Otoritas Data & Filter
         $selectedDept = null;
         if ($isAdmin) {
             $selectedDept = $request->get('department_code');
@@ -91,7 +104,6 @@ class AdminQccController extends Controller
 
         $stats = $this->calculateStats($selectedPeriod, $viewLevel, $selectedDiv, $selectedDept, $progressLineX, $periodSteps);
 
-        // LOGIKA MULTI-CHART
         $charts = [];
         if ($viewLevel == 'company' && $isAdmin) {
             $charts[] = ['title' => 'All Company Overview', 'data' => $this->getChartData($selectedPeriod)];
@@ -135,24 +147,18 @@ class AdminQccController extends Controller
         ));
     }
 
-    /**
-     * Helper khusus untuk mengambil data 1 Circle saja.
-     */
     private function getChartDataPerCircle($circleId)
     {
         $submitted = [];
         $approved = [];
 
-        // Step 0 (Registration)
         $circle = QccCircle::find($circleId);
-        $submitted[] = 1; // Karena circle ini sudah ada
+        $submitted[] = 1;
         $approved[] = ($circle->status === 'ACTIVE') ? 1 : 0;
 
-        // Step 1 - 8
         for ($i = 1; $i <= 8; ++$i) {
             $trans = QccCircleStepTransaction::where('qcc_circle_id', $circleId)
                         ->where('qcc_step_id', $i)->first();
-
             $submitted[] = ($trans) ? 1 : 0;
             $approved[] = ($trans && $trans->status === 'APPROVED') ? 1 : 0;
         }
@@ -160,7 +166,7 @@ class AdminQccController extends Controller
         return [
             'submitted' => $submitted,
             'approved' => $approved,
-            'target' => array_fill(0, 9, 1), // Target per circle selalu 1 project
+            'target' => array_fill(0, 9, 1),
         ];
     }
 
@@ -188,13 +194,11 @@ class AdminQccController extends Controller
 
     private function calculateStats($periodId, $level, $divCode, $deptCode, $progressLineX, $periodSteps)
     {
-        // Tentukan jangkauan Departemen berdasarkan filter
         $deptCodes = $deptCode ? [$deptCode] : null;
         if (!$deptCodes && $divCode) {
             $deptCodes = Department::where('code_division', $divCode)->pluck('code');
         }
 
-        // 1. Target dan Total Circle (Step 0)
         $target = QccTarget::where('qcc_period_id', $periodId)
             ->when($deptCodes, fn ($q) => $q->whereIn('department_code', $deptCodes))
             ->sum('target_amount');
@@ -203,15 +207,11 @@ class AdminQccController extends Controller
             ->when($deptCodes, fn ($q) => $q->whereIn('department_code', $deptCodes))
             ->count();
 
-        // 2. LOGIKA NEED REVIEW (Step 0 + Step 1-8)
-
-        // Hitung Pending dari Step 0 (Registrasi Circle)
         $needReviewStep0 = QccCircle::where('qcc_period_id', $periodId)
             ->whereIn('status', ['WAITING SPV', 'WAITING KDP'])
             ->when($deptCodes, fn ($q) => $q->whereIn('department_code', $deptCodes))
             ->count();
 
-        // Hitung Pending dari Step 1-8 (Progres PDCA)
         $needReviewSteps = QccCircleStepTransaction::whereIn('status', ['WAITING SPV', 'WAITING KDP'])
             ->whereHas('circle', function ($q) use ($periodId, $deptCodes) {
                 $q->where('qcc_period_id', $periodId);
@@ -220,10 +220,8 @@ class AdminQccController extends Controller
                 }
             })->count();
 
-        // Total gabungan
         $totalNeedReview = $needReviewStep0 + $needReviewSteps;
 
-        // 3. Logika Circle Selesai berdasarkan Garis Merah
         $completedCount = 0;
         $targetStepNumber = floor($progressLineX ?? 0);
 
@@ -249,15 +247,19 @@ class AdminQccController extends Controller
         return [
             'total_circles' => $actual,
             'target_circles' => $target,
-            'need_review' => $totalNeedReview, // Sekarang sudah termasuk Step 0
+            'need_review' => $totalNeedReview,
             'completed' => $completedCount,
         ];
     }
 
-    // Master Schedule QCC
     public function masterSchedule(Request $request)
     {
-        $user = Employee::with('job')->find(Auth::id());
+        $employee = $this->getCurrentEmployee();
+        if (!$employee) {
+            return redirect('/login')->with('error', 'Data karyawan tidak ditemukan.');
+        }
+        $user = $employee;
+
         $selectedPeriod = $request->get('period_id');
         $periods = QccPeriod::where('status', 'ACTIVE')->orderBy('year', 'desc')->get();
 
@@ -267,12 +269,9 @@ class AdminQccController extends Controller
 
         $period = QccPeriod::with(['periodSteps.step'])->find($selectedPeriod);
 
-        // Persiapan data untuk Gantt Chart
         $ganttData = [];
         if ($period && $period->periodSteps->count() > 0) {
             $steps = $period->periodSteps->sortBy('step.step_number');
-
-            // Titik awal adalah start_date periode
             $lastDate = $period->start_date;
 
             foreach ($steps as $ps) {
@@ -282,7 +281,6 @@ class AdminQccController extends Controller
                     'end' => $ps->deadline_date,
                     'color' => $this->getStepColor($ps->step->step_number),
                 ];
-                // Start date step berikutnya adalah deadline step ini
                 $lastDate = $ps->deadline_date;
             }
         }
@@ -290,21 +288,23 @@ class AdminQccController extends Controller
         return view('qcc.admin.master_schedule', compact('user', 'periods', 'selectedPeriod', 'period', 'ganttData'));
     }
 
-    // Helper warna agar gantt chart berwarna-warni menarik
     private function getStepColor($stepNumber)
     {
         $colors = [
             0 => '#3b82f6', 1 => '#6366f1', 2 => '#8b5cf6', 3 => '#a855f7',
             4 => '#d946ef', 5 => '#ec4899', 6 => '#f43f5e', 7 => '#f97316', 8 => '#10b981',
         ];
-
         return $colors[$stepNumber] ?? '#94a3b8';
     }
 
-    // Master Steps QCC
     public function masterSteps(Request $request)
     {
-        $user = Employee::with('job')->find(Auth::id());
+        $employee = $this->getCurrentEmployee();
+        if (!$employee) {
+            return redirect('/login')->with('error', 'Data karyawan tidak ditemukan.');
+        }
+        $user = $employee;
+
         $search = $request->get('search');
         $perPage = $request->get('per_page', 10);
 
@@ -333,20 +333,17 @@ class AdminQccController extends Controller
             $file = $request->file('template_file');
             $fileName = 'Master_Template_Step_'.$request->step_number.'_'.time().'.'.$file->getClientOriginalExtension();
             $path = $file->storeAs('qcc/templates', $fileName, 'public');
-
             $data['template_file_name'] = $file->getClientOriginalName();
             $data['template_file_path'] = $path;
         }
 
         QccStep::create($data);
-
         return redirect()->back()->with('success', 'Step baru dan template berhasil ditambahkan!');
     }
 
     public function updateStep(Request $request, $id)
     {
         $step = QccStep::findOrFail($id);
-
         $request->validate([
             'step_name' => 'required',
             'template_file' => 'nullable|mimes:ppt,pptx,xls,xlsx,pdf|max:10240',
@@ -355,40 +352,38 @@ class AdminQccController extends Controller
         $data = $request->only(['step_name', 'description']);
 
         if ($request->hasFile('template_file')) {
-            // Hapus file lama jika ada
             if ($step->template_file_path && Storage::disk('public')->exists($step->template_file_path)) {
                 Storage::disk('public')->delete($step->template_file_path);
             }
-
             $file = $request->file('template_file');
             $fileName = 'Master_Template_Step_'.$step->step_number.'_'.time().'.'.$file->getClientOriginalExtension();
             $path = $file->storeAs('qcc/templates', $fileName, 'public');
-
             $data['template_file_name'] = $file->getClientOriginalName();
             $data['template_file_path'] = $path;
         }
 
         $step->update($data);
-
         return redirect()->back()->with('success', 'Data Step dan Template berhasil diperbarui!');
     }
 
     public function deleteStep($id)
     {
         $step = QccStep::findOrFail($id);
-        // Hapus file fisik jika ada
         if ($step->template_file_path && Storage::disk('public')->exists($step->template_file_path)) {
             Storage::disk('public')->delete($step->template_file_path);
         }
         $step->delete();
-
         return redirect()->back()->with('success', 'Step berhasil dihapus!');
     }
 
-    // Master Periods QCC
     public function masterPeriods(Request $request)
     {
-        $user = Employee::with('job')->find(Auth::id());
+        $employee = $this->getCurrentEmployee();
+        if (!$employee) {
+            return redirect('/login')->with('error', 'Data karyawan tidak ditemukan.');
+        }
+        $user = $employee;
+
         $perPage = $request->get('per_page', 10);
         $search = $request->get('search');
 
@@ -402,7 +397,6 @@ class AdminQccController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        // Ambil master steps untuk keperluan modal setting deadline
         $masterSteps = QccStep::orderBy('step_number', 'asc')->get();
 
         return view('qcc.admin.master_qcc_periods', compact('user', 'periods', 'perPage', 'masterSteps'));
@@ -419,10 +413,8 @@ class AdminQccController extends Controller
         ]);
 
         $newPeriod = DB::transaction(function () use ($request) {
-            // Status otomatis ACTIVE saat pertama kali simpan
             $data = $request->all();
             $data['status'] = 'ACTIVE';
-
             $period = QccPeriod::create($data);
 
             $steps = QccStep::orderBy('step_number', 'asc')->get();
@@ -433,7 +425,6 @@ class AdminQccController extends Controller
                     'deadline_date' => $request->end_date,
                 ]);
             }
-
             return $period->load('periodSteps.step');
         });
 
@@ -447,19 +438,15 @@ class AdminQccController extends Controller
     {
         $period = QccPeriod::findOrFail($id);
 
-        // LOGIKA 1: Jika yang dikirim adalah form DEADLINE
         if ($request->has('deadlines')) {
             foreach ($request->deadlines as $stepId => $date) {
-                // Pastikan update berdasarkan qcc_period_id dan qcc_step_id
                 QccPeriodStep::where('qcc_period_id', $id)
                     ->where('qcc_step_id', $stepId)
                     ->update(['deadline_date' => $date]);
             }
-
             return redirect()->back()->with('success', 'Batas waktu (deadline) langkah berhasil diperbarui!');
         }
 
-        // LOGIKA 2: Jika yang dikirim adalah form EDIT PROFIL PERIODE
         $request->validate([
             'period_code' => 'required|unique:m_qcc_periods,period_code,'.$id,
             'period_name' => 'required',
@@ -475,16 +462,18 @@ class AdminQccController extends Controller
 
     public function deletePeriod($id)
     {
-        // Karena ada Cascade di database, m_qcc_period_steps akan otomatis terhapus
         QccPeriod::destroy($id);
-
         return redirect()->back()->with('success', 'Periode berhasil dihapus!');
     }
 
-    // Master Targets QCC
     public function masterTargets(Request $request)
     {
-        $user = Employee::with('job')->where('npk', session('auth_npk'))->first();
+        $employee = $this->getCurrentEmployee();
+        if (!$employee) {
+            return redirect('/login')->with('error', 'Data karyawan tidak ditemukan.');
+        }
+        $user = $employee;
+
         $perPage = $request->get('per_page', 10);
         $search = $request->get('search');
 
@@ -512,7 +501,6 @@ class AdminQccController extends Controller
             'target_amount' => 'required|numeric|min:1',
         ]);
 
-        // Cek duplikasi
         $exists = QccTarget::where('qcc_period_id', $request->qcc_period_id)
                         ->where('department_code', $request->department_code)
                         ->exists();
@@ -522,7 +510,6 @@ class AdminQccController extends Controller
         }
 
         QccTarget::create($request->all());
-
         return redirect()->back()->with('success', 'Target berhasil ditetapkan!');
     }
 
@@ -530,22 +517,23 @@ class AdminQccController extends Controller
     {
         $target = QccTarget::findOrFail($id);
         $target->update($request->all());
-
         return redirect()->back()->with('success', 'Target berhasil diperbarui!');
     }
 
     public function deleteTarget($id)
     {
         QccTarget::destroy($id);
-
         return redirect()->back()->with('success', 'Target berhasil dihapus!');
     }
 
-    // MANAGE KARYAWAN
-    // Master Employees (Karyawan)
     public function masterEmployees(Request $request)
     {
-        $user = Employee::with('job')->where('npk', session('auth_npk'))->first();
+        $employee = $this->getCurrentEmployee();
+        if (!$employee) {
+            return redirect('/login')->with('error', 'Data karyawan tidak ditemukan.');
+        }
+        $user = $employee;
+
         $perPage = $request->get('per_page', 10);
         $search = $request->get('search');
 
@@ -558,7 +546,6 @@ class AdminQccController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        // Data untuk Dropdown di Modal
         $occupations = \App\Models\Occupation::all();
         $subSections = \App\Models\SubSection::with('section.department')->get();
 
@@ -576,7 +563,6 @@ class AdminQccController extends Controller
         ]);
 
         Employee::create($request->all());
-
         return redirect()->back()->with('success', 'Karyawan baru berhasil ditambahkan!');
     }
 
@@ -587,22 +573,23 @@ class AdminQccController extends Controller
             'npk' => 'required|unique:m_employees,npk,'.$id,
             'nama' => 'required',
         ]);
-
         $emp->update($request->all());
-
         return redirect()->back()->with('success', 'Data karyawan berhasil diperbarui!');
     }
 
     public function deleteEmployee($id)
     {
         Employee::destroy($id);
-
         return redirect()->back()->with('success', 'Data karyawan telah dihapus.');
     }
 
     public function allCircleProgress(Request $request)
     {
-        $user = Employee::with('job')->find(Auth::id());
+        $employee = $this->getCurrentEmployee();
+        if (!$employee) {
+            return redirect('/login')->with('error', 'Data karyawan tidak ditemukan.');
+        }
+        $user = $employee;
 
         $selectedPeriod = $request->get('period_id');
         $selectedDiv = $request->get('division_code');
@@ -619,11 +606,9 @@ class AdminQccController extends Controller
         $divisions = Division::all();
         $departments = Department::when($selectedDiv, fn ($q) => $q->where('code_division', $selectedDiv))->get();
 
-        // Query Utama: Ambil Circle dan Progres Stepnya melalui Tema Aktif
         $query = QccCircle::with(['department', 'activeTheme.stepProgress.step'])
             ->where('qcc_period_id', $selectedPeriod);
 
-        // Filter Hirarki
         if ($selectedDept) {
             $query->where('department_code', $selectedDept);
         } elseif ($selectedDiv) {
@@ -634,7 +619,7 @@ class AdminQccController extends Controller
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('circle_name', 'like', "%{$search}%")
-                ->orWhere('circle_code', 'like', "%{$search}%");
+                  ->orWhere('circle_code', 'like', "%{$search}%");
             });
         }
 
@@ -646,14 +631,18 @@ class AdminQccController extends Controller
         ));
     }
 
-    // Master Seven Tools QCC
     public function masterSevenTools(Request $request)
     {
-        $user = Employee::with('job')->find(Auth::id());
+        $employee = $this->getCurrentEmployee();
+        if (!$employee) {
+            return redirect('/login')->with('error', 'Data karyawan tidak ditemukan.');
+        }
+        $user = $employee;
+
         $search = $request->get('search');
         $perPage = $request->get('per_page', 10);
 
-        $tools = \App\Models\QccSevenTool::when($search, function($query) use ($search) {
+        $tools = QccSevenTool::when($search, function($query) use ($search) {
                 $query->where('tool_name', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%");
             })
@@ -677,18 +666,17 @@ class AdminQccController extends Controller
             $file = $request->file('template_file');
             $fileName = 'SevenTool_' . str_replace(' ', '_', $request->tool_name) . '_' . time() . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('qcc/seven_tools', $fileName, 'public');
-
             $data['template_file_name'] = $file->getClientOriginalName();
             $data['template_file_path'] = $path;
         }
 
-        \App\Models\QccSevenTool::create($data);
+        QccSevenTool::create($data);
         return redirect()->back()->with('success', 'Seven Tool berhasil ditambahkan!');
     }
 
     public function updateSevenTool(Request $request, $id)
     {
-        $tool = \App\Models\QccSevenTool::findOrFail($id);
+        $tool = QccSevenTool::findOrFail($id);
         $request->validate([
             'tool_name' => 'required',
             'template_file' => 'nullable|mimes:ppt,pptx,xls,xlsx,pdf|max:10240',
@@ -700,11 +688,9 @@ class AdminQccController extends Controller
             if ($tool->template_file_path && Storage::disk('public')->exists($tool->template_file_path)) {
                 Storage::disk('public')->delete($tool->template_file_path);
             }
-
             $file = $request->file('template_file');
             $fileName = 'SevenTool_' . str_replace(' ', '_', $request->tool_name) . '_' . time() . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('qcc/seven_tools', $fileName, 'public');
-
             $data['template_file_name'] = $file->getClientOriginalName();
             $data['template_file_path'] = $path;
         }
@@ -715,7 +701,7 @@ class AdminQccController extends Controller
 
     public function deleteSevenTool($id)
     {
-        $tool = \App\Models\QccSevenTool::findOrFail($id);
+        $tool = QccSevenTool::findOrFail($id);
         if ($tool->template_file_path && Storage::disk('public')->exists($tool->template_file_path)) {
             Storage::disk('public')->delete($tool->template_file_path);
         }

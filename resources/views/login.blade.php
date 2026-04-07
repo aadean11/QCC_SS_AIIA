@@ -207,12 +207,42 @@
             }
         });
 
+        // FORGOT PASSWORD dengan konfirmasi SweetAlert
         document.getElementById('formForgot').addEventListener('submit', async function(e) {
             e.preventDefault();
             const npk = document.getElementById('forgot_npk').value;
             const pass = document.getElementById('new_pass').value;
             const confirm = document.getElementById('confirm_pass').value;
 
+            // Validasi client-side
+            if (npk.trim() === '') {
+                Swal.fire({ icon: 'error', title: 'Gagal', text: 'NPK tidak boleh kosong.' });
+                return;
+            }
+            if (pass.length < 3) {
+                Swal.fire({ icon: 'error', title: 'Gagal', text: 'Password baru minimal 3 karakter.' });
+                return;
+            }
+            if (pass !== confirm) {
+                Swal.fire({ icon: 'error', title: 'Gagal', text: 'Konfirmasi password tidak cocok.' });
+                return;
+            }
+
+            // Konfirmasi dengan SweetAlert
+            const result = await Swal.fire({
+                title: 'Konfirmasi Reset Password',
+                text: `Apakah Anda yakin ingin mereset password untuk NPK ${npk}?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#091E6E',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, Reset!',
+                cancelButtonText: 'Batal'
+            });
+
+            if (!result.isConfirmed) return;
+
+            // Kirim request ke server
             try {
                 const response = await fetch("{{ route('password.forgot') }}", {
                     method: 'POST',
@@ -221,8 +251,10 @@
                 });
                 const data = await response.json();
                 if (data.status === 'success') {
-                    Swal.fire({ icon: 'success', title: 'Berhasil', text: data.message });
+                    await Swal.fire({ icon: 'success', title: 'Berhasil', text: data.message });
                     closeModal('modalForgot');
+                    // Reset form
+                    document.getElementById('formForgot').reset();
                 } else {
                     Swal.fire({ icon: 'error', title: 'Gagal', text: data.message });
                 }

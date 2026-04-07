@@ -324,6 +324,13 @@
                             </div>
                             <span class="menu-text font-medium whitespace-nowrap">Master Karyawan</span>
                         </a>
+
+                        <a href="{{ route('admin.master_user.index') }}" class="sidebar-link {{ request()->is('admin/master-user*') ? 'bg-white/10' : '' }}">
+                            <div class="icon-box">
+                                <i class="fa-solid fa-user-lock text-blue-200"></i>
+                            </div>
+                            <span class="menu-text font-medium whitespace-nowrap">Master User</span>
+                        </a>
                     @endif
                 </nav>
             </div>

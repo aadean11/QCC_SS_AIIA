@@ -12,25 +12,38 @@ class WelcomeController extends Controller
 {
     public function showWelcome()
     {
-        $npk = session('auth_npk');
-        $activeRole = session('active_role'); // 'admin' atau 'employee'
-
-        if (!$npk) {
+        // Ambil user yang sedang login dari tabel users
+        $userAuth = Auth::user();
+        
+        if (!$userAuth) {
             Auth::logout();
             return redirect('/login');
         }
 
-        // 1. Ambil data user dengan relasi lengkap
-        $user = Employee::with(['subSection.section.department.division', 'job'])
-                ->where('npk', $npk)
-                ->first() 
-                ?? User::where('npk', $npk)->first();
+        $activeRole = session('active_role'); // 'admin' atau 'employee'
 
-        // 2. Inisialisasi Query
+        // Ambil data employee dari relasi user (jika ada)
+        $employee = $userAuth->employee;
+        
+        // Untuk kompatibilitas view, kita tetap pakai variabel $user
+        // Jika employee tidak ditemukan, fallback ke data dari User (tabel users)
+        if ($employee) {
+            $user = $employee;
+        } else {
+            // Jika tidak ada data employee, buat objek Employee kosong? 
+            // Atau bisa juga menggunakan User sebagai fallback, 
+            // tapi method getDeptCode() dll tidak tersedia.
+            // Solusi: redirect dengan error atau set user = userAuth (tabel users)
+            // Karena view mungkin membutuhkan properti seperti nama, npk, dan method getDeptCode()
+            // Lebih aman jika employee wajib ada. Jika tidak, arahkan ke halaman error.
+            return redirect('/login')->with('error', 'Data karyawan tidak ditemukan. Hubungi administrator.');
+        }
+
+        // Inisialisasi Query
         $qccQuery = QccCircle::query();
         $viewScope = "All Company"; // Default Label
 
-        // 3. Logika Filter berdasarkan Otoritas (Jika bukan role Admin)
+        // Logika Filter berdasarkan Otoritas (Jika bukan role Admin)
         if ($activeRole !== 'admin') {
             $deptCode = $user->getDeptCode();
             
@@ -53,8 +66,8 @@ class WelcomeController extends Controller
             } 
             else {
                 // Employee Biasa: Hanya Circle yang dia ikuti
-                $qccQuery->whereHas('members', function($q) use ($npk) {
-                    $q->where('employee_npk', $npk);
+                $qccQuery->whereHas('members', function($q) use ($user) {
+                    $q->where('employee_npk', $user->npk);
                 });
                 $viewScope = "Personal & My Circle";
             }

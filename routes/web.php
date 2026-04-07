@@ -8,6 +8,7 @@ use App\Http\Controllers\QccStepController;
 use App\Http\Controllers\KaryawanQccController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\QccApprovalController;
+use App\Http\Controllers\UserController;
 
 // Redirect root ke login jika belum login, ke welcome jika sudah
 Route::get('/', function () {
@@ -31,6 +32,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/admin/master-employee', [EmployeeController::class, 'store'])->name('admin.master_employee.store');
     Route::put('/admin/master-employee/{id}', [EmployeeController::class, 'update'])->name('admin.master_employee.update');
     Route::delete('/admin/master-employee/{id}', [EmployeeController::class, 'destroy'])->name('admin.master_employee.destroy');
+
+    // Master User (Admin only)
+    Route::get('/admin/master-user', [UserController::class, 'index'])->name('admin.master_user.index');
+    Route::post('/admin/master-user', [UserController::class, 'store'])->name('admin.master_user.store');
+    Route::put('/admin/master-user/{id}', [UserController::class, 'update'])->name('admin.master_user.update');
+    Route::delete('/admin/master-user/{id}', [UserController::class, 'destroy'])->name('admin.master_user.destroy');
 });
 
 // Monitoring QCC dan SS (Admin & Karyawan)

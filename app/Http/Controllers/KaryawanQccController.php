@@ -20,24 +20,16 @@ use Illuminate\Support\Facades\Storage;
 class KaryawanQccController extends Controller
 {
     /**
-     * Mengambil profil lengkap dari tabel m_employees berdasarkan user yang login di tabel users.
+     * Ambil data employee dari user yang sedang login.
+     * Jika tidak ada relasi employee, return null.
      */
-    private function getAuthUser()
+    private function getCurrentEmployee()
     {
-        if (!Auth::check()) return null;
+        $user = Auth::user();
+        if (!$user) return null;
 
-        // Ambil NPK dari Laravel Auth (tabel users)
-        $npk = Auth::user()->npk; 
-
-        // Pastikan session auth_npk sinkron dengan Auth::user()
-        if (session('auth_npk') !== $npk) {
-            session(['auth_npk' => $npk]);
-        }
-
-        // Ambil data detail (Dept, Section) dari m_employees
-        return Employee::with(['job', 'subSection.section', 'section'])
-                ->where('npk', $npk)
-                ->first();
+        // Gunakan relasi employee yang sudah didefinisikan di model User
+        return $user->employee;
     }
 
     /**
@@ -45,16 +37,14 @@ class KaryawanQccController extends Controller
      */
     private function checkAccess()
     {
-        if (!Auth::check() || session('active_role') !== 'employee') {
-            return false;
-        }
-        return true;
+        return Auth::check() && session('active_role') === 'employee';
     }
 
     public function dashboard(Request $request)
     {
         if (!$this->checkAccess()) return redirect('/login');
-        $user = $this->getAuthUser();
+        $user = $this->getCurrentEmployee();
+        if (!$user) return redirect('/login')->with('error', 'Data karyawan tidak ditemukan.');
 
         $selectedPeriod = $request->get('period_id');
         $periods = QccPeriod::where('status', 'ACTIVE')->orderBy('year', 'desc')->get();
@@ -133,7 +123,8 @@ class KaryawanQccController extends Controller
     public function roadmap(Request $request)
     {
         if (!$this->checkAccess()) return redirect('/login');
-        $user = $this->getAuthUser();
+        $user = $this->getCurrentEmployee();
+        if (!$user) return redirect('/login')->with('error', 'Data karyawan tidak ditemukan.');
 
         $selectedPeriod = $request->get('period_id');
         $search = $request->get('search');
@@ -157,7 +148,8 @@ class KaryawanQccController extends Controller
     public function myCircle(Request $request)
     {
         if (!$this->checkAccess()) return redirect('/login');
-        $user = $this->getAuthUser();
+        $user = $this->getCurrentEmployee();
+        if (!$user) return redirect('/login')->with('error', 'Data karyawan tidak ditemukan.');
 
         $perPage = $request->get('per_page', 10);
         $search = $request->get('search');
@@ -180,9 +172,12 @@ class KaryawanQccController extends Controller
 
     public function storeCircle(Request $request)
     {
-        if (!$this->checkAccess()) return redirect('/login');
-        $user = $this->getAuthUser();
+        $user = $this->getCurrentEmployee();
         $deptCode = $user->getDeptCode();
+
+        if (!$deptCode) {
+            return redirect()->back()->with('error', 'Gagal: Departemen Anda tidak terdeteksi.');
+        }
 
         $request->validate([
             'circle_name' => 'required|string|max:255',
@@ -191,40 +186,167 @@ class KaryawanQccController extends Controller
         ]);
 
         try {
-            DB::transaction(function () use ($request, $user, $deptCode) {
-                $circle = QccCircle::create([
-                    'circle_code' => 'C-'.strtoupper(bin2hex(random_bytes(3))),
-                    'circle_name' => $request->circle_name,
-                    'department_code' => $deptCode,
-                    'qcc_period_id' => QccPeriod::where('status', 'ACTIVE')->value('id') ?? 1,
-                    'status' => 'WAITING SPV',
-                ]);
+            DB::beginTransaction();
 
-                if ($request->hasFile('step0_file')) {
-                    $file = $request->file('step0_file');
-                    $path = $file->storeAs("qcc/step0/circle_{$circle->id}", 'Step0_'.time().'.'.$file->getClientOriginalExtension(), 'public');
-                    $circle->update(['step0_file_name' => $file->getClientOriginalName(), 'step0_file_path' => $path]);
+            // 1. Simpan Circle dengan nilai placeholder untuk kolom NOT NULL
+            $circle = QccCircle::create([
+                'circle_code' => 'C-'.strtoupper(bin2hex(random_bytes(3))),
+                'circle_name' => $request->circle_name,
+                'department_code' => $deptCode,
+                'qcc_period_id' => QccPeriod::where('status', 'ACTIVE')->value('id') ?? 1,
+                'status' => 'WAITING SPV',
+                'step0_file_name' => 'pending',      // placeholder sementara
+                'step0_file_path' => '',              // string kosong (tidak null)
+            ]);
+
+            // 2. Upload file dan update path & nama asli
+            if ($request->hasFile('step0_file')) {
+                $file = $request->file('step0_file');
+                $circleId = $circle->id;
+                $folderPath = "qcc/registration/circle_{$circleId}";
+                $fileName = "Step_0_".time().'.'.$file->getClientOriginalExtension();
+                $path = $file->storeAs($folderPath, $fileName, 'public');
+
+                if (!$path) {
+                    throw new \Exception('Gagal menyimpan file ke storage server.');
                 }
 
-                // Simpan Leader menggunakan NPK dari Auth
+                $circle->update([
+                    'step0_file_name' => $file->getClientOriginalName(),
+                    'step0_file_path' => $path,
+                ]);
+            }
+
+            // 3. Simpan leader & anggota
+            QccCircleMember::create([
+                'qcc_circle_id' => $circle->id,
+                'employee_npk' => $user->npk,
+                'role' => 'LEADER',
+                'is_active' => 1,
+                'joined_at' => now(),
+            ]);
+
+            foreach ($request->members as $npk) {
                 QccCircleMember::create([
                     'qcc_circle_id' => $circle->id,
-                    'employee_npk' => $user->npk,
-                    'role' => 'LEADER',
-                    'is_active' => 1, 'joined_at' => now(),
+                    'employee_npk' => $npk,
+                    'role' => 'MEMBER',
+                    'is_active' => 1,
+                    'joined_at' => now(),
                 ]);
+            }
 
-                foreach ($request->members as $npk) {
-                    QccCircleMember::create([
-                        'qcc_circle_id' => $circle->id,
-                        'employee_npk' => $npk,
-                        'role' => 'MEMBER',
-                        'is_active' => 1, 'joined_at' => now(),
-                    ]);
-                }
-            });
-            return redirect()->back()->with('success', 'Circle & Dokumen Step 0 berhasil didaftarkan!');
+            DB::commit();
+            return redirect()->back()->with('success', 'Circle dan Dokumen Step 0 berhasil didaftarkan! Menunggu approval.');
+
         } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal: '.$e->getMessage());
+        }
+    }
+
+    public function updateCircle(Request $request, $id)
+    {
+        if (!$this->checkAccess()) return redirect('/login');
+        $user = $this->getCurrentEmployee();
+        if (!$user) return redirect('/login')->with('error', 'Data karyawan tidak ditemukan.');
+
+        $circle = QccCircle::findOrFail($id);
+
+        // Pastikan user adalah leader dari circle ini
+        $isLeader = QccCircleMember::where('qcc_circle_id', $id)
+            ->where('employee_npk', $user->npk)
+            ->where('role', 'LEADER')
+            ->exists();
+        if (!$isLeader) {
+            return redirect()->back()->with('error', 'Anda bukan leader dari circle ini.');
+        }
+
+        // Hanya bisa update jika status masih WAITING SPV atau REJECTED
+        if (!in_array($circle->status, ['WAITING SPV', 'REJECTED'])) {
+            return redirect()->back()->with('error', 'Circle sudah aktif, tidak bisa diubah.');
+        }
+
+        $request->validate([
+            'circle_name' => 'required|string|max:255',
+            'members' => 'required|array|min:1',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Update nama circle
+            $circle->update([
+                'circle_name' => $request->circle_name,
+            ]);
+
+            // Hapus semua anggota lama (kecuali leader)
+            QccCircleMember::where('qcc_circle_id', $id)
+                ->where('role', 'MEMBER')
+                ->delete();
+
+            // Tambah anggota baru
+            foreach ($request->members as $npk) {
+                if ($npk == $user->npk) continue; // skip leader
+                QccCircleMember::create([
+                    'qcc_circle_id' => $id,
+                    'employee_npk' => $npk,
+                    'role' => 'MEMBER',
+                    'is_active' => 1,
+                    'joined_at' => now(),
+                ]);
+            }
+
+            DB::commit();
+            return redirect()->back()->with('success', 'Circle berhasil diperbarui.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal: '.$e->getMessage());
+        }
+    }
+
+    public function deleteCircle($id)
+    {
+        if (!$this->checkAccess()) return redirect('/login');
+        $user = $this->getCurrentEmployee();
+        if (!$user) return redirect('/login')->with('error', 'Data karyawan tidak ditemukan.');
+
+        $circle = QccCircle::findOrFail($id);
+
+        // Pastikan user adalah leader
+        $isLeader = QccCircleMember::where('qcc_circle_id', $id)
+            ->where('employee_npk', $user->npk)
+            ->where('role', 'LEADER')
+            ->exists();
+        if (!$isLeader) {
+            return redirect()->back()->with('error', 'Anda bukan leader circle ini.');
+        }
+
+        // Hanya bisa hapus jika status masih WAITING SPV atau REJECTED
+        if (!in_array($circle->status, ['WAITING SPV', 'REJECTED'])) {
+            return redirect()->back()->with('error', 'Circle sudah aktif, tidak bisa dihapus.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Hapus file step0 jika ada
+            if ($circle->step0_file_path && Storage::disk('public')->exists($circle->step0_file_path)) {
+                Storage::disk('public')->delete($circle->step0_file_path);
+            }
+
+            // Hapus anggota
+            QccCircleMember::where('qcc_circle_id', $id)->delete();
+
+            // Hapus circle
+            $circle->delete();
+
+            DB::commit();
+            return redirect()->route('qcc.karyawan.my_circle')->with('success', 'Circle berhasil dihapus.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
             return redirect()->back()->with('error', 'Gagal: '.$e->getMessage());
         }
     }
@@ -232,7 +354,9 @@ class KaryawanQccController extends Controller
     public function themes(Request $request)
     {
         if (!$this->checkAccess()) return redirect('/login');
-        $user = $this->getAuthUser();
+        $user = $this->getCurrentEmployee();
+        if (!$user) return redirect('/login')->with('error', 'Data karyawan tidak ditemukan.');
+
         $circleId = $request->get('circle_id');
         $myCircleIds = QccCircleMember::where('employee_npk', $user->npk)->pluck('qcc_circle_id');
 
@@ -242,17 +366,167 @@ class KaryawanQccController extends Controller
         $circle = QccCircle::findOrFail($circleId);
         if ($circle->status !== 'ACTIVE') return redirect()->route('qcc.karyawan.my_circle')->with('warning', 'Circle belum di-approve.');
 
-        $themes = QccTheme::with('period')->where('qcc_circle_id', $circleId)->orderBy('created_at', 'desc')->paginate(10);
+        // Ambil per_page dari request, default 10
+        $perPage = $request->get('per_page', 10);
+        $themes = QccTheme::with('period')->where('qcc_circle_id', $circleId)->orderBy('created_at', 'desc')->paginate($perPage);
+        
         $myCircles = QccCircle::whereIn('id', $myCircleIds)->get();
         $activePeriods = QccPeriod::where('status', 'ACTIVE')->get();
 
-        return view('qcc.karyawan.manage_themes', compact('user', 'circle', 'themes', 'activePeriods', 'myCircles'));
+        return view('qcc.karyawan.manage_themes', compact('user', 'circle', 'themes', 'activePeriods', 'myCircles', 'perPage'));
+    }
+
+    public function storeTheme(Request $request)
+    {
+        if (!$this->checkAccess()) return redirect('/login');
+        $user = $this->getCurrentEmployee();
+        if (!$user) return redirect('/login')->with('error', 'Data karyawan tidak ditemukan.');
+
+        $request->validate([
+            'qcc_circle_id' => 'required|exists:m_qcc_circles,id',
+            'qcc_period_id' => 'required|exists:m_qcc_periods,id',
+            'theme_name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        $circle = QccCircle::findOrFail($request->qcc_circle_id);
+
+        // Pastikan user adalah leader dari circle
+        $isLeader = QccCircleMember::where('qcc_circle_id', $circle->id)
+            ->where('employee_npk', $user->npk)
+            ->where('role', 'LEADER')
+            ->exists();
+        if (!$isLeader) {
+            return redirect()->back()->with('error', 'Hanya leader yang bisa membuat tema.');
+        }
+
+        // Cek apakah circle sudah aktif
+        if ($circle->status !== 'ACTIVE') {
+            return redirect()->back()->with('error', 'Circle belum di-approve, tidak bisa membuat tema.');
+        }
+
+        // Opsional: cek apakah sudah ada tema aktif untuk periode ini
+        $activeThemeExists = QccTheme::where('qcc_circle_id', $circle->id)
+            ->where('qcc_period_id', $request->qcc_period_id)
+            ->where('status', 'ACTIVE')
+            ->exists();
+        if ($activeThemeExists) {
+            return redirect()->back()->with('error', 'Sudah ada tema aktif untuk periode ini. Nonaktifkan dulu jika ingin membuat baru.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $theme = QccTheme::create([
+                'qcc_circle_id' => $circle->id,
+                'qcc_period_id' => $request->qcc_period_id,
+                'theme_name' => $request->theme_name,
+                'description' => $request->description,
+                'status' => 'ACTIVE',
+                'created_by' => $user->npk,
+            ]);
+
+            DB::commit();
+            return redirect()->route('qcc.karyawan.themes', ['circle_id' => $circle->id])
+                ->with('success', 'Tema berhasil dibuat.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal: '.$e->getMessage());
+        }
+    }
+
+    public function updateTheme(Request $request, $id)
+    {
+        if (!$this->checkAccess()) return redirect('/login');
+        $user = $this->getCurrentEmployee();
+        if (!$user) return redirect('/login')->with('error', 'Data karyawan tidak ditemukan.');
+
+        $theme = QccTheme::with('circle')->findOrFail($id);
+        $circle = $theme->circle;
+
+        // Pastikan user leader
+        $isLeader = QccCircleMember::where('qcc_circle_id', $circle->id)
+            ->where('employee_npk', $user->npk)
+            ->where('role', 'LEADER')
+            ->exists();
+        if (!$isLeader) {
+            return redirect()->back()->with('error', 'Hanya leader yang bisa mengubah tema.');
+        }
+
+        // Cek apakah sudah ada progress step yang sudah diapprove
+        $hasApprovedStep = QccCircleStepTransaction::where('qcc_theme_id', $theme->id)
+            ->where('status', 'APPROVED')
+            ->exists();
+        if ($hasApprovedStep) {
+            return redirect()->back()->with('error', 'Tidak bisa mengubah tema karena sudah ada progres yang disetujui.');
+        }
+
+        $request->validate([
+            'theme_name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'status' => 'nullable|in:ACTIVE,INACTIVE',
+        ]);
+
+        try {
+            $theme->update([
+                'theme_name' => $request->theme_name,
+                'description' => $request->description,
+                'status' => $request->status ?? $theme->status,
+            ]);
+
+            return redirect()->route('qcc.karyawan.themes', ['circle_id' => $circle->id])
+                ->with('success', 'Tema berhasil diperbarui.');
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal: '.$e->getMessage());
+        }
+    }
+
+    public function deleteTheme($id)
+    {
+        if (!$this->checkAccess()) return redirect('/login');
+        $user = $this->getCurrentEmployee();
+        if (!$user) return redirect('/login')->with('error', 'Data karyawan tidak ditemukan.');
+
+        $theme = QccTheme::with('circle')->findOrFail($id);
+        $circle = $theme->circle;
+
+        // Pastikan user leader
+        $isLeader = QccCircleMember::where('qcc_circle_id', $circle->id)
+            ->where('employee_npk', $user->npk)
+            ->where('role', 'LEADER')
+            ->exists();
+        if (!$isLeader) {
+            return redirect()->back()->with('error', 'Hanya leader yang bisa menghapus tema.');
+        }
+
+        // Cek apakah sudah ada file upload (progress) untuk tema ini
+        $hasAnyUpload = QccCircleStepTransaction::where('qcc_theme_id', $theme->id)->exists();
+        if ($hasAnyUpload) {
+            return redirect()->back()->with('error', 'Tidak bisa menghapus tema karena sudah ada progres yang diupload.');
+        }
+
+        try {
+            DB::beginTransaction();
+            $theme->delete();
+            DB::commit();
+
+            return redirect()->route('qcc.karyawan.themes', ['circle_id' => $circle->id])
+                ->with('success', 'Tema berhasil dihapus.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal: '.$e->getMessage());
+        }
     }
 
     public function progress(Request $request)
     {
         if (!$this->checkAccess()) return redirect('/login');
-        $user = $this->getAuthUser();
+        $user = $this->getCurrentEmployee();
+        if (!$user) return redirect('/login')->with('error', 'Data karyawan tidak ditemukan.');
+
         $themeId = $request->get('theme_id');
 
         $myCircleIds = QccCircleMember::where('employee_npk', $user->npk)->pluck('qcc_circle_id');
@@ -283,15 +557,26 @@ class KaryawanQccController extends Controller
     public function uploadFile(Request $request)
     {
         if (!$this->checkAccess()) return redirect('/login');
-        $request->validate(['qcc_step_id' => 'required', 'qcc_theme_id' => 'required', 'qcc_circle_id' => 'required', 'file' => 'required|mimes:pdf|max:10240']);
+        
+        $request->validate([
+            'qcc_step_id' => 'required',
+            'qcc_theme_id' => 'required',
+            'qcc_circle_id' => 'required',
+            'file' => 'required|mimes:pdf|max:10240'
+        ]);
 
         try {
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
-                $npk = Auth::user()->npk; // Ambil NPK dari Auth asli
+                // Ambil NPK dari Auth user yang login (bukan dari employee, tapi langsung dari user)
+                $npk = Auth::user()->npk;
 
                 $folderPath = "qcc/progress/circle_{$request->qcc_circle_id}/theme_{$request->qcc_theme_id}";
-                $oldTrans = QccCircleStepTransaction::where(['qcc_circle_id' => $request->qcc_circle_id, 'qcc_theme_id' => $request->qcc_theme_id, 'qcc_step_id' => $request->qcc_step_id])->first();
+                $oldTrans = QccCircleStepTransaction::where([
+                    'qcc_circle_id' => $request->qcc_circle_id,
+                    'qcc_theme_id' => $request->qcc_theme_id,
+                    'qcc_step_id' => $request->qcc_step_id
+                ])->first();
 
                 if ($oldTrans && Storage::disk('public')->exists($oldTrans->file_path)) {
                     Storage::disk('public')->delete($oldTrans->file_path);
@@ -300,8 +585,19 @@ class KaryawanQccController extends Controller
                 $path = $file->storeAs($folderPath, "Step_{$request->qcc_step_id}_".time().'.'.$file->getClientOriginalExtension(), 'public');
 
                 QccCircleStepTransaction::updateOrCreate(
-                    ['qcc_circle_id' => $request->qcc_circle_id, 'qcc_theme_id' => $request->qcc_theme_id, 'qcc_step_id' => $request->qcc_step_id],
-                    ['file_name' => $file->getClientOriginalName(), 'file_path' => $path, 'file_type' => 'pdf', 'upload_by' => $npk, 'status' => 'WAITING SPV', 'upload_at' => now()]
+                    [
+                        'qcc_circle_id' => $request->qcc_circle_id,
+                        'qcc_theme_id' => $request->qcc_theme_id,
+                        'qcc_step_id' => $request->qcc_step_id
+                    ],
+                    [
+                        'file_name' => $file->getClientOriginalName(),
+                        'file_path' => $path,
+                        'file_type' => 'pdf',
+                        'upload_by' => $npk,
+                        'status' => 'WAITING SPV',
+                        'upload_at' => now()
+                    ]
                 );
                 return redirect()->back()->with('success', 'File berhasil diunggah!');
             }
