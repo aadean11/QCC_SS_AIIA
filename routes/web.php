@@ -9,6 +9,8 @@ use App\Http\Controllers\KaryawanQccController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\QccApprovalController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\AdminSsController;
+use App\Http\Controllers\KaryawanSsController;
 
 // Redirect root ke login jika belum login, ke welcome jika sudah
 Route::get('/', function () {
@@ -108,7 +110,27 @@ Route::middleware(['auth'])->group(function () {
     // Approval Progres PDCA (Step 1-8)
     Route::get('/qcc/approval/progress', [QccApprovalController::class, 'index'])->name('qcc.approval.progress');
     Route::post('/qcc/approval/progress/process/{id}', [QccApprovalController::class, 'process'])->name('qcc.approval.process');
-
-
 });
 
+// Group untuk karyawan SS
+Route::prefix('ss/karyawan')->name('ss.karyawan.')->middleware('auth')->group(function () {
+    Route::get('/', [KaryawanSsController::class, 'index'])->name('index');
+    Route::get('/create', [KaryawanSsController::class, 'create'])->name('create');
+    Route::post('/store', [KaryawanSsController::class, 'store'])->name('store');
+    Route::get('/{id}', [KaryawanSsController::class, 'show'])->name('show');
+});
+
+// Group untuk admin SS
+Route::prefix('ss/admin')->name('ss.admin.')->middleware('auth')->group(function () {
+    Route::get('/dashboard', [AdminSsController::class, 'dashboard'])->name('dashboard');
+    Route::get('/submissions', [AdminSsController::class, 'submissions'])->name('submissions');
+    Route::get('/submissions/{id}', [AdminSsController::class, 'show'])->name('show');
+    Route::get('/assess/{id}', [AdminSsController::class, 'assessForm'])->name('assess.form');
+    Route::post('/assess/{id}', [AdminSsController::class, 'assessStore'])->name('assess.store');
+    Route::get('/review-spv/{id}', [AdminSsController::class, 'reviewSpvForm'])->name('review_spv.form');
+    Route::post('/review-spv/{id}', [AdminSsController::class, 'reviewSpvStore'])->name('review_spv.store');
+    Route::get('/review-kdp/{id}', [AdminSsController::class, 'reviewKdpForm'])->name('review_kdp.form');
+    Route::post('/review-kdp/{id}', [AdminSsController::class, 'reviewKdpStore'])->name('review_kdp.store');
+    Route::get('/reward/{id}', [AdminSsController::class, 'rewardForm'])->name('reward.form');
+    Route::post('/reward/{id}', [AdminSsController::class, 'rewardStore'])->name('reward.store');
+});

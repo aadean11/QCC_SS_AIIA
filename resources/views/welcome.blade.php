@@ -19,7 +19,6 @@
         .sidebar-collapsed .sidebar-link { justify-content: center; padding-left: 0; padding-right: 0; }
         .submenu { transition: all 0.3s ease-in-out; max-height: 0; overflow: hidden; opacity: 0; }
         .submenu.show { max-height: 500px; opacity: 1; margin-top: 0.5rem; margin-bottom: 0.5rem; }
-        /* Perbaikan: padding-left konsisten 2.25rem (36px) untuk semua submenu */
         .submenu { position: relative; padding-left: 2.25rem !important; margin-top: 0.5rem; }
         .submenu::before { content: ""; position: absolute; left: 20px; top: 6px; bottom: 6px; width: 1px; background-color: rgba(255,255,255,0.15); }
         .submenu a {
@@ -34,7 +33,6 @@
             line-height: 1.25rem;
             color: #bfd9ff;
         }
-        /* Garis horizontal dan titik di kiri link submenu - posisi disamakan */
         .submenu a::before {
             content: "";
             position: absolute;
@@ -286,7 +284,14 @@
                             </div>
                         </div>
 
-                        <a href="#" class="sidebar-link">
+                        <!-- Menu SS untuk karyawan -->
+                        <a href="{{ route('ss.karyawan.index') }}" class="sidebar-link {{ request()->is('ss/karyawan') ? 'bg-white/20 border-l-4 border-yellow-400' : '' }}">
+                            <div class="icon-box">
+                                <i class="fa-solid fa-list-ul text-blue-200"></i>
+                            </div>
+                            <span class="menu-text font-medium whitespace-nowrap">Daftar SS Saya</span>
+                        </a>
+                        <a href="{{ route('ss.karyawan.create') }}" class="sidebar-link {{ request()->is('ss/karyawan/create') ? 'bg-white/20 border-l-4 border-yellow-400' : '' }}">
                             <div class="icon-box">
                                 <i class="fa-solid fa-lightbulb text-blue-200"></i>
                             </div>
@@ -297,24 +302,42 @@
                     <!-- ADMIN SYSTEM MANAGEMENT -->
                     @if(session('active_role') === 'admin')
                         <div class="relative group" data-submenu="ssSubmenu">
-                            <button type="button" class="sidebar-link w-full justify-between dropdown-toggle" data-dropdown="ss">
+                            <button type="button" class="sidebar-link w-full justify-between dropdown-toggle {{ request()->is('ss/admin*') ? 'bg-white/10' : '' }}" data-dropdown="ss">
                                 <div class="flex items-center gap-3">
                                     <div class="icon-box">
                                         <i class="fa-regular fa-lightbulb text-blue-200"></i>
                                     </div>
                                     <span class="menu-text font-medium whitespace-nowrap">Monitoring SS</span>
                                 </div>
-                                <i class="fa-solid fa-chevron-down text-[10px] dropdown-arrow" data-dropdown="ss"></i>
+                                <i class="fa-solid fa-chevron-down text-[10px] dropdown-arrow {{ request()->is('ss/admin*') ? 'rotate-180' : '' }}" data-dropdown="ss"></i>
                             </button>
                             <div class="menu-gap"></div>
 
-                            <div id="ssSubmenu" class="submenu space-y-1">
-                                <a href="#"><i class="fa-solid fa-chart-line"></i><span class="menu-text">Dashboard SS</span></a>
-                                <a href="#"><i class="fa-solid fa-list"></i><span class="menu-text">Daftar Ide</span></a>
-                                <a href="#"><i class="fa-solid fa-check-double"></i><span class="menu-text">Penilaian</span></a>
-                                <a href="#"><i class="fa-solid fa-trophy"></i><span class="menu-text">Hasil & Reward</span></a>
-                                <a href="#"><i class="fa-solid fa-calendar-alt"></i><span class="menu-text">Rekap Bulanan</span></a>
-                                <a href="#"><i class="fa-solid fa-gear"></i><span class="menu-text">Master SS</span></a>
+                            <div id="ssSubmenu" class="submenu space-y-1 {{ request()->is('ss/admin*') ? 'show' : '' }}">
+                                <a href="{{ route('ss.admin.dashboard') }}" class="{{ request()->is('ss/admin/dashboard') ? 'font-bold' : '' }}">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                    <span class="menu-text">Dashboard SS</span>
+                                </a>
+                                <a href="{{ route('ss.admin.submissions') }}" class="{{ request()->is('ss/admin/submissions') ? 'font-bold' : '' }}">
+                                    <i class="fa-solid fa-list"></i>
+                                    <span class="menu-text">Daftar Ide</span>
+                                </a>
+                                <a href="{{ route('ss.admin.submissions', ['status' => 'assessed']) }}" class="{{ request()->is('ss/admin/submissions*') && request()->get('status') == 'assessed' ? 'font-bold' : '' }}">
+                                    <i class="fa-solid fa-check-double"></i>
+                                    <span class="menu-text">Penilaian (Need SPV)</span>
+                                </a>
+                                <a href="{{ route('ss.admin.submissions', ['status' => 'approved']) }}" class="{{ request()->is('ss/admin/submissions*') && request()->get('status') == 'approved' ? 'font-bold' : '' }}">
+                                    <i class="fa-solid fa-trophy"></i>
+                                    <span class="menu-text">Hasil & Reward</span>
+                                </a>
+                                <a href="#" class="opacity-50 cursor-not-allowed">
+                                    <i class="fa-solid fa-calendar-alt"></i>
+                                    <span class="menu-text">Rekap Bulanan (Coming Soon)</span>
+                                </a>
+                                <a href="#" class="opacity-50 cursor-not-allowed">
+                                    <i class="fa-solid fa-gear"></i>
+                                    <span class="menu-text">Master SS (Coming Soon)</span>
+                                </a>
                             </div>
                         </div>
 
