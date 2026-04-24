@@ -3,66 +3,180 @@
 @section('title', 'Daftar Ide SS')
 
 @section('content')
-<div class="animate-reveal pb-20">
-    <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4">
-        <nav class="flex text-xs md:text-sm text-gray-400">
-            <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                <li class="inline-flex items-center text-gray-400">SS</li>
-                <li><i class="fa-solid fa-chevron-right text-[8px] md:text-[10px] mx-1 md:mx-2"></i></li>
-                <li class="text-[#091E6E] font-semibold tracking-tight uppercase text-[10px] md:text-xs">Daftar Ide</li>
-            </ol>
-        </nav>
-        <form method="GET" class="flex gap-3">
-            <select name="status" onchange="this.form.submit()" class="border rounded-xl px-3 py-2 text-sm">
-                <option value="">Semua Status</option>
-                <option value="submitted" {{ request('status')=='submitted' ? 'selected' : '' }}>Submitted</option>
-                <option value="assessed" {{ request('status')=='assessed' ? 'selected' : '' }}>Assessed (Need SPV)</option>
-                <option value="spv_review" {{ request('status')=='spv_review' ? 'selected' : '' }}>SPV Review</option>
-                <option value="kdp_review" {{ request('status')=='kdp_review' ? 'selected' : '' }}>KDP Review</option>
-                <option value="approved" {{ request('status')=='approved' ? 'selected' : '' }}>Approved</option>
-                <option value="rejected" {{ request('status')=='rejected' ? 'selected' : '' }}>Rejected</option>
-                <option value="rewarded" {{ request('status')=='rewarded' ? 'selected' : '' }}>Rewarded</option>
-            </select>
-        </form>
+<div class="animate-reveal">
+    <!-- Breadcrumb -->
+    <nav class="flex mb-4 md:mb-6 text-xs md:text-sm text-gray-400">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">SS</li>
+            <li><i class="fa-solid fa-chevron-right text-[8px] md:text-[10px] mx-1 md:mx-2"></i></li>
+            <li class="text-[#091E6E] font-semibold tracking-tight text-[10px] md:text-xs">Daftar Ide</li>
+        </ol>
+    </nav>
+
+    <!-- Header & Filter -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 md:mb-8 gap-4">
+        <div>
+            <h2 class="text-2xl md:text-3xl font-bold text-[#091E6E]">Daftar Ide SS</h2>
+            <p class="text-xs md:text-sm text-gray-400">Kelola semua pengajuan Suggestion System</p>
+        </div>
+        
+        <div class="flex flex-wrap gap-3 w-full md:w-auto justify-start md:justify-end items-center">
+            <form method="GET" id="filterForm" class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full md:w-auto">
+                <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-[#091E6E] w-full sm:w-auto">
+                    <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase">Show</span>
+                    <select name="per_page" onchange="this.form.submit()" class="text-[10px] md:text-xs font-bold text-[#091E6E] outline-none cursor-pointer bg-transparent w-full sm:w-auto">
+                        <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                        <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-[#091E6E] w-full sm:w-auto">
+                    <i class="fa-solid fa-filter text-[10px] text-gray-400"></i>
+                    <select name="status" onchange="this.form.submit()" class="text-[10px] md:text-xs font-bold text-[#091E6E] outline-none cursor-pointer bg-transparent w-full sm:w-auto">
+                        <option value="">Semua Status</option>
+                        <option value="submitted" {{ request('status') == 'submitted' ? 'selected' : '' }}>Submitted</option>
+                        <option value="assessed" {{ request('status') == 'assessed' ? 'selected' : '' }}>Assessed (Need SPV)</option>
+                        <option value="spv_review" {{ request('status') == 'spv_review' ? 'selected' : '' }}>SPV Review</option>
+                        <option value="kdp_review" {{ request('status') == 'kdp_review' ? 'selected' : '' }}>KDP Review</option>
+                        <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
+                        <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
+                        <option value="rewarded" {{ request('status') == 'rewarded' ? 'selected' : '' }}>Rewarded</option>
+                    </select>
+                </div>
+
+                <div class="relative w-full sm:w-64">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama pengaju, departemen..." 
+                        class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] shadow-sm transition-all text-xs md:text-sm font-medium">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] md:text-xs"></i>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <div class="glass-card rounded-2xl p-4 md:p-6 shadow-sm overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 text-sm">
-            <thead class="bg-gray-50/50">
-                <tr>
-                    <th class="px-4 py-3 text-left">No</th>
-                    <th class="px-4 py-3 text-left">Pengaju</th>
-                    <th class="px-4 py-3 text-left">Departemen</th>
-                    <th class="px-4 py-3 text-left">Tanggal</th>
-                    <th class="px-4 py-3 text-left">Score</th>
-                    <th class="px-4 py-3 text-left">Status</th>
-                    <th class="px-4 py-3 text-left">Reward</th>
-                    <th class="px-4 py-3 text-left">Aksi</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y">
-                @forelse($submissions as $ss)
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-3">{{ $loop->iteration }}</td>
-                    <td class="px-4 py-3">{{ $ss->employee->nama ?? $ss->employee_npk }}</td>
-                    <td class="px-4 py-3">{{ $ss->department_code }}</td>
-                    <td class="px-4 py-3">{{ \Carbon\Carbon::parse($ss->submission_date)->format('d/m/Y') }}</td>
-                    <td class="px-4 py-3 font-bold">{{ $ss->score ?? '-' }}</td>
-                    <td class="px-4 py-3">
-                        @php $c = ['submitted'=>'yellow','assessed'=>'blue','spv_review'=>'purple','kdp_review'=>'orange','approved'=>'green','rejected'=>'red','rewarded'=>'emerald']; @endphp
-                        <span class="bg-{{ $c[$ss->status] ?? 'gray' }}-100 text-{{ $c[$ss->status] ?? 'gray' }}-800 px-2 py-0.5 rounded-full text-xs">{{ str_replace('_', ' ', $ss->status) }}</span>
-                    </td>
-                    <td class="px-4 py-3">{{ $ss->reward_amount ? 'Rp '.number_format($ss->reward_amount) : '-' }}</td>
-                    <td class="px-4 py-3">
-                        <a href="{{ route('ss.admin.show', $ss->id) }}" class="text-blue-600 hover:underline">Detail</a>
-                    </td>
-                </tr>
-                @empty
-                <tr><td colspan="8" class="text-center py-8 text-gray-400">Belum ada data.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
-        <div class="mt-4">{{ $submissions->appends(request()->query())->links() }}</div>
+    <!-- Table Section -->
+    <div class="glass-card rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-5 shadow-sm border border-white">
+        <div class="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">
+            <table class="w-full text-left border-separate border-spacing-y-2 min-w-[900px] md:min-w-full">
+                <thead>
+                    <tr class="sidebar-gradient shadow-md">
+                        <th class="px-2 md:px-4 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold rounded-tl-2xl text-center w-12">No</th>
+                        <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold">Pengaju</th>
+                        <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold">Departemen</th>
+                        <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold">Tanggal</th>
+                        <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold">Score</th>
+                        <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold">Status</th>
+                        <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold">Reward</th>
+                        <th class="px-3 md:px-6 py-3 md:py-4 text-center text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold rounded-tr-2xl">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($submissions as $index => $ss)
+                    <tr class="bg-white hover:bg-blue-50/50 transition-all group shadow-sm border border-gray-100">
+                        <td class="px-2 md:px-4 py-2 md:py-3 rounded-l-xl border-y border-l border-gray-100 text-center font-bold text-gray-500 text-xs md:text-sm">
+                            {{ ($submissions->currentPage() - 1) * $submissions->perPage() + $loop->iteration }}
+                        </td>
+
+                        <td class="px-3 md:px-6 py-2 md:py-3 border-y border-gray-100">
+                            <span class="font-semibold text-gray-800 text-xs md:text-sm">{{ $ss->employee->nama ?? $ss->employee_npk }}</span>
+                        </td>
+
+                        <td class="px-3 md:px-6 py-2 md:py-3 border-y border-gray-100">
+                            <span class="text-gray-600 text-xs md:text-sm">{{ $ss->department_code }}</span>
+                        </td>
+
+                        <td class="px-3 md:px-6 py-2 md:py-3 border-y border-gray-100">
+                            <span class="text-gray-600 text-xs md:text-sm">{{ \Carbon\Carbon::parse($ss->submission_date)->format('d/m/Y') }}</span>
+                        </td>
+
+                        <td class="px-3 md:px-6 py-2 md:py-3 border-y border-gray-100">
+                            @if($ss->score !== null)
+                                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-bold">{{ $ss->score }}</span>
+                            @else
+                                <span class="text-gray-400 italic text-xs">-</span>
+                            @endif
+                        </td>
+
+                        <td class="px-3 md:px-6 py-2 md:py-3 border-y border-gray-100">
+                            @php
+                                $statusColors = [
+                                    'submitted' => 'yellow',
+                                    'assessed' => 'blue',
+                                    'spv_review' => 'purple',
+                                    'kdp_review' => 'orange',
+                                    'approved' => 'green',
+                                    'rejected' => 'red',
+                                    'rewarded' => 'emerald'
+                                ];
+                                $color = $statusColors[$ss->status] ?? 'gray';
+                            @endphp
+                            <span class="bg-{{ $color }}-100 text-{{ $color }}-800 px-2 py-1 rounded-full text-xs font-semibold uppercase">
+                                {{ str_replace('_', ' ', $ss->status) }}
+                            </span>
+                        </td>
+
+                        <td class="px-3 md:px-6 py-2 md:py-3 border-y border-gray-100">
+                            @if($ss->reward_amount)
+                                <span class="text-emerald-600 font-bold text-xs md:text-sm">Rp {{ number_format($ss->reward_amount, 0, ',', '.') }}</span>
+                            @else
+                                <span class="text-gray-400 italic text-xs">-</span>
+                            @endif
+                        </td>
+
+                        <td class="px-3 md:px-6 py-2 md:py-3 rounded-r-xl border-y border-r border-gray-100 text-center">
+                            <div class="flex justify-center gap-1 md:gap-2">
+                                <a href="{{ route('ss.admin.show', $ss->id) }}" class="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Detail">
+                                    <i class="fa-solid fa-eye text-[8px] md:text-[10px]"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="8" class="text-center py-10 text-gray-300 italic text-xs md:text-sm">Belum ada data pengajuan SS.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PAGINATION AREA -->
+        @if($submissions->hasPages())
+        <div class="mt-4 md:mt-6 flex flex-col md:flex-row justify-between items-center gap-4 border-t border-gray-50 pt-4 md:pt-6">
+            <div class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">
+                Showing {{ $submissions->firstItem() ?? 0 }} to {{ $submissions->lastItem() ?? 0 }} of {{ $submissions->total() }} entries
+            </div>
+            <div class="custom-pagination">
+                {{ $submissions->appends(request()->query())->links('pagination::tailwind') }}
+            </div>
+        </div>
+        @endif
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<style>
+    /* Styling Paging Horizontal */
+    .custom-pagination nav { display: flex; align-items: center; justify-content: center; gap: 4px; }
+    .custom-pagination nav svg { width: 0.875rem; height: 0.875rem; }
+    @media (min-width: 768px) {
+        .custom-pagination nav svg { width: 1rem; height: 1rem; }
+    }
+    .custom-pagination span[aria-current="page"] > span { 
+        background-color: #091E6E !important; color: white !important; border: none !important;
+        border-radius: 6px !important; padding: 4px 10px !important; font-size: 10px !important; font-weight: 800;
+        box-shadow: 0 4px 6px -1px rgba(9, 30, 110, 0.2);
+    }
+    .custom-pagination a, .custom-pagination span { 
+        border-radius: 6px !important; padding: 4px 10px !important; font-size: 10px !important;
+        font-weight: 700 !important; border: 1px solid #edf2f7 !important; color: #64748b;
+        transition: all 0.2s ease;
+    }
+    @media (min-width: 768px) {
+        .custom-pagination span[aria-current="page"] > span { padding: 6px 12px !important; font-size: 11px !important; }
+        .custom-pagination a, .custom-pagination span { padding: 6px 12px !important; font-size: 11px !important; }
+    }
+    .custom-pagination a:hover { background-color: #f8fafc !important; border-color: #091E6E !important; color: #091E6E !important; }
+</style>
+@endpush

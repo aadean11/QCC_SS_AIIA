@@ -7,6 +7,7 @@ use App\Models\Employee;
 use App\Models\QccCircle;
 use App\Models\Department;
 use App\Models\User;
+use App\Models\SsSubmission; // Import model SS
 
 class WelcomeController extends Controller
 {
@@ -25,21 +26,13 @@ class WelcomeController extends Controller
         // Ambil data employee dari relasi user (jika ada)
         $employee = $userAuth->employee;
         
-        // Untuk kompatibilitas view, kita tetap pakai variabel $user
-        // Jika employee tidak ditemukan, fallback ke data dari User (tabel users)
         if ($employee) {
             $user = $employee;
         } else {
-            // Jika tidak ada data employee, buat objek Employee kosong? 
-            // Atau bisa juga menggunakan User sebagai fallback, 
-            // tapi method getDeptCode() dll tidak tersedia.
-            // Solusi: redirect dengan error atau set user = userAuth (tabel users)
-            // Karena view mungkin membutuhkan properti seperti nama, npk, dan method getDeptCode()
-            // Lebih aman jika employee wajib ada. Jika tidak, arahkan ke halaman error.
             return redirect('/login')->with('error', 'Data karyawan tidak ditemukan. Hubungi administrator.');
         }
 
-        // Inisialisasi Query
+        // ========== FILTER QCC ==========
         $qccQuery = QccCircle::query();
         $viewScope = "All Company"; // Default Label
 
@@ -74,7 +67,37 @@ class WelcomeController extends Controller
         }
 
         $jumlahQcc = $qccQuery->count();
-        $jumlahSs = 0; // Sesuaikan dengan logika filter SS Anda nanti jika sudah ada tabelnya
+
+        // ========== FILTER SS (Suggestion System) ==========
+        $ssQuery = SsSubmission::query();
+
+        if ($activeRole !== 'admin') {
+            $deptCode = $user->getDeptCode();
+
+            if ($user->occupation === 'GMR') {
+                // GMR: Lihat semua SS dalam divisinya
+                $myDept = Department::where('code', $deptCode)->first();
+                $divCode = $myDept ? $myDept->code_division : null;
+                if ($divCode) {
+                    // Ambil semua kode departemen dalam divisi tersebut
+                    $deptCodesInDiv = Department::where('code_division', $divCode)->pluck('code');
+                    $ssQuery->whereIn('department_code', $deptCodesInDiv);
+                } else {
+                    $ssQuery->where('department_code', $deptCode); // fallback
+                }
+                // viewScope sudah diatur dari QCC, tidak diubah
+            } 
+            elseif (in_array($user->occupation, ['KDP', 'SPV'])) {
+                // KDP & SPV: Hanya departemen sendiri
+                $ssQuery->where('department_code', $deptCode);
+            } 
+            else {
+                // Employee biasa: Hanya SS yang diajukan sendiri
+                $ssQuery->where('employee_npk', $user->npk);
+            }
+        }
+
+        $jumlahSs = $ssQuery->count();
 
         return view('home', compact('user', 'jumlahQcc', 'jumlahSs', 'viewScope'));
     }

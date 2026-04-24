@@ -20,15 +20,25 @@ class KaryawanSsController extends Controller
         return Auth::check() && session('active_role') === 'employee';
     }
 
-    public function index()
+    public function index(Request $request)
     {
         if (!$this->checkAccess()) return redirect('/login');
         $employee = $this->getCurrentEmployee();
         if (!$employee) return redirect('/login')->with('error', 'Data karyawan tidak ditemukan.');
 
-        $submissions = SsSubmission::where('employee_npk', $employee->npk)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $perPage = $request->get('per_page', 10);
+        $search = $request->get('search');
+
+        $query = SsSubmission::where('employee_npk', $employee->npk);
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('notes', 'like', "%{$search}%")
+                  ->orWhere('status', 'like', "%{$search}%");
+            });
+        }
+
+        $submissions = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
         // Kirim sebagai $user agar layout welcome.blade.php bisa mengakses
         $user = $employee;
@@ -40,7 +50,6 @@ class KaryawanSsController extends Controller
     {
         if (!$this->checkAccess()) return redirect('/login');
         $user = $this->getCurrentEmployee();
-
         return view('ss.karyawan.create', compact('user'));
     }
 

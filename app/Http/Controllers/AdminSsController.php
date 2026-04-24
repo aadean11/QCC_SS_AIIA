@@ -24,12 +24,42 @@ class AdminSsController extends Controller
         if (!$this->checkAdmin()) abort(403);
         $user = $this->getUser();
 
+        // Statistik card
         $total = SsSubmission::count();
         $pendingScore = SsSubmission::whereNull('score')->count();
         $approved = SsSubmission::where('status', 'approved')->count();
         $rewarded = SsSubmission::where('status', 'rewarded')->count();
 
-        return view('ss.admin.dashboard', compact('user', 'total', 'pendingScore', 'approved', 'rewarded'));
+        // Data grafik batang: perkembangan SS per bulan (tahun berjalan)
+        $monthlyData = SsSubmission::selectRaw('DATE_FORMAT(submission_date, "%b") as month, COUNT(*) as total')
+            ->whereYear('submission_date', date('Y'))
+            ->groupBy('month')
+            ->orderByRaw('MIN(submission_date)')
+            ->get();
+
+        // Data grafik pie: distribusi status
+        $statusData = SsSubmission::selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->get();
+
+        // Mapping status ke label yang lebih rapi untuk grafik
+        $statusLabels = [
+            'submitted'   => 'Submitted',
+            'assessed'    => 'Assessed',
+            'spv_review'  => 'SPV Review',
+            'kdp_review'  => 'KDP Review',
+            'approved'    => 'Approved',
+            'rejected'    => 'Rejected',
+            'rewarded'    => 'Rewarded'
+        ];
+        foreach ($statusData as $item) {
+            $item->status_label = $statusLabels[$item->status] ?? $item->status;
+        }
+
+        return view('ss.admin.dashboard', compact(
+            'user', 'total', 'pendingScore', 'approved', 'rewarded',
+            'monthlyData', 'statusData'
+        ));
     }
 
     public function submissions(Request $request)
@@ -37,16 +67,24 @@ class AdminSsController extends Controller
         if (!$this->checkAdmin()) abort(403);
         $user = $this->getUser();
 
+        $perPage = $request->get('per_page', 20);
+        $search = $request->get('search');
+        $status = $request->get('status');
+
         $query = SsSubmission::with(['employee', 'spv', 'kdp']);
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
+        if ($status) {
+            $query->where('status', $status);
         }
-        if ($request->filled('department')) {
-            $query->where('department_code', $request->department);
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->whereHas('employee', function($sq) use ($search) {
+                    $sq->where('nama', 'like', "%{$search}%");
+                })->orWhere('department_code', 'like', "%{$search}%");
+            });
         }
 
-        $submissions = $query->orderBy('created_at', 'desc')->paginate(20);
+        $submissions = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
         return view('ss.admin.submissions', compact('user', 'submissions'));
     }
