@@ -15,7 +15,7 @@
         </nav>
     </div>
 
-    <!-- Stat Cards -->
+    <!-- Stat Cards (sama seperti sebelumnya) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8 text-left">
         <!-- Total SS -->
         <div class="glass-card py-2 px-3 sm:py-3 sm:px-4 md:py-4 md:px-6 rounded-[1.2rem] sm:rounded-[1.5rem] md:rounded-[2rem] shadow-sm border-l-4 border-blue-600 transition-all duration-300 hover:scale-[1.02] md:hover:scale-[1.05] hover:shadow-xl group relative overflow-hidden">
@@ -103,7 +103,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Data dari controller (diasumsikan sudah ada)
+        // Data dari controller
         const monthlyData = @json($monthlyData ?? []);
         const statusData = @json($statusData ?? []);
 
@@ -158,27 +158,37 @@
                 }
             });
         } else {
-            document.getElementById('monthlyChart').parentElement.innerHTML = '<div class="flex items-center justify-center h-full text-gray-400 italic">Belum ada data</div>';
+            const monthlyContainer = document.getElementById('monthlyChart').parentElement;
+            monthlyContainer.innerHTML = '<div class="flex items-center justify-center h-full text-gray-400 italic">Belum ada data</div>';
         }
 
-        // 2. Grafik Pie - Distribusi Status
+        // 2. Grafik Pie - Distribusi Status (warna berdasarkan status secara eksplisit)
         if (statusData.length > 0) {
+            // Mapping warna per status (sesuai dengan badge status di seluruh sistem)
+            const statusColorMap = {
+                'submitted': '#F59E0B',   // amber
+                'assessed': '#3B82F6',    // blue
+                'spv_review': '#8B5CF6',  // purple
+                'kdp_review': '#F97316',  // orange
+                'approved': '#10B981',    // green
+                'rejected': '#EF4444',    // red
+                'rewarded': '#059669'     // emerald
+            };
+
+            // Urutkan agar konsisten (opsional)
+            // Tapi yang penting warna diambil dari map berdasarkan status
+            const labels = statusData.map(item => item.status_label ?? item.status);
+            const values = statusData.map(item => item.count);
+            const backgroundColors = statusData.map(item => statusColorMap[item.status] || '#6B7280'); // default gray
+
             const ctxPie = document.getElementById('statusChart').getContext('2d');
             new Chart(ctxPie, {
                 type: 'pie',
                 data: {
-                    labels: statusData.map(item => item.status_label ?? item.status),
+                    labels: labels,
                     datasets: [{
-                        data: statusData.map(item => item.count),
-                        backgroundColor: [
-                            '#F59E0B', // submitted - amber
-                            '#3B82F6', // assessed - blue
-                            '#8B5CF6', // spv_review - purple
-                            '#F97316', // kdp_review - orange
-                            '#10B981', // approved - green
-                            '#EF4444', // rejected - red
-                            '#059669'  // rewarded - emerald
-                        ],
+                        data: values,
+                        backgroundColor: backgroundColors,
                         borderWidth: 0,
                     }]
                 },
@@ -211,7 +221,8 @@
                 }
             });
         } else {
-            document.getElementById('statusChart').parentElement.innerHTML = '<div class="flex items-center justify-center h-full text-gray-400 italic">Belum ada data</div>';
+            const statusContainer = document.getElementById('statusChart').parentElement;
+            statusContainer.innerHTML = '<div class="flex items-center justify-center h-full text-gray-400 italic">Belum ada data</div>';
         }
     });
 </script>

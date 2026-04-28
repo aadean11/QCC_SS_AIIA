@@ -70,8 +70,14 @@ class AuthController extends Controller
         session([
             'active_role' => ($type === 'admin' ? 'admin' : 'employee'),
             'login_as'    => $type,
-            // HAPUS 'auth_npk' -> TIDAK PERLU, karena Auth::user() sudah cukup
         ]);
+
+        // TAMBAHKAN SESSION UNTUK SELAMAT DATANG
+        if ($user->employee) {
+            session(['login_success' => $user->employee->nama]);
+        } else {
+            session(['login_success' => $user->npk]); // fallback jika tidak ada relasi employee
+        }
 
         return redirect()->intended('/welcome');
     }

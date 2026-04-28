@@ -13,7 +13,7 @@
         </ol>
     </nav>
 
-    <div class="max-w-2xl mx-auto">
+    <!-- <div class="max-w-2xl mx-auto"> -->
         <div class="glass-card rounded-[1.5rem] md:rounded-[2rem] shadow-sm border border-white overflow-hidden">
             <!-- Header Card dengan Gradient -->
             <div class="sidebar-gradient px-4 md:px-8 py-4 md:py-6">
@@ -47,7 +47,7 @@
                     <!-- Aksi Tombol -->
                     <div class="flex justify-end gap-3 pt-2 border-t border-gray-100">
                         <a href="{{ route('ss.admin.show', $submission->id) }}" class="px-5 py-2.5 border border-gray-300 rounded-xl text-gray-700 font-medium text-sm hover:bg-gray-50 transition-all duration-200 flex items-center gap-2">
-                            <i class="fa-regular fa-ban mr-1"></i> Batal
+                            <i class="fa-solid fa-ban mr-1"></i> Batal
                         </a>
                         <button type="submit" class="px-5 py-2.5 bg-orange-600 text-white rounded-xl font-bold text-sm hover:bg-orange-700 transition-all duration-200 shadow-md flex items-center gap-2">
                             <i class="fa-regular fa-paper-plane"></i> Kirim Review
@@ -56,6 +56,6 @@
                 </form>
             </div>
         </div>
-    </div>
+    <!-- </div> -->
 </div>
 @endsection

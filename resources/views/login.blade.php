@@ -94,13 +94,13 @@
         </div>
     </main>
 
-    <!-- MODAL PILIH AKSES: Menyesuaikan lebar agar tidak overflow di mobile -->
+    <!-- MODAL PILIH AKSES - PERBAIKAN: tambahkan parameter id pada closeModal -->
     <div id="modalRole" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl animate-reveal overflow-hidden">
                 <div class="btn-gradient p-6 text-white flex justify-between items-center">
                     <h3 class="text-lg md:text-xl font-bold uppercase tracking-widest">Pilih Akses</h3>
-                    <button onclick="closeModal()" class="text-white/70 hover:text-white text-2xl">&times;</button>
+                    <button onclick="closeModal('modalRole')" class="text-white/70 hover:text-white text-2xl">&times;</button>
                 </div>
                 <div class="p-6 md:p-8 space-y-4 md:space-y-6">
                     <div class="text-center mb-2">
@@ -130,13 +130,14 @@
                         </button>
                     </div>
 
-                    <button onclick="closeModal()" class="w-full py-4 bg-gray-100 text-gray-500 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-gray-200 transition-all">Batal</button>
+                    <!-- Tombol batal: perbaiki dengan closeModal('modalRole') -->
+                    <button onclick="closeModal('modalRole')" class="w-full py-4 bg-gray-100 text-gray-500 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-gray-200 transition-all">Batal</button>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- MODAL FORGOT PASSWORD (DESAIN DISAMAKAN) -->
+    <!-- MODAL FORGOT PASSWORD -->
     <div id="modalForgot" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="bg-white rounded-[2rem] w-full max-w-md shadow-2xl animate-reveal overflow-hidden">
@@ -207,14 +208,13 @@
             }
         });
 
-        // FORGOT PASSWORD dengan konfirmasi SweetAlert
+        // FORGOT PASSWORD
         document.getElementById('formForgot').addEventListener('submit', async function(e) {
             e.preventDefault();
             const npk = document.getElementById('forgot_npk').value;
             const pass = document.getElementById('new_pass').value;
             const confirm = document.getElementById('confirm_pass').value;
 
-            // Validasi client-side
             if (npk.trim() === '') {
                 Swal.fire({ icon: 'error', title: 'Gagal', text: 'NPK tidak boleh kosong.' });
                 return;
@@ -228,7 +228,6 @@
                 return;
             }
 
-            // Konfirmasi dengan SweetAlert
             const result = await Swal.fire({
                 title: 'Konfirmasi Reset Password',
                 text: `Apakah Anda yakin ingin mereset password untuk NPK ${npk}?`,
@@ -242,7 +241,6 @@
 
             if (!result.isConfirmed) return;
 
-            // Kirim request ke server
             try {
                 const response = await fetch("{{ route('password.forgot') }}", {
                     method: 'POST',
@@ -253,7 +251,6 @@
                 if (data.status === 'success') {
                     await Swal.fire({ icon: 'success', title: 'Berhasil', text: data.message });
                     closeModal('modalForgot');
-                    // Reset form
                     document.getElementById('formForgot').reset();
                 } else {
                     Swal.fire({ icon: 'error', title: 'Gagal', text: data.message });

@@ -150,7 +150,8 @@ class AdminSsController extends Controller
         $submission->spv_notes = $request->spv_notes;
         $submission->spv_status = $request->action;
         $submission->spv_approved_at = now();
-        $submission->spv_id = Auth::user()->employee->id ?? null;
+        // Ganti spv_id dengan spv_npk
+        $submission->spv_npk = Auth::user()->employee->npk ?? null;
 
         if ($request->action === 'approved') {
             $submission->status = 'kdp_review';
@@ -186,7 +187,8 @@ class AdminSsController extends Controller
         $submission->kdp_notes = $request->kdp_notes;
         $submission->kdp_status = $request->action;
         $submission->kdp_approved_at = now();
-        $submission->kdp_id = Auth::user()->employee->id ?? null;
+        // Ganti kdp_id dengan kdp_npk
+        $submission->kdp_npk = Auth::user()->employee->npk ?? null;
 
         if ($request->action === 'approved') {
             $submission->status = 'approved';

@@ -33,7 +33,7 @@
                     @endif
                     @if($submission->status == 'kdp_review')
                         <a href="{{ route('ss.admin.review_kdp.form', $submission->id) }}" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 md:px-4 md:py-1.5 rounded-xl text-xs md:text-sm font-semibold transition shadow-md flex items-center gap-1">
-                            <i class="fa-regular fa-user-check"></i> Review KDP
+                            <i class="fa-solid fa-user-check"></i> Review KDP
                         </a>
                     @endif
                     @if($submission->status == 'approved' && is_null($submission->reward_amount))

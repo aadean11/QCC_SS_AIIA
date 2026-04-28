@@ -634,6 +634,21 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            // TAMPILKAN SWEETALERT SELAMAT DATANG (HANYA SEKALI SETELAH LOGIN)
+            @if(session('login_success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Selamat Datang!',
+                    text: '{{ session('login_success') }}',
+                    confirmButtonColor: '#091E6E',
+                    timer: 3000,
+                    showConfirmButton: false,
+                    backdrop: true
+                });
+                @php session()->forget('login_success'); @endphp
+            @endif
+
+            // FLASH MESSAGE LAINNYA (SUCCESS, ERROR, WARNING, INFO)
             @if(session('success'))
                 Swal.fire({ icon: 'success', title: 'Berhasil!', text: "{{ session('success') }}", confirmButtonColor: '#091E6E', scrollbarPadding: false });
             @endif
