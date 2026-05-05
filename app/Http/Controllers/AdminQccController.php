@@ -6,6 +6,7 @@ use App\Models\Department;
 use App\Models\Division;
 use App\Models\Employee;
 use App\Models\QccCircle;
+use App\Models\QccTheme;
 use App\Models\QccCircleStepTransaction;
 use App\Models\QccPeriod;
 use App\Models\QccPeriodStep;
@@ -460,9 +461,34 @@ class AdminQccController extends Controller
         return redirect()->back()->with('success', 'Data periode berhasil diperbarui!');
     }
 
+    // public function deletePeriod($id)
+    // {
+    //     QccPeriod::destroy($id);
+    //     return redirect()->back()->with('success', 'Periode berhasil dihapus!');
+    // }
+
     public function deletePeriod($id)
     {
-        QccPeriod::destroy($id);
+        $period = QccPeriod::findOrFail($id);
+
+        DB::transaction(function () use ($period) {
+            QccPeriodStep::where('qcc_period_id', $period->id)->delete();
+
+            $circles = QccCircle::where('qcc_period_id', $period->id)->get();
+            foreach ($circles as $circle) {
+                
+                QccCircleStepTransaction::where('qcc_circle_id', $circle->id)->delete();
+           
+                QccTheme::where('qcc_circle_id', $circle->id)->delete();
+
+                $circle->delete();
+            }
+
+            QccTarget::where('qcc_period_id', $period->id)->delete();
+
+            $period->delete();
+        });
+
         return redirect()->back()->with('success', 'Periode berhasil dihapus!');
     }
 
