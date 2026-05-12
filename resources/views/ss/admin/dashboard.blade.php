@@ -8,14 +8,52 @@
     <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-3 gap-4">
         <nav class="flex text-xs md:text-sm text-gray-400">
             <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                <li class="inline-flex items-center text-gray-400">SS</li>
+                <li class="inline-flex items-center text-gray-400">Monitoring SS</li>
                 <li><i class="fa-solid fa-chevron-right text-[8px] md:text-[10px] mx-1 md:mx-2"></i></li>
-                <li class="text-[#091E6E] font-semibold tracking-tight uppercase text-[10px] md:text-xs">Dashboard</li>
+                <li class="text-[#091E6E] font-semibold tracking-tight uppercase text-[10px] md:text-xs">Dashboard SS</li>
             </ol>
         </nav>
     </div>
 
-    <!-- Stat Cards (sama seperti sebelumnya) -->
+    <!-- FILTER SECTION (bulan, tahun, departemen) -->
+    <div class="flex flex-col md:flex-row justify-end items-start md:items-center mb-6 gap-4">
+        <div class="w-full md:w-auto overflow-x-auto">
+            <div class="flex bg-gray-200/50 p-1 rounded-2xl w-fit border border-gray-100 shadow-inner">
+                <form method="GET" action="{{ route('ss.admin.dashboard') }}" id="filterForm" class="flex flex-col sm:flex-row gap-2 sm:gap-3 p-1">
+                    <!-- Filter Departemen -->
+                    <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-gray-200">
+                        <i class="fa-regular fa-building text-blue-500 text-xs"></i>
+                        <select name="department_code" onchange="this.form.submit()" class="text-xs font-bold text-[#091E6E] outline-none bg-transparent cursor-pointer">
+                            <option value="">Semua Departemen</option>
+                            @foreach($departments as $dept)
+                                <option value="{{ $dept->code }}" {{ $selectedDept == $dept->code ? 'selected' : '' }}>{{ $dept->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <!-- Filter Bulan -->
+                    <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-gray-200">
+                        <i class="fa-regular fa-calendar text-blue-500 text-xs"></i>
+                        <select name="month" onchange="this.form.submit()" class="text-xs font-bold text-[#091E6E] outline-none bg-transparent cursor-pointer">
+                            @foreach($months as $num => $name)
+                                <option value="{{ $num }}" {{ $selectedMonth == $num ? 'selected' : '' }}>{{ $name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <!-- Filter Tahun -->
+                    <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-gray-200">
+                        <i class="fa-regular fa-calendar-alt text-blue-500 text-xs"></i>
+                        <select name="year" onchange="this.form.submit()" class="text-xs font-bold text-[#091E6E] outline-none bg-transparent cursor-pointer">
+                            @foreach($years as $y)
+                                <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }}>{{ $y }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stat Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8 text-left">
         <!-- Total SS -->
         <div class="glass-card py-2 px-3 sm:py-3 sm:px-4 md:py-4 md:px-6 rounded-[1.2rem] sm:rounded-[1.5rem] md:rounded-[2rem] shadow-sm border-l-4 border-blue-600 transition-all duration-300 hover:scale-[1.02] md:hover:scale-[1.05] hover:shadow-xl group relative overflow-hidden">
@@ -76,20 +114,22 @@
 
     <!-- Charts Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
-        <!-- Grafik Perkembangan SS per Bulan -->
+        <!-- Grafik Perkembangan SS per Bulan (dalam tahun terfilter) -->
         <div class="glass-card rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-6 shadow-sm border border-white relative overflow-hidden">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
                 <h2 class="text-base md:text-lg font-bold text-[#091E6E] uppercase tracking-tight">Perkembangan SS per Bulan</h2>
+                <p class="text-[10px] text-gray-400 italic">Tahun {{ $selectedYear }} @if($selectedDept) - {{ $departments->firstWhere('code', $selectedDept)->name ?? $selectedDept }} @endif</p>
             </div>
             <div class="relative w-full h-[250px] md:h-[300px]">
                 <canvas id="monthlyChart"></canvas>
             </div>
         </div>
 
-        <!-- Distribusi Status SS -->
+        <!-- Distribusi Status SS (pada bulan & tahun terfilter) -->
         <div class="glass-card rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-6 shadow-sm border border-white relative overflow-hidden">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
                 <h2 class="text-base md:text-lg font-bold text-[#091E6E] uppercase tracking-tight">Distribusi Status</h2>
+                <p class="text-[10px] text-gray-400 italic">{{ $months[$selectedMonth] }} {{ $selectedYear }} @if($selectedDept) - {{ $departments->firstWhere('code', $selectedDept)->name ?? $selectedDept }} @endif</p>
             </div>
             <div class="relative w-full h-[250px] md:h-[300px]">
                 <canvas id="statusChart"></canvas>
@@ -107,7 +147,7 @@
         const monthlyData = @json($monthlyData ?? []);
         const statusData = @json($statusData ?? []);
 
-        // 1. Grafik Batang - Perkembangan SS per Bulan
+        // 1. Grafik Batang - Perkembangan SS per Bulan (tahun & departemen terfilter)
         if (monthlyData.length > 0) {
             const ctxBar = document.getElementById('monthlyChart').getContext('2d');
             new Chart(ctxBar, {
@@ -159,27 +199,24 @@
             });
         } else {
             const monthlyContainer = document.getElementById('monthlyChart').parentElement;
-            monthlyContainer.innerHTML = '<div class="flex items-center justify-center h-full text-gray-400 italic">Belum ada data</div>';
+            monthlyContainer.innerHTML = '<div class="flex items-center justify-center h-full text-gray-400 italic">Tidak ada data untuk tahun ini</div>';
         }
 
-        // 2. Grafik Pie - Distribusi Status (warna berdasarkan status secara eksplisit)
+        // 2. Grafik Pie - Distribusi Status (berdasarkan filter bulan, tahun, departemen)
         if (statusData.length > 0) {
             // Mapping warna per status (sesuai dengan badge status di seluruh sistem)
             const statusColorMap = {
-                'submitted': '#F59E0B',   // amber
-                'assessed': '#3B82F6',    // blue
-                'spv_review': '#8B5CF6',  // purple
-                'kdp_review': '#F97316',  // orange
-                'approved': '#10B981',    // green
-                'rejected': '#EF4444',    // red
-                'rewarded': '#059669'     // emerald
+                'submitted': '#F59E0B',
+                'assessed': '#3B82F6',
+                'spv_review': '#8B5CF6',
+                'kdp_review': '#F97316',
+                'approved': '#10B981',
+                'rejected': '#EF4444',
+                'rewarded': '#059669'
             };
-
-            // Urutkan agar konsisten (opsional)
-            // Tapi yang penting warna diambil dari map berdasarkan status
             const labels = statusData.map(item => item.status_label ?? item.status);
             const values = statusData.map(item => item.count);
-            const backgroundColors = statusData.map(item => statusColorMap[item.status] || '#6B7280'); // default gray
+            const backgroundColors = statusData.map(item => statusColorMap[item.status] || '#6B7280');
 
             const ctxPie = document.getElementById('statusChart').getContext('2d');
             new Chart(ctxPie, {
@@ -222,7 +259,7 @@
             });
         } else {
             const statusContainer = document.getElementById('statusChart').parentElement;
-            statusContainer.innerHTML = '<div class="flex items-center justify-center h-full text-gray-400 italic">Belum ada data</div>';
+            statusContainer.innerHTML = '<div class="flex items-center justify-center h-full text-gray-400 italic">Tidak ada data untuk periode ini</div>';
         }
     });
 </script>

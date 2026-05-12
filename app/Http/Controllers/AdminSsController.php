@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SsSubmission;
+use App\Models\Department;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -19,30 +20,46 @@ class AdminSsController extends Controller
         return $user ? $user->employee : null;
     }
 
-    public function dashboard()
+    public function dashboard(Request $request)
     {
         if (!$this->checkAdmin()) abort(403);
         $user = $this->getUser();
 
-        // Statistik card
-        $total = SsSubmission::count();
-        $pendingScore = SsSubmission::whereNull('score')->count();
-        $approved = SsSubmission::where('status', 'approved')->count();
-        $rewarded = SsSubmission::where('status', 'rewarded')->count();
+        // Ambil filter
+        $selectedMonth = (int) $request->get('month', date('m'));
+        $selectedYear = (int) $request->get('year', date('Y'));
+        $selectedDept = $request->get('department_code'); // bisa null
 
-        // Data grafik batang: perkembangan SS per bulan (tahun berjalan)
-        $monthlyData = SsSubmission::selectRaw('DATE_FORMAT(submission_date, "%b") as month, COUNT(*) as total')
-            ->whereYear('submission_date', date('Y'))
+        // Query dasar dengan filter tahun, bulan, dan departemen (opsional)
+        $query = SsSubmission::whereYear('submission_date', $selectedYear)
+                            ->whereMonth('submission_date', $selectedMonth);
+
+        if ($selectedDept) {
+            $query->where('department_code', $selectedDept);
+        }
+
+        // Statistik card
+        $total = (clone $query)->count();
+        $pendingScore = (clone $query)->whereNull('score')->count();
+        $approved = (clone $query)->where('status', 'approved')->count();
+        $rewarded = (clone $query)->where('status', 'rewarded')->count();
+
+        // Data grafik batang: perkembangan SS per bulan pada tahun dan departemen terfilter
+        $monthlyQuery = SsSubmission::whereYear('submission_date', $selectedYear);
+        if ($selectedDept) {
+            $monthlyQuery->where('department_code', $selectedDept);
+        }
+        $monthlyData = $monthlyQuery->selectRaw('DATE_FORMAT(submission_date, "%b") as month, COUNT(*) as total')
             ->groupBy('month')
             ->orderByRaw('MIN(submission_date)')
             ->get();
 
-        // Data grafik pie: distribusi status
-        $statusData = SsSubmission::selectRaw('status, COUNT(*) as count')
+        // Data grafik pie: distribusi status berdasarkan semua filter
+        $statusData = (clone $query)->selectRaw('status, COUNT(*) as count')
             ->groupBy('status')
             ->get();
 
-        // Mapping status ke label yang lebih rapi untuk grafik
+        // Mapping status label
         $statusLabels = [
             'submitted'   => 'Submitted',
             'assessed'    => 'Assessed',
@@ -56,9 +73,19 @@ class AdminSsController extends Controller
             $item->status_label = $statusLabels[$item->status] ?? $item->status;
         }
 
+        // Data untuk dropdown
+        $months = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+        $years = range(date('Y') - 5, date('Y'));
+        $departments = Department::orderBy('name')->get(); // pastikan kolom 'code' dan 'name' ada
+
         return view('ss.admin.dashboard', compact(
             'user', 'total', 'pendingScore', 'approved', 'rewarded',
-            'monthlyData', 'statusData'
+            'monthlyData', 'statusData', 'selectedMonth', 'selectedYear', 'selectedDept',
+            'months', 'years', 'departments'
         ));
     }
 

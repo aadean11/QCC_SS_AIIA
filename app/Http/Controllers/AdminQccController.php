@@ -388,15 +388,20 @@ class AdminQccController extends Controller
         $perPage = $request->get('per_page', 10);
         $search = $request->get('search');
 
-        $periods = QccPeriod::with('periodSteps.step')
-            ->when($search, function ($query) use ($search) {
-                $query->where('period_name', 'like', "%{$search}%")
-                      ->orWhere('period_code', 'like', "%{$search}%")
-                      ->orWhere('year', 'like', "%{$search}%");
-            })
-            ->orderBy('year', 'desc')
-            ->paginate($perPage)
-            ->withQueryString();
+        // 🔧 PERBAIKAN: Urutkan periodSteps berdasarkan step_number (ascending)
+        $periods = QccPeriod::with(['periodSteps' => function($query) {
+            $query->join('m_qcc_steps', 'm_qcc_period_steps.qcc_step_id', '=', 'm_qcc_steps.id')
+                ->orderBy('m_qcc_steps.step_number', 'asc')
+                ->select('m_qcc_period_steps.*'); // hindari konflik kolom id
+        }, 'periodSteps.step'])
+        ->when($search, function ($query) use ($search) {
+            $query->where('period_name', 'like', "%{$search}%")
+                ->orWhere('period_code', 'like', "%{$search}%")
+                ->orWhere('year', 'like', "%{$search}%");
+        })
+        ->orderBy('year', 'desc')
+        ->paginate($perPage)
+        ->withQueryString();
 
         $masterSteps = QccStep::orderBy('step_number', 'asc')->get();
 
