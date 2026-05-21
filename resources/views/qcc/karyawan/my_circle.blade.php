@@ -4,14 +4,10 @@
 
 @section('content')
 <div class="animate-reveal">
-    <!-- Breadcrumb -->
-    <nav class="flex mb-4 md:mb-6 text-xs md:text-sm text-gray-400">
-        <ol class="inline-flex items-center space-x-1 md:space-x-3">
-            <li class="inline-flex items-center">Monitoring QCC</li>
-            <li><i class="fa-solid fa-chevron-right text-[8px] md:text-[10px] mx-1 md:mx-2"></i></li>
-            <li class="text-[#091E6E] font-semibold tracking-tight text-[10px] md:text-xs">Circle QCC Saya</li>
-        </ol>
-    </nav>
+    @include('partials.breadcrumb', ['items' => [
+        ['label' => 'Circle QCC Saya', 'icon' => 'fa-solid fa-users-gear'],
+        'Master Circle & Member',
+    ]])
 
     <!-- INFO DOWNLOAD TEMPLATE STEP 0 (TAMBAHAN BARU) -->
     @if($step0Master && $step0Master->template_file_path)

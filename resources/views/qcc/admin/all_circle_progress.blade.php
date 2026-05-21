@@ -4,14 +4,10 @@
 
 @section('content')
 <div class="animate-reveal pb-20">
-    <!-- Breadcrumb (Tetap Sama) -->
-    <nav class="flex mb-4 md:mb-6 text-xs md:text-sm text-gray-400">
-        <ol class="inline-flex items-center space-x-1 md:space-x-3 text-gray-400">
-            <li class="inline-flex items-center">Monitoring QCC</li>
-            <li><i class="fa-solid fa-chevron-right text-[8px] md:text-[10px] mx-1 md:mx-2"></i></li>
-            <li class="text-[#091E6E] font-semibold text-[10px] md:text-xs">Seluruh Progres Circle</li>
-        </ol>
-    </nav>
+    @include('partials.breadcrumb', ['items' => [
+        ['label' => 'Monitoring QCC', 'icon' => 'fa-solid fa-people-group'],
+        'Progress Circle',
+    ]])
 
     <!-- Filter Area (Tetap Sama) -->
     <div class="glass-card rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-6 mb-6 md:mb-8 border border-white shadow-sm">

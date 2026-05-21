@@ -19,7 +19,40 @@ class Employee extends Model
     public $timestamps = false; // asumsikan tidak ada created_at/updated_at
 
     protected $fillable = [
-        'nama', 'npk', 'line_code', 'sub_section', 'occupation',
+        'nama',
+        'npk',
+        'phone',
+        'line_code',
+        'sub_section',
+        'occupation',
+        'transport',
+        'status_emp',
+        'employment_status',
+        'gp',
+        'quota_used_1',
+        'quota_remain_1',
+        'quota_used_2',
+        'quota_remain_2',
+        'quota_used_3',
+        'quota_remain_3',
+        'quota_used_4',
+        'quota_remain_4',
+        'quota_used_5',
+        'quota_remain_5',
+        'quota_used_6',
+        'quota_remain_6',
+        'quota_used_7',
+        'quota_remain_7',
+        'quota_used_8',
+        'quota_remain_8',
+        'quota_used_9',
+        'quota_remain_9',
+        'quota_used_10',
+        'quota_remain_10',
+        'quota_used_11',
+        'quota_remain_11',
+        'quota_used_12',
+        'quota_remain_12',
     ];
 
     // Relasi ke User (kebalikan dari User::employee)
@@ -84,6 +117,7 @@ class Employee extends Model
             ->orWhereHas('section', function($sq) use ($deptCode) {
                 $sq->where('code_department', $deptCode);
             })
+            ->orWhere('line_code', $deptCode)
             ->orWhereIn('npk', function($sq) use ($deptCode) {
                 $sq->select('npk')
                     ->from('m_departments')

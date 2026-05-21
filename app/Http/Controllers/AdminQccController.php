@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class AdminQccController extends Controller
 {
@@ -585,26 +586,18 @@ class AdminQccController extends Controller
 
     public function storeEmployee(Request $request)
     {
-        $request->validate([
-            'npk' => 'required|unique:m_employees,npk',
-            'nama' => 'required|string|max:255',
-            'line_code' => 'required',
-            'sub_section' => 'required',
-            'occupation' => 'required',
-        ]);
+        $validated = $request->validate($this->employeeRules(), $this->employeeMessages());
 
-        Employee::create($request->all());
+        Employee::create($this->employeePayload($validated, true));
         return redirect()->back()->with('success', 'Karyawan baru berhasil ditambahkan!');
     }
 
     public function updateEmployee(Request $request, $id)
     {
         $emp = Employee::findOrFail($id);
-        $request->validate([
-            'npk' => 'required|unique:m_employees,npk,'.$id,
-            'nama' => 'required',
-        ]);
-        $emp->update($request->all());
+        $validated = $request->validate($this->employeeRules($emp->id), $this->employeeMessages());
+
+        $emp->update($this->employeePayload($validated));
         return redirect()->back()->with('success', 'Data karyawan berhasil diperbarui!');
     }
 
@@ -612,6 +605,61 @@ class AdminQccController extends Controller
     {
         Employee::destroy($id);
         return redirect()->back()->with('success', 'Data karyawan telah dihapus.');
+    }
+
+    private function employeeRules(?int $employeeId = null): array
+    {
+        return [
+            'npk' => [
+                'required',
+                'string',
+                'max:6',
+                'regex:/^[A-Za-z0-9._-]+$/',
+                Rule::unique('m_employees', 'npk')->ignore($employeeId),
+            ],
+            'nama' => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:255', 'regex:/^[0-9+().\s-]+$/'],
+            'line_code' => ['required', 'string', 'max:255'],
+            'sub_section' => ['required', 'string', Rule::exists('m_sub_sections', 'code')],
+            'occupation' => ['required', 'string', Rule::exists('m_occupations', 'code')],
+            'transport' => ['required', 'string', 'max:255'],
+            'status_emp' => ['required', 'string', 'max:255'],
+            'employment_status' => ['required', 'string', 'max:255'],
+        ];
+    }
+
+    private function employeeMessages(): array
+    {
+        return [
+            'npk.required' => 'NPK wajib diisi.',
+            'npk.unique' => 'NPK sudah terdaftar.',
+            'npk.regex' => 'NPK hanya boleh berisi huruf, angka, titik, underscore, dan strip.',
+            'nama.required' => 'Nama lengkap wajib diisi.',
+            'line_code.required' => 'Dept / Line Code wajib diisi.',
+            'sub_section.required' => 'Sub-Section wajib dipilih.',
+            'sub_section.exists' => 'Sub-Section yang dipilih tidak valid.',
+            'occupation.required' => 'Jabatan wajib dipilih.',
+            'occupation.exists' => 'Jabatan yang dipilih tidak valid.',
+            'phone.required' => 'Nomor WA wajib diisi.',
+            'phone.regex' => 'Nomor WA hanya boleh berisi angka dan simbol nomor telepon.',
+            'transport.required' => 'Transport wajib diisi.',
+            'status_emp.required' => 'Status karyawan wajib diisi.',
+            'employment_status.required' => 'Status employment wajib diisi.',
+        ];
+    }
+
+    private function employeePayload(array $validated, bool $withDefaults = false): array
+    {
+        if (!$withDefaults) {
+            return $validated;
+        }
+
+        for ($month = 1; $month <= 12; $month++) {
+            $validated["quota_used_{$month}"] = 0;
+            $validated["quota_remain_{$month}"] = 0;
+        }
+
+        return $validated;
     }
 
     public function allCircleProgress(Request $request)

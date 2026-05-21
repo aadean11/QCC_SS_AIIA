@@ -8,13 +8,10 @@
     <!-- HEADER SECTION -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6">
         <div>
-            <nav class="flex mb-2 text-xs uppercase tracking-widest text-gray-400 font-bold">
-                <ol class="inline-flex items-center space-x-2">
-                    <li>Home</li>
-                    <li><i class="fa-solid fa-chevron-right text-[8px]"></i></li>
-                    <li class="text-[#091E6E]">Dashboard Overview</li>
-                </ol>
-            </nav>
+            @include('partials.breadcrumb', ['items' => [
+                ['label' => 'Beranda', 'icon' => 'fa-solid fa-house'],
+                'Dashboard Overview',
+            ]])
 
             <h2 class="text-2xl md:text-3xl font-black text-[#091E6E]">
                 Statistik Performa Utama

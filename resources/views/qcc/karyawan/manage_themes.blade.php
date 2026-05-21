@@ -4,18 +4,11 @@
 
 @section('content')
 <div class="animate-reveal">
-    <!-- Breadcrumb -->
-    <nav class="flex mb-4 md:mb-6 text-xs md:text-sm text-gray-400">
-        <ol class="inline-flex items-center space-x-1 md:space-x-3">
-            <li class="inline-flex items-center">
-                <i class="fa-solid fa-house mr-2 text-[10px] md:text-xs"></i> Monitoring QCC
-            </li>
-            <li><i class="fa-solid fa-chevron-right text-[8px] md:text-[10px] mx-1 md:mx-2"></i></li>
-            <li><a href="{{ route('qcc.karyawan.my_circle') }}" class="hover:text-[#091E6E] transition-colors text-[10px] md:text-xs">Circle Saya</a></li>
-            <li><i class="fa-solid fa-chevron-right text-[8px] md:text-[10px] mx-1 md:mx-2"></i></li>
-            <li class="text-[#091E6E] font-semibold tracking-tight text-[10px] md:text-xs">Manajemen Tema</li>
-        </ol>
-    </nav>
+    @include('partials.breadcrumb', ['items' => [
+        ['label' => 'Circle QCC Saya', 'icon' => 'fa-solid fa-users-gear'],
+        ['label' => 'Master Circle & Member', 'url' => route('qcc.karyawan.my_circle')],
+        'Master Tema',
+    ]])
 
     <!-- Header & Search Controls -->
     <div class="flex flex-col xl:flex-row justify-between items-start xl:items-end mb-6 md:mb-8 gap-6">

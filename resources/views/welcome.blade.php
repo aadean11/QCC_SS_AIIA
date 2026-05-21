@@ -14,6 +14,19 @@
         .sidebar-gradient { background: linear-gradient(180deg, #091E6E 0%, #130998 100%); transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; overflow-x: hidden; }
         .sidebar-collapsed { width: 5rem !important; overflow: visible !important; }
         .sidebar-collapsed .badge-number { display: none !important; }
+        .sidebar-collapsed .approval-badge {
+            position: absolute;
+            top: -0.25rem;
+            right: -0.25rem;
+            width: 0.65rem;
+            height: 0.65rem;
+            min-width: 0;
+            padding: 0;
+            border: 2px solid #091E6E;
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.15);
+        }
+        .sidebar-collapsed .approval-badge .approval-count { display: none; }
+        .sidebar-collapsed .approval-badge .approval-dot { display: block; width: 100%; height: 100%; }
         .sidebar-collapsed .sidebar-link .relative { margin-right: 0 !important; }
         .sidebar-collapsed .sidebar-link .relative span.bg-red-500 { top: -2px !important; right: -2px !important; width: 10px !important; height: 10px !important; }
         .sidebar-collapsed .menu-text, .sidebar-collapsed .sidebar-header-text, .sidebar-collapsed .sidebar-footer, .sidebar-collapsed .dropdown-arrow { display: none; }
@@ -119,6 +132,41 @@
             min-width: 1.5rem;
             text-align: center;
         }
+        .approval-badge {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1.45rem;
+            height: 1.25rem;
+            padding: 0 0.45rem;
+            border-radius: 9999px;
+            background: #EF4444;
+            color: white;
+            font-size: 0.65rem;
+            line-height: 1;
+            font-weight: 800;
+            box-shadow: 0 6px 14px rgba(239, 68, 68, 0.28);
+        }
+        .approval-dot { display: none; border-radius: 9999px; background: #EF4444; }
+        .icon-box.has-approval { position: relative; }
+        .icon-box.has-approval .approval-badge {
+            position: absolute;
+            top: -0.45rem;
+            right: -0.45rem;
+            margin-left: 0;
+        }
+        .floating-submenu .approval-badge {
+            display: inline-flex !important;
+            position: static !important;
+            width: auto !important;
+            height: 1.25rem !important;
+            min-width: 1.45rem !important;
+            padding: 0 0.45rem !important;
+            border: 0 !important;
+        }
+        .floating-submenu .approval-badge .approval-count { display: inline !important; }
+        .floating-submenu .approval-badge .approval-dot { display: none !important; }
     </style>
     <script>
         (function() {
@@ -183,8 +231,14 @@
                         <div class="relative group" data-submenu="qccSubmenu">
                             <button type="button" class="sidebar-link w-full justify-between dropdown-toggle {{ request()->is('qcc/admin*') || request()->is('qcc/approval*') || request()->is('qcc/dashboard*') ? 'bg-white/10' : '' }}" data-dropdown="qcc">
                                 <div class="flex items-center gap-3">
-                                    <div class="icon-box">
+                                    <div class="icon-box {{ ($countQccApproval ?? 0) > 0 ? 'has-approval' : '' }}">
                                         <i class="fa-solid fa-people-group text-blue-200"></i>
+                                        @if(($countQccApproval ?? 0) > 0)
+                                            <span class="approval-badge" title="{{ $countQccApproval }} approval QCC menunggu">
+                                                <span class="approval-count">{{ $countQccApproval }}</span>
+                                                <span class="approval-dot"></span>
+                                            </span>
+                                        @endif
                                     </div>
                                     <span class="menu-text font-medium whitespace-nowrap">Monitoring QCC</span>
                                 </div>
@@ -232,14 +286,20 @@
                                         <i class="fa-solid fa-user-check"></i>
                                         <span class="menu-text">Approve Circle</span>
                                         @if(isset($countCircle) && $countCircle > 0)
-                                            <span class="badge-number">{{ $countCircle }}</span>
+                                            <span class="approval-badge" title="{{ $countCircle }} circle menunggu approval">
+                                                <span class="approval-count">{{ $countCircle }}</span>
+                                                <span class="approval-dot"></span>
+                                            </span>
                                         @endif
                                     </a>
                                     <a href="{{ route('qcc.approval.progress') }}" class="{{ request()->is('*/approval/progress*') ? 'font-bold' : '' }}">
                                         <i class="fa-solid fa-file-signature"></i>
                                         <span class="menu-text">Approve Progres</span>
                                         @if(isset($countProgress) && $countProgress > 0)
-                                            <span class="badge-number">{{ $countProgress }}</span>
+                                            <span class="approval-badge" title="{{ $countProgress }} progress menunggu approval">
+                                                <span class="approval-count">{{ $countProgress }}</span>
+                                                <span class="approval-dot"></span>
+                                            </span>
                                         @endif
                                     </a>
                                 @endif
@@ -305,8 +365,14 @@
                         <div class="relative group" data-submenu="ssSubmenu">
                             <button type="button" class="sidebar-link w-full justify-between dropdown-toggle {{ request()->is('ss/admin*') ? 'bg-white/10' : '' }}" data-dropdown="ss">
                                 <div class="flex items-center gap-3">
-                                    <div class="icon-box">
+                                    <div class="icon-box {{ ($countSsApproval ?? 0) > 0 ? 'has-approval' : '' }}">
                                         <i class="fa-regular fa-lightbulb text-blue-200"></i>
+                                        @if(($countSsApproval ?? 0) > 0)
+                                            <span class="approval-badge" title="{{ $countSsApproval }} approval SS menunggu">
+                                                <span class="approval-count">{{ $countSsApproval }}</span>
+                                                <span class="approval-dot"></span>
+                                            </span>
+                                        @endif
                                     </div>
                                     <span class="menu-text font-medium whitespace-nowrap">Monitoring SS</span>
                                 </div>
@@ -326,6 +392,22 @@
                                 <a href="{{ route('ss.admin.submissions', ['status' => 'assessed']) }}" class="{{ request()->is('ss/admin/submissions*') && request()->get('status') == 'assessed' ? 'font-bold' : '' }}">
                                     <i class="fa-solid fa-check-double"></i>
                                     <span class="menu-text">Penilaian (Need SPV)</span>
+                                    @if(($countSsSpvApproval ?? 0) > 0)
+                                        <span class="approval-badge" title="{{ $countSsSpvApproval }} SS butuh review SPV">
+                                            <span class="approval-count">{{ $countSsSpvApproval }}</span>
+                                            <span class="approval-dot"></span>
+                                        </span>
+                                    @endif
+                                </a>
+                                <a href="{{ route('ss.admin.submissions', ['status' => 'kdp_review']) }}" class="{{ request()->is('ss/admin/submissions*') && request()->get('status') == 'kdp_review' ? 'font-bold' : '' }}">
+                                    <i class="fa-solid fa-user-tie"></i>
+                                    <span class="menu-text">Review KDP</span>
+                                    @if(($countSsKdpApproval ?? 0) > 0)
+                                        <span class="approval-badge" title="{{ $countSsKdpApproval }} SS butuh review KDP">
+                                            <span class="approval-count">{{ $countSsKdpApproval }}</span>
+                                            <span class="approval-dot"></span>
+                                        </span>
+                                    @endif
                                 </a>
                                 <a href="{{ route('ss.admin.submissions', ['status' => 'approved']) }}" class="{{ request()->is('ss/admin/submissions*') && request()->get('status') == 'approved' ? 'font-bold' : '' }}">
                                     <i class="fa-solid fa-trophy"></i>

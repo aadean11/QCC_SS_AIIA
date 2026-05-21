@@ -10,6 +10,7 @@ use App\Models\Employee;
 use App\Models\User;
 use App\Models\QccCircle;
 use App\Models\QccCircleStepTransaction;
+use App\Models\SsSubmission;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -31,23 +32,47 @@ class AppServiceProvider extends ServiceProvider
 
         // Bagikan data notifikasi secara otomatis ke layout 'welcome'
         View::composer('welcome', function ($view) {
-            if (Auth::check()) {
-                $npk = session('auth_npk');
-                $user = Employee::with('subSection.section')->where('npk', $npk)->first() ?? User::where('npk', $npk)->first();
+            $view->with([
+                'countCircle' => 0,
+                'countProgress' => 0,
+                'countQccApproval' => 0,
+                'countSsSpvApproval' => 0,
+                'countSsKdpApproval' => 0,
+                'countSsApproval' => 0,
+            ]);
 
-                if ($user && ($user->occupation === 'SPV' || $user->occupation === 'KDP')) {
-                    $myDept = $user->getDeptCode();
+            if (Auth::check()) {
+                $authUser = Auth::user();
+                $employee = $authUser?->employee ?: Employee::with('subSection.section')->where('npk', $authUser?->npk)->first();
+
+                if ($employee && in_array($employee->occupation, ['SPV', 'KDP'])) {
+                    $myDept = $employee->getDeptCode();
                     
                     // Penentuan Status WAITING
-                    $stCircle = ($user->occupation === 'KDP') ? 'WAITING KDP' : 'WAITING SPV';
-                    $stProgress = ($user->occupation === 'KDP') ? 'WAITING KDP' : 'WAITING SPV';
+                    $stCircle = ($employee->occupation === 'KDP') ? 'WAITING KDP' : 'WAITING SPV';
+                    $stProgress = ($employee->occupation === 'KDP') ? 'WAITING KDP' : 'WAITING SPV';
 
                     // HITUNG HANYA DEPARTEMEN SENDIRI
                     $countCircle = QccCircle::where('department_code', $myDept)->where('status', $stCircle)->count();
                     $countProgress = QccCircleStepTransaction::whereHas('circle', fn($q) => $q->where('department_code', $myDept))
                                     ->where('status', $stProgress)->count();
 
-                    $view->with(['countCircle' => $countCircle, 'countProgress' => $countProgress]);
+                    $view->with([
+                        'countCircle' => $countCircle,
+                        'countProgress' => $countProgress,
+                        'countQccApproval' => $countCircle + $countProgress,
+                    ]);
+                }
+
+                if (session('active_role') === 'admin') {
+                    $countSsSpvApproval = SsSubmission::where('status', 'assessed')->count();
+                    $countSsKdpApproval = SsSubmission::where('status', 'kdp_review')->count();
+
+                    $view->with([
+                        'countSsSpvApproval' => $countSsSpvApproval,
+                        'countSsKdpApproval' => $countSsKdpApproval,
+                        'countSsApproval' => $countSsSpvApproval + $countSsKdpApproval,
+                    ]);
                 }
             }
         });

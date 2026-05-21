@@ -4,16 +4,16 @@
 
 @section('content')
 <div class="animate-reveal">
-    <!-- Breadcrumb -->
-    <nav class="flex mb-4 md:mb-6 text-xs md:text-sm text-gray-400">
-        <ol class="inline-flex items-center space-x-1 md:space-x-3">
-            <li class="inline-flex items-center">
-                <i class="fa-solid fa-database mr-2 text-[10px] md:text-xs"></i> Master
-            </li>
-            <li><i class="fa-solid fa-chevron-right text-[8px] md:text-[10px] mx-1 md:mx-2"></i></li>
-            <li class="text-[#091E6E] font-semibold tracking-tight text-[10px] md:text-xs">Data User</li>
-        </ol>
-    </nav>
+    @if ($errors->any())
+        <div class="mb-4 md:mb-6 bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-xs md:text-sm font-semibold">
+            {{ $errors->first() }}
+        </div>
+    @endif
+
+    @include('partials.breadcrumb', ['items' => [
+        ['label' => 'Master', 'icon' => 'fa-solid fa-database'],
+        'Master User',
+    ]])
 
     <!-- Header & Search -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 md:mb-8 gap-4">
@@ -73,7 +73,7 @@
                         </td>
                         <td class="px-3 md:px-6 py-2 md:py-3 border-y border-gray-100 text-center">
                             <span class="text-[9px] md:text-[11px] font-bold px-2 py-1 rounded-full 
-                                {{ $usr->role == 'admin' ? 'bg-red-100 text-red-700' : ($usr->role == 'spv' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700') }}">
+                                {{ strtolower($usr->role) == 'admin' ? 'bg-red-100 text-red-700' : (strtolower($usr->role) == 'supervisor' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700') }}">
                                 {{ strtoupper($usr->role) }}
                             </span>
                         </td>
@@ -131,22 +131,39 @@
                 <h3 class="text-base md:text-xl font-bold"><i class="fa-solid fa-user-circle mr-2"></i> Detail User</h3>
                 <button onclick="closeModal('modalDetail')" class="text-white/70 hover:text-white text-xl md:text-2xl">&times;</button>
             </div>
-            <div class="p-4 md:p-8 space-y-4">
-                <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 bg-gray-50 rounded-xl flex items-center justify-center text-xl font-black text-[#091E6E] border border-blue-100" id="det_avatar">U</div>
-                    <div>
-                        <h4 id="det_nama" class="text-xl font-bold text-[#091E6E]"></h4>
-                        <p id="det_npk" class="text-[10px] text-gray-400 font-bold uppercase"></p>
+            <div class="p-4 md:p-8 space-y-4 md:space-y-6">
+                <div class="flex items-center gap-4 md:gap-6">
+                    <div class="w-14 h-14 md:w-20 md:h-20 bg-gray-50 rounded-xl md:rounded-2xl flex items-center justify-center text-xl md:text-3xl font-black text-[#091E6E] border border-blue-100 shadow-inner" id="det_avatar">
+                        U
+                    </div>
+                    <div class="min-w-0">
+                        <h4 id="det_nama" class="text-xl md:text-2xl font-bold text-[#091E6E] leading-tight break-words"></h4>
+                        <p id="det_npk" class="text-[10px] md:text-sm text-gray-400 font-bold uppercase tracking-widest"></p>
                     </div>
                 </div>
-                <div class="bg-gray-50 p-4 rounded-xl space-y-2 text-sm">
-                    <div><label class="font-bold text-gray-400 text-[10px] uppercase">Email</label><br><span id="det_email"></span></div>
-                    <div><label class="font-bold text-gray-400 text-[10px] uppercase">Role</label><br><span id="det_role" class="font-semibold"></span></div>
-                    <div><label class="font-bold text-gray-400 text-[10px] uppercase">Status</label><br><span id="det_status"></span></div>
-                    <div><label class="font-bold text-gray-400 text-[10px] uppercase">OT PAR</label><br><span id="det_ot_par"></span></div>
-                    <div><label class="font-bold text-gray-400 text-[10px] uppercase">Limit MP</label><br><span id="det_limit_mp"></span></div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 bg-gray-50 p-4 md:p-6 rounded-xl md:rounded-2xl border border-gray-100 shadow-inner font-medium">
+                    <div class="col-span-1 sm:col-span-2">
+                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest">Email</label>
+                        <p id="det_email" class="text-[#091E6E] font-bold text-xs md:text-sm break-all"></p>
+                    </div>
+                    <div>
+                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest">Role</label>
+                        <p id="det_role" class="text-[#091E6E] font-bold text-xs md:text-sm"></p>
+                    </div>
+                    <div>
+                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</label>
+                        <p id="det_status" class="text-[#091E6E] font-bold text-xs md:text-sm"></p>
+                    </div>
+                    <div>
+                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest">OT PAR</label>
+                        <p id="det_ot_par" class="text-[#091E6E] font-bold text-xs md:text-sm break-words"></p>
+                    </div>
+                    <div>
+                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest">Limit MP</label>
+                        <p id="det_limit_mp" class="text-[#091E6E] font-bold text-xs md:text-sm"></p>
+                    </div>
                 </div>
-                <button onclick="closeModal('modalDetail')" class="w-full py-3 bg-gray-100 text-gray-500 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-gray-200">Tutup</button>
+                <button onclick="closeModal('modalDetail')" class="w-full py-3 md:py-4 bg-gray-100 text-gray-500 rounded-xl font-bold uppercase tracking-widest text-[10px] md:text-xs hover:bg-gray-200 transition-all">Tutup</button>
             </div>
         </div>
     </div>
@@ -164,41 +181,41 @@
                 @csrf
                 <div>
                     <label class="text-[10px] font-bold text-gray-400 uppercase">NPK</label>
-                    <input type="text" name="npk" required placeholder="Contoh: 123456" class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-[#091E6E] outline-none text-sm">
+                    <input type="text" name="npk" value="{{ old('npk') }}" required maxlength="255" placeholder="Contoh: 123456" class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-[#091E6E] outline-none text-sm">
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-gray-400 uppercase">Nama Lengkap</label>
-                    <input type="text" name="nama" required class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-[#091E6E] outline-none text-sm">
+                    <input type="text" name="nama" value="{{ old('nama') }}" required maxlength="255" class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-[#091E6E] outline-none text-sm">
                 </div>
                 <div class="sm:col-span-2">
                     <label class="text-[10px] font-bold text-gray-400 uppercase">Email</label>
-                    <input type="email" name="email" required class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-[#091E6E] outline-none text-sm">
+                    <input type="email" name="email" value="{{ old('email') }}" required maxlength="255" class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-[#091E6E] outline-none text-sm">
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-gray-400 uppercase">Role</label>
                     <select name="role" required class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg outline-none text-sm font-semibold">
                         @foreach($roles as $role)
-                        <option value="{{ $role }}">{{ strtoupper($role) }}</option>
+                        <option value="{{ $role }}" @selected(old('role') === $role)>{{ $role }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-gray-400 uppercase">Status User</label>
                     <select name="status_user" required class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg outline-none">
-                        <option value="ACTIVE">ACTIVE</option>
-                        <option value="INACTIVE">INACTIVE</option>
+                        <option value="ACTIVE" @selected(old('status_user', 'ACTIVE') === 'ACTIVE')>ACTIVE</option>
+                        <option value="INACTIVE" @selected(old('status_user') === 'INACTIVE')>INACTIVE</option>
                     </select>
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-gray-400 uppercase">OT PAR</label>
-                    <input type="text" name="ot_par" placeholder="Opsional" class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg outline-none text-sm">
+                    <input type="text" name="ot_par" value="{{ old('ot_par', '-') }}" required maxlength="255" placeholder="Contoh: -" class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg outline-none text-sm">
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-gray-400 uppercase">Limit MP</label>
-                    <input type="number" name="limit_mp" placeholder="0" class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg outline-none text-sm">
+                    <input type="number" name="limit_mp" value="{{ old('limit_mp', 0) }}" required min="0" step="1" placeholder="0" class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg outline-none text-sm">
                 </div>
                 <div class="sm:col-span-2 text-xs text-gray-400 bg-gray-50 p-2 rounded-lg">
-                    <i class="fa-solid fa-info-circle"></i> Password default = NPK user. Segera ubah setelah login.
+                    <i class="fa-solid fa-info-circle"></i> Password default = aiia. Segera ubah setelah login.
                 </div>
                 <button type="submit" class="sm:col-span-2 py-3 bg-[#091E6E] text-white rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-[#130998] transition-all active:scale-95">Simpan User</button>
             </form>
@@ -218,21 +235,21 @@
                 @csrf @method('PUT')
                 <div>
                     <label class="text-[10px] font-bold text-gray-400 uppercase">NPK</label>
-                    <input type="text" name="npk" id="edit_npk" required class="w-full mt-1 px-3 py-2 bg-gray-100 border rounded-lg outline-none text-sm font-mono" readonly>
+                    <input type="text" name="npk" id="edit_npk" required maxlength="255" class="w-full mt-1 px-3 py-2 bg-gray-100 border rounded-lg outline-none text-sm font-mono" readonly>
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-gray-400 uppercase">Nama</label>
-                    <input type="text" name="nama" id="edit_nama" required class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-amber-500 outline-none text-sm">
+                    <input type="text" name="nama" id="edit_nama" required maxlength="255" class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-amber-500 outline-none text-sm">
                 </div>
                 <div class="sm:col-span-2">
                     <label class="text-[10px] font-bold text-gray-400 uppercase">Email</label>
-                    <input type="email" name="email" id="edit_email" required class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-amber-500 outline-none text-sm">
+                    <input type="email" name="email" id="edit_email" required maxlength="255" class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-amber-500 outline-none text-sm">
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-gray-400 uppercase">Role</label>
                     <select name="role" id="edit_role" required class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg outline-none">
                         @foreach($roles as $role)
-                        <option value="{{ $role }}">{{ strtoupper($role) }}</option>
+                        <option value="{{ $role }}">{{ $role }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -245,11 +262,11 @@
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-gray-400 uppercase">OT PAR</label>
-                    <input type="text" name="ot_par" id="edit_ot_par" class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg outline-none text-sm">
+                    <input type="text" name="ot_par" id="edit_ot_par" required maxlength="255" class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg outline-none text-sm">
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-gray-400 uppercase">Limit MP</label>
-                    <input type="number" name="limit_mp" id="edit_limit_mp" class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg outline-none text-sm">
+                    <input type="number" name="limit_mp" id="edit_limit_mp" required min="0" step="1" class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg outline-none text-sm">
                 </div>
                 <div class="sm:col-span-2">
                     <label class="text-[10px] font-bold text-gray-400 uppercase">Password (kosongkan jika tidak diubah)</label>
@@ -288,19 +305,32 @@
         document.getElementById('det_npk').innerText = 'NPK: ' + user.npk;
         document.getElementById('det_avatar').innerText = user.nama.charAt(0);
         document.getElementById('det_email').innerText = user.email;
-        document.getElementById('det_role').innerHTML = `<span class="px-2 py-1 rounded-full text-xs font-bold ${user.role=='admin'?'bg-red-100 text-red-700':'bg-blue-100 text-blue-700'}">${user.role.toUpperCase()}</span>`;
-        document.getElementById('det_status').innerHTML = `<span class="px-2 py-1 rounded-full text-xs font-bold ${user.status_user=='ACTIVE'?'bg-green-100 text-green-700':'bg-gray-200 text-gray-600'}">${user.status_user}</span>`;
+        document.getElementById('det_role').innerText = user.role || '-';
+        document.getElementById('det_status').innerText = user.status_user || '-';
         document.getElementById('det_ot_par').innerText = user.ot_par || '-';
         document.getElementById('det_limit_mp').innerText = user.limit_mp ?? '-';
         openModal('modalDetail');
     }
 
     function openEditModal(user) {
+        const roleMap = {
+            admin: 'Admin',
+            employee: 'Leader',
+            leader: 'Leader',
+            spv: 'Supervisor',
+            supervisor: 'Supervisor',
+            kdp: 'Ka Dept',
+            'ka dept': 'Ka Dept',
+            gm: 'GM',
+            gmr: 'GM',
+        };
+        const mappedRole = roleMap[(user.role || '').toLowerCase()] || user.role;
+
         document.getElementById('formEdit').action = `/admin/master-user/${user.id}`;
         document.getElementById('edit_npk').value = user.npk;
         document.getElementById('edit_nama').value = user.nama;
         document.getElementById('edit_email').value = user.email;
-        document.getElementById('edit_role').value = user.role;
+        document.getElementById('edit_role').value = mappedRole;
         document.getElementById('edit_status_user').value = user.status_user;
         document.getElementById('edit_ot_par').value = user.ot_par || '';
         document.getElementById('edit_limit_mp').value = user.limit_mp || '';
@@ -320,7 +350,7 @@
 
     document.getElementById('formAdd')?.addEventListener('submit', function(e) {
         e.preventDefault();
-        Swal.fire({ title: 'Simpan User?', text: 'Password default = NPK', icon: 'question', showCancelButton: true, confirmButtonColor: '#091E6E', confirmButtonText: 'Ya, Simpan!' }).then(res => { if (res.isConfirmed) this.submit(); });
+        Swal.fire({ title: 'Simpan User?', text: 'Password default = aiia', icon: 'question', showCancelButton: true, confirmButtonColor: '#091E6E', confirmButtonText: 'Ya, Simpan!' }).then(res => { if (res.isConfirmed) this.submit(); });
     });
 
     @if(Session::has('success'))

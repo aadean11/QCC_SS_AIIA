@@ -4,16 +4,10 @@
 
 @section('content')
 <div class="animate-reveal pb-20">
-    <!-- Breadcrumbs -->
-    <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-1 gap-4">
-        <nav class="flex text-xs md:text-sm text-gray-400">
-            <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                <li class="inline-flex items-center text-gray-400">Monitoring QCC</li>
-                <li><i class="fa-solid fa-chevron-right text-[8px] md:text-[10px] mx-1 md:mx-2"></i></li>
-                <li class="text-[#091E6E] font-semibold tracking-tight uppercase text-[10px] md:text-xs">Dashboard Admin</li>
-            </ol>
-        </nav>
-    </div>
+    @include('partials.breadcrumb', ['items' => [
+        ['label' => 'Monitoring QCC', 'icon' => 'fa-solid fa-people-group'],
+        'Dashboard QCC',
+    ]])
 
     <!-- TAB NAVIGATION & FILTERS -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-6">

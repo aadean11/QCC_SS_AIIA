@@ -4,16 +4,16 @@
 
 @section('content')
 <div class="animate-reveal">
-    <!-- Breadcrumb -->
-    <nav class="flex mb-4 md:mb-6 text-xs md:text-sm text-gray-400">
-        <ol class="inline-flex items-center space-x-1 md:space-x-3">
-            <li class="inline-flex items-center">
-                <i class="fa-solid fa-database mr-2 text-[10px] md:text-xs"></i> Master
-            </li>
-            <li><i class="fa-solid fa-chevron-right text-[8px] md:text-[10px] mx-1 md:mx-2"></i></li>
-            <li class="text-[#091E6E] font-semibold tracking-tight text-[10px] md:text-xs">Data Karyawan</li>
-        </ol>
-    </nav>
+    @if ($errors->any())
+        <div class="mb-4 md:mb-6 bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-xs md:text-sm font-semibold">
+            {{ $errors->first() }}
+        </div>
+    @endif
+
+    @include('partials.breadcrumb', ['items' => [
+        ['label' => 'Master', 'icon' => 'fa-solid fa-database'],
+        'Master Karyawan',
+    ]])
 
     <!-- Header & Search -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 md:mb-8 gap-4">
@@ -57,6 +57,7 @@
                     <tr class="sidebar-gradient shadow-md">
                         <th class="px-2 md:px-4 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold rounded-tl-2xl text-center w-12">No</th>
                         <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold">Karyawan</th>
+                        <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold">Phone</th>
                         <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold">Jabatan</th>
                         <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold text-center">Sub-Section</th>
                         <th class="px-3 md:px-6 py-3 md:py-4 text-center text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold rounded-tr-2xl">Aksi</th>
@@ -72,6 +73,10 @@
                         <td class="px-3 md:px-6 py-2 md:py-3 border-y border-gray-100">
                             <p class="font-bold text-[#091E6E] text-xs md:text-sm group-hover:text-[#130998]">{{ $emp->nama }}</p>
                             <p class="text-[8px] md:text-[10px] text-gray-400 font-bold uppercase tracking-tighter">NPK: {{ $emp->npk }}</p>
+                        </td>
+
+                        <td class="px-3 md:px-6 py-2 md:py-3 border-y border-gray-100">
+                            <span class="text-gray-600 text-[10px] md:text-xs font-semibold">{{ $emp->phone ?: '-' }}</span>
                         </td>
                         
                         <td class="px-3 md:px-6 py-2 md:py-3 border-y border-gray-100">
@@ -101,7 +106,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="text-center py-10 md:py-20">
+                        <td colspan="6" class="text-center py-10 md:py-20">
                             <div class="flex flex-col items-center gap-2 text-gray-300">
                                 <i class="fa-solid fa-folder-open text-3xl md:text-4xl"></i>
                                 <span class="italic text-xs md:text-sm">Data karyawan tidak ditemukan...</span>
@@ -152,6 +157,22 @@
                         <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest">Dept / Line</label>
                         <p id="det_line" class="text-[#091E6E] font-bold text-xs md:text-sm"></p>
                     </div>
+                    <div>
+                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest">Phone</label>
+                        <p id="det_phone" class="text-[#091E6E] font-bold text-xs md:text-sm"></p>
+                    </div>
+                    <div>
+                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest">Transport</label>
+                        <p id="det_transport" class="text-[#091E6E] font-bold text-xs md:text-sm"></p>
+                    </div>
+                    <div>
+                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status Karyawan</label>
+                        <p id="det_status_emp" class="text-[#091E6E] font-bold text-xs md:text-sm"></p>
+                    </div>
+                    <div>
+                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status Employment</label>
+                        <p id="det_employment_status" class="text-[#091E6E] font-bold text-xs md:text-sm"></p>
+                    </div>
                     <div class="col-span-1 sm:col-span-2">
                         <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest">Sub-Section</label>
                         <p id="det_sub" class="text-[#091E6E] font-bold text-xs md:text-sm"></p>
@@ -177,26 +198,46 @@
                 @csrf
                 <div class="col-span-1 sm:col-span-2 text-left">
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Lengkap</label>
-                    <input type="text" name="nama" required placeholder="Masukkan nama lengkap" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-[#091E6E] outline-none transition-all font-medium text-[#091E6E] text-xs md:text-sm">
+                    <input type="text" name="nama" value="{{ old('nama') }}" required maxlength="255" placeholder="Masukkan nama lengkap" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-[#091E6E] outline-none transition-all font-medium text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">NPK (Otomatis)</label>
-                    <input type="text" name="npk" value="{{ $nextNpk }}" readonly class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-100 border border-gray-200 rounded-lg md:rounded-xl outline-none font-black text-[#091E6E] cursor-not-allowed shadow-inner text-xs md:text-sm">
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">NPK</label>
+                    <input type="text" name="npk" value="{{ old('npk') }}" required maxlength="6" pattern="[A-Za-z0-9._-]+" placeholder="Masukkan NPK" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-[#091E6E] outline-none font-black text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div>
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Jabatan</label>
                     <select name="occupation" required class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none font-bold text-[#091E6E] text-xs md:text-sm">
-                        @foreach($occupations as $occ) <option value="{{ $occ->code }}">{{ $occ->name }}</option> @endforeach
+                        @foreach($occupations as $occ)
+                            <option value="{{ $occ->code }}" @selected(old('occupation') === $occ->code)>{{ $occ->name }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div>
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Dept / Line Code</label>
-                    <input type="text" name="line_code" required placeholder="Contoh: PROD1" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none font-medium text-[#091E6E] text-xs md:text-sm">
+                    <input type="text" name="line_code" value="{{ old('line_code') }}" required maxlength="50" placeholder="Contoh: PROD1" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none font-medium text-[#091E6E] text-xs md:text-sm">
+                </div>
+                <div>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Phone / WA</label>
+                    <input type="text" name="phone" value="{{ old('phone') }}" required maxlength="255" pattern="[0-9+().\s-]+" placeholder="Contoh: 08123456789" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none font-medium text-[#091E6E] text-xs md:text-sm">
+                </div>
+                <div>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Transport</label>
+                    <input type="text" name="transport" value="{{ old('transport', '-') }}" required maxlength="255" placeholder="Contoh: MOTOR" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none font-medium text-[#091E6E] text-xs md:text-sm">
+                </div>
+                <div>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Status Karyawan</label>
+                    <input type="text" name="status_emp" value="{{ old('status_emp', 'ACTIVE') }}" required maxlength="255" placeholder="Contoh: ACTIVE" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none font-medium text-[#091E6E] text-xs md:text-sm">
+                </div>
+                <div>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Status Employment</label>
+                    <input type="text" name="employment_status" value="{{ old('employment_status', 'ACTIVE') }}" required maxlength="255" placeholder="Contoh: ACTIVE" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none font-medium text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div>
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Sub-Section</label>
                     <select name="sub_section" required class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none font-bold text-[#091E6E] text-xs md:text-sm">
-                        @foreach($subSections as $sub) <option value="{{ $sub->code }}">{{ $sub->code }} - {{ $sub->name }}</option> @endforeach
+                        @foreach($subSections as $sub)
+                            <option value="{{ $sub->code }}" @selected(old('sub_section') === $sub->code)>{{ $sub->code }} - {{ $sub->name }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <button type="submit" class="col-span-1 sm:col-span-2 py-3 md:py-4 bg-[#091E6E] text-white rounded-xl font-bold shadow-lg hover:bg-[#130998] transition-all uppercase tracking-widest text-[10px] md:text-xs active:scale-95">Simpan Data Karyawan</button>
@@ -219,11 +260,11 @@
                 @csrf @method('PUT')
                 <div class="col-span-1 sm:col-span-2">
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Lengkap</label>
-                    <input type="text" name="nama" id="edit_nama" required class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-[#091E6E] text-xs md:text-sm">
+                    <input type="text" name="nama" id="edit_nama" required maxlength="255" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div>
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">NPK (Permanen)</label>
-                    <input type="text" name="npk" id="edit_npk" readonly class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-100 border border-gray-200 rounded-lg md:rounded-xl outline-none font-black text-[#091E6E] cursor-not-allowed shadow-inner text-xs md:text-sm">
+                    <input type="text" name="npk" id="edit_npk" readonly maxlength="6" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-100 border border-gray-200 rounded-lg md:rounded-xl outline-none font-black text-[#091E6E] cursor-not-allowed shadow-inner text-xs md:text-sm">
                 </div>
                 <div>
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Jabatan</label>
@@ -233,7 +274,23 @@
                 </div>
                 <div>
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Dept / Line Code</label>
-                    <input type="text" name="line_code" id="edit_line_code" required class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none text-xs md:text-sm">
+                    <input type="text" name="line_code" id="edit_line_code" required maxlength="50" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none text-xs md:text-sm">
+                </div>
+                <div>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Phone / WA</label>
+                    <input type="text" name="phone" id="edit_phone" required maxlength="255" pattern="[0-9+().\s-]+" placeholder="Contoh: 08123456789" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none text-xs md:text-sm">
+                </div>
+                <div>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Transport</label>
+                    <input type="text" name="transport" id="edit_transport" required maxlength="255" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none text-xs md:text-sm">
+                </div>
+                <div>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Status Karyawan</label>
+                    <input type="text" name="status_emp" id="edit_status_emp" required maxlength="255" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none text-xs md:text-sm">
+                </div>
+                <div>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Status Employment</label>
+                    <input type="text" name="employment_status" id="edit_employment_status" required maxlength="255" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none text-xs md:text-sm">
                 </div>
                 <div>
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Sub-Section</label>
@@ -301,6 +358,10 @@
         document.getElementById('det_avatar').innerText = emp.nama.charAt(0);
         document.getElementById('det_occupation').innerText = emp.job?.name || emp.occupation;
         document.getElementById('det_line').innerText = emp.line_code;
+        document.getElementById('det_phone').innerText = emp.phone || '-';
+        document.getElementById('det_transport').innerText = emp.transport || '-';
+        document.getElementById('det_status_emp').innerText = emp.status_emp || '-';
+        document.getElementById('det_employment_status').innerText = emp.employment_status || '-';
         document.getElementById('det_sub').innerText = emp.sub_section;
         openModal('modalDetail');
     }
@@ -312,6 +373,10 @@
         document.getElementById('edit_npk').value = emp.npk;
         document.getElementById('edit_occupation').value = emp.occupation;
         document.getElementById('edit_line_code').value = emp.line_code;
+        document.getElementById('edit_phone').value = emp.phone || '';
+        document.getElementById('edit_transport').value = emp.transport || '-';
+        document.getElementById('edit_status_emp').value = emp.status_emp || 'ACTIVE';
+        document.getElementById('edit_employment_status').value = emp.employment_status || 'ACTIVE';
         document.getElementById('edit_sub_section').value = emp.sub_section;
         openModal('modalEdit');
     }
@@ -337,7 +402,7 @@
         e.preventDefault();
         Swal.fire({ 
             title: 'Simpan Data?', 
-            text: "NPK akan digenerate otomatis.", 
+            text: "Pastikan NPK dan data karyawan sudah benar.", 
             icon: 'question', 
             showCancelButton: true, 
             confirmButtonColor: '#091E6E', 

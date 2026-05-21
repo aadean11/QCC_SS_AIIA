@@ -4,14 +4,11 @@
 
 @section('content')
 <div class="animate-reveal pb-20">
-    <!-- Breadcrumb -->
-    <nav class="flex mb-4 md:mb-6 text-xs md:text-sm text-gray-400">
-        <ol class="inline-flex items-center space-x-1 md:space-x-3">
-            <li class="inline-flex items-center">SS</li>
-            <li><i class="fa-solid fa-chevron-right text-[8px] md:text-[10px] mx-1 md:mx-2"></i></li>
-            <li class="text-[#091E6E] font-semibold tracking-tight text-[10px] md:text-xs">Beri Nilai</li>
-        </ol>
-    </nav>
+    @include('partials.breadcrumb', ['items' => [
+        ['label' => 'Monitoring SS', 'icon' => 'fa-regular fa-lightbulb'],
+        ['label' => 'Daftar Ide', 'url' => route('ss.admin.submissions')],
+        'Beri Nilai',
+    ]])
     <div class="glass-card rounded-[1.5rem] md:rounded-[2rem] shadow-sm border border-white overflow-hidden">
             <!-- Header Card dengan Gradient -->
             <div class="sidebar-gradient px-4 md:px-8 py-4 md:py-6">

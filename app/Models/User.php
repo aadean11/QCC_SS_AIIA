@@ -28,11 +28,17 @@ class User extends Authenticatable
         return (object) ['name' => $this->role];
     }
 
+    /**
+     * Cek apakah user saat login sebagai admin.
+     * Mengecek dari tabel Role ATAU kolom 'role' di users.
+     */
     public function isAdmin()
     {
-        if (session('login_as') !== 'admin') return false;
-        return \App\Models\Role::where('npk', $this->npk)
-        ->where('display_name', 'Admin')
-        ->exists();
+        // Cek dari tabel Role
+        if (Role::where('npk', $this->npk)->where('display_name', 'Admin')->exists()) {
+            return true;
+        }
+        // Cek dari kolom role users
+        return strtolower($this->role) === 'admin';
     }
 }

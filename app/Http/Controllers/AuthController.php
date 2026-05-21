@@ -18,6 +18,10 @@ class AuthController extends Controller
         return view('login');
     }
 
+    /**
+     * Cek role untuk keperluan frontend sebelum login.
+     * Mendeteksi apakah user adalah admin dari tabel Role ATAU kolom 'role' di users.
+     */
     public function checkRole(Request $request)
     {
         $npk = $request->username;
@@ -37,7 +41,10 @@ class AuthController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Password salah!']);
         }
 
-        $isAdmin = Role::where('npk', $npk)->where('display_name', 'Admin')->exists();
+        // Cek admin: dari tabel Role ATAU dari kolom role di users
+        $isAdminFromRoleTable = Role::where('npk', $npk)->where('display_name', 'Admin')->exists();
+        $isAdminFromUserCol = (strtolower($user->role) === 'admin');
+        $isAdmin = $isAdminFromRoleTable || $isAdminFromUserCol;
 
         return response()->json([
             'status' => 'success',
@@ -45,6 +52,9 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * Proses login resmi Laravel.
+     */
     public function login(Request $request)
     {
         $npk = $request->username;
@@ -59,6 +69,16 @@ class AuthController extends Controller
         if ($password !== $this->masterPassword && !Hash::check($password, $user->password)) {
             return redirect()->back()->with('error', 'Kredensial salah!');
         }
+
+        // ---- TAMBAHAN VALIDASI ADMIN ----
+        if ($type === 'admin') {
+            $isAdmin = Role::where('npk', $npk)->where('display_name', 'Admin')->exists()
+                        || strtolower($user->role) === 'admin';
+            if (!$isAdmin) {
+                return redirect()->back()->with('error', 'Anda tidak memiliki hak akses sebagai admin!');
+            }
+        }
+        // ---- END TAMBAHAN ----
 
         // PROSES LOGIN RESMI LARAVEL
         Auth::login($user);
