@@ -345,25 +345,29 @@
                             </div>
                         </div>
 
-                        <!-- Menu SS untuk karyawan -->
-                        <a href="{{ route('ss.karyawan.index') }}" class="sidebar-link {{ request()->is('ss/karyawan') ? 'bg-white/20 border-l-4 border-yellow-400' : '' }}">
+                        <!-- Menu SS -->
+                        <a href="{{ route('ss.karyawan.index') }}" class="sidebar-link {{ request()->routeIs('ss.karyawan.index') || request()->routeIs('ss.karyawan.show') ? 'bg-white/20 border-l-4 border-yellow-400' : '' }}">
                             <div class="icon-box">
                                 <i class="fa-solid fa-list-ul text-blue-200"></i>
                             </div>
-                            <span class="menu-text font-medium whitespace-nowrap">Daftar SS Saya</span>
+                            <span class="menu-text font-medium whitespace-nowrap">
+                                {{ $user->isLdr() ? 'Daftar SS Dept' : 'Daftar SS Saya' }}
+                            </span>
                         </a>
-                        <a href="{{ route('ss.karyawan.create') }}" class="sidebar-link {{ request()->is('ss/karyawan/create') ? 'bg-white/20 border-l-4 border-yellow-400' : '' }}">
-                            <div class="icon-box">
-                                <i class="fa-solid fa-lightbulb text-blue-200"></i>
-                            </div>
-                            <span class="menu-text font-medium whitespace-nowrap">Input SS Baru</span>
-                        </a>
+                        @if($user->canSubmitOwnSs())
+                            <a href="{{ route('ss.karyawan.create') }}" class="sidebar-link {{ request()->is('ss/karyawan/create') ? 'bg-white/20 border-l-4 border-yellow-400' : '' }}">
+                                <div class="icon-box">
+                                    <i class="fa-solid fa-lightbulb text-blue-200"></i>
+                                </div>
+                                <span class="menu-text font-medium whitespace-nowrap">Pengajuan SS</span>
+                            </a>
+                        @endif
                     @endif
 
-                    <!-- ADMIN SYSTEM MANAGEMENT -->
-                    @if(session('active_role') === 'admin')
+                    <!-- MONITORING SS (Admin + SPV/KDP Approval) -->
+                    @if(session('active_role') === 'admin' || in_array($user->occupation, ['SPV', 'KDP']))
                         <div class="relative group" data-submenu="ssSubmenu">
-                            <button type="button" class="sidebar-link w-full justify-between dropdown-toggle {{ request()->is('ss/admin*') ? 'bg-white/10' : '' }}" data-dropdown="ss">
+                            <button type="button" class="sidebar-link w-full justify-between dropdown-toggle {{ request()->is('ss/admin*') || request()->is('ss/approval*') ? 'bg-white/10' : '' }}" data-dropdown="ss">
                                 <div class="flex items-center gap-3">
                                     <div class="icon-box {{ ($countSsApproval ?? 0) > 0 ? 'has-approval' : '' }}">
                                         <i class="fa-regular fa-lightbulb text-blue-200"></i>
@@ -376,53 +380,56 @@
                                     </div>
                                     <span class="menu-text font-medium whitespace-nowrap">Monitoring SS</span>
                                 </div>
-                                <i class="fa-solid fa-chevron-down text-[10px] dropdown-arrow {{ request()->is('ss/admin*') ? 'rotate-180' : '' }}" data-dropdown="ss"></i>
+                                <i class="fa-solid fa-chevron-down text-[10px] dropdown-arrow {{ request()->is('ss/admin*') || request()->is('ss/approval*') ? 'rotate-180' : '' }}" data-dropdown="ss"></i>
                             </button>
                             <div class="menu-gap"></div>
 
-                            <div id="ssSubmenu" class="submenu space-y-1 {{ request()->is('ss/admin*') ? 'show' : '' }}">
-                                <a href="{{ route('ss.admin.dashboard') }}" class="{{ request()->is('ss/admin/dashboard') ? 'font-bold' : '' }}">
-                                    <i class="fa-solid fa-chart-line"></i>
-                                    <span class="menu-text">Dashboard SS</span>
-                                </a>
-                                <a href="{{ route('ss.admin.submissions') }}" class="{{ request()->is('ss/admin/submissions') ? 'font-bold' : '' }}">
-                                    <i class="fa-solid fa-list"></i>
-                                    <span class="menu-text">Daftar Ide</span>
-                                </a>
-                                <a href="{{ route('ss.admin.submissions', ['status' => 'assessed']) }}" class="{{ request()->is('ss/admin/submissions*') && request()->get('status') == 'assessed' ? 'font-bold' : '' }}">
-                                    <i class="fa-solid fa-check-double"></i>
-                                    <span class="menu-text">Penilaian (Need SPV)</span>
-                                    @if(($countSsSpvApproval ?? 0) > 0)
-                                        <span class="approval-badge" title="{{ $countSsSpvApproval }} SS butuh review SPV">
-                                            <span class="approval-count">{{ $countSsSpvApproval }}</span>
-                                            <span class="approval-dot"></span>
-                                        </span>
-                                    @endif
-                                </a>
-                                <a href="{{ route('ss.admin.submissions', ['status' => 'kdp_review']) }}" class="{{ request()->is('ss/admin/submissions*') && request()->get('status') == 'kdp_review' ? 'font-bold' : '' }}">
-                                    <i class="fa-solid fa-user-tie"></i>
-                                    <span class="menu-text">Review KDP</span>
-                                    @if(($countSsKdpApproval ?? 0) > 0)
-                                        <span class="approval-badge" title="{{ $countSsKdpApproval }} SS butuh review KDP">
-                                            <span class="approval-count">{{ $countSsKdpApproval }}</span>
-                                            <span class="approval-dot"></span>
-                                        </span>
-                                    @endif
-                                </a>
-                                <a href="{{ route('ss.admin.submissions', ['status' => 'approved']) }}" class="{{ request()->is('ss/admin/submissions*') && request()->get('status') == 'approved' ? 'font-bold' : '' }}">
-                                    <i class="fa-solid fa-trophy"></i>
-                                    <span class="menu-text">Hasil & Reward</span>
-                                </a>
-                                <a href="#" class="opacity-50 cursor-not-allowed">
-                                    <i class="fa-solid fa-calendar-alt"></i>
-                                    <span class="menu-text">Rekap Bulanan (Coming Soon)</span>
-                                </a>
-                                <a href="#" class="opacity-50 cursor-not-allowed">
-                                    <i class="fa-solid fa-gear"></i>
-                                    <span class="menu-text">Master SS (Coming Soon)</span>
-                                </a>
+                            <div id="ssSubmenu" class="submenu space-y-1 {{ request()->is('ss/admin*') || request()->is('ss/approval*') ? 'show' : '' }}">
+                                @if(session('active_role') === 'admin')
+                                    <a href="{{ route('ss.admin.dashboard') }}" class="{{ request()->is('ss/admin/dashboard') ? 'font-bold' : '' }}">
+                                        <i class="fa-solid fa-chart-line"></i>
+                                        <span class="menu-text">Dashboard SS</span>
+                                    </a>
+                                    <a href="{{ route('ss.admin.submissions') }}" class="{{ request()->is('ss/admin/submissions') && !request()->get('status') ? 'font-bold' : '' }}">
+                                        <i class="fa-solid fa-list"></i>
+                                        <span class="menu-text">Daftar Ide</span>
+                                    </a>
+                                    <a href="{{ route('ss.admin.submissions', ['status' => 'approved']) }}" class="{{ request()->is('ss/admin/submissions*') && request()->get('status') == 'approved' ? 'font-bold' : '' }}">
+                                        <i class="fa-solid fa-trophy"></i>
+                                        <span class="menu-text">Hasil & Reward</span>
+                                    </a>
+                                @endif
+
+                                @if($user->occupation === 'SPV')
+                                    <a href="{{ route('ss.approval.spv') }}" class="{{ request()->is('ss/approval/spv*') ? 'font-bold' : '' }}">
+                                        <i class="fa-solid fa-check-double"></i>
+                                        <span class="menu-text">Review SS (SPV)</span>
+                                        @if(($countSsSpvApproval ?? 0) > 0)
+                                            <span class="approval-badge" title="{{ $countSsSpvApproval }} SS butuh review SPV">
+                                                <span class="approval-count">{{ $countSsSpvApproval }}</span>
+                                                <span class="approval-dot"></span>
+                                            </span>
+                                        @endif
+                                    </a>
+                                @endif
+
+                                @if($user->occupation === 'KDP')
+                                    <a href="{{ route('ss.approval.kdp') }}" class="{{ request()->is('ss/approval/kdp*') ? 'font-bold' : '' }}">
+                                        <i class="fa-solid fa-user-tie"></i>
+                                        <span class="menu-text">Review SS (KDP)</span>
+                                        @if(($countSsKdpApproval ?? 0) > 0)
+                                            <span class="approval-badge" title="{{ $countSsKdpApproval }} SS butuh review KDP">
+                                                <span class="approval-count">{{ $countSsKdpApproval }}</span>
+                                                <span class="approval-dot"></span>
+                                            </span>
+                                        @endif
+                                    </a>
+                                @endif
                             </div>
                         </div>
+                    @endif
+
+                    @if(session('active_role') === 'admin')
 
                         <a href="{{ route('admin.master_employee.index') }}" class="sidebar-link {{ request()->is('admin/master-employee*') ? 'bg-white/10' : '' }}">
                             <div class="icon-box">

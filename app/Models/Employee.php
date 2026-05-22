@@ -107,6 +107,24 @@ class Employee extends Model
 
     public function isSpv() { return $this->occupation === 'SPV'; }
     public function isKadept() { return $this->occupation === 'KDP'; }
+    public function isLdr() { return $this->occupation === 'LDR'; }
+
+    /** Hanya LDR yang boleh mengajukan SS atas nama operator (OPR) */
+    public function canSubmitSsForOpr(): bool
+    {
+        return $this->occupation === 'LDR';
+    }
+
+    /** LDR, SPV, KDP: boleh mengajukan SS untuk diri sendiri */
+    public function canSubmitOwnSs(): bool
+    {
+        return in_array($this->occupation, ['LDR', 'SPV', 'KDP'], true);
+    }
+
+    public function scopeOccupation($query, string $code)
+    {
+        return $query->where('occupation', $code);
+    }
 
     public function scopeInDepartment($query, $deptCode)
     {

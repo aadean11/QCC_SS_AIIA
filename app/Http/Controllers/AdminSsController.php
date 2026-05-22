@@ -40,7 +40,7 @@ class AdminSsController extends Controller
 
         // Statistik card
         $total = (clone $query)->count();
-        $pendingScore = (clone $query)->whereNull('score')->count();
+        $pendingSpv = (clone $query)->where('status', 'assessed')->count();
         $approved = (clone $query)->where('status', 'approved')->count();
         $rewarded = (clone $query)->where('status', 'rewarded')->count();
 
@@ -83,7 +83,7 @@ class AdminSsController extends Controller
         $departments = Department::orderBy('name')->get(); // pastikan kolom 'code' dan 'name' ada
 
         return view('ss.admin.dashboard', compact(
-            'user', 'total', 'pendingScore', 'approved', 'rewarded',
+            'user', 'total', 'pendingSpv', 'approved', 'rewarded',
             'monthlyData', 'statusData', 'selectedMonth', 'selectedYear', 'selectedDept',
             'months', 'years', 'departments'
         ));
@@ -98,7 +98,7 @@ class AdminSsController extends Controller
         $search = $request->get('search');
         $status = $request->get('status');
 
-        $query = SsSubmission::with(['employee', 'spv', 'kdp']);
+        $query = SsSubmission::with(['employee', 'ldr', 'spv', 'kdp']);
 
         if ($status) {
             $query->where('status', $status);
@@ -121,112 +121,9 @@ class AdminSsController extends Controller
         if (!$this->checkAdmin()) abort(403);
         $user = $this->getUser();
 
-        $submission = SsSubmission::with(['employee', 'spv', 'kdp'])->findOrFail($id);
+        $submission = SsSubmission::with(['employee', 'ldr', 'spv', 'kdp'])->findOrFail($id);
 
         return view('ss.admin.show', compact('user', 'submission'));
-    }
-
-    public function assessForm($id)
-    {
-        if (!$this->checkAdmin()) abort(403);
-        $user = $this->getUser();
-
-        $submission = SsSubmission::findOrFail($id);
-
-        return view('ss.admin.assess', compact('user', 'submission'));
-    }
-
-    public function assessStore(Request $request, $id)
-    {
-        if (!$this->checkAdmin()) abort(403);
-
-        $request->validate([
-            'score' => 'required|integer|min:0|max:100',
-            'notes' => 'nullable|string',
-        ]);
-
-        $submission = SsSubmission::findOrFail($id);
-        $submission->score = $request->score;
-        $submission->notes = $request->notes;
-        $submission->status = 'assessed';
-        $submission->save();
-
-        return redirect()->route('ss.admin.submissions')->with('success', 'Nilai berhasil disimpan.');
-    }
-
-    public function reviewSpvForm($id)
-    {
-        if (!$this->checkAdmin()) abort(403);
-        $user = $this->getUser();
-
-        $submission = SsSubmission::findOrFail($id);
-
-        return view('ss.admin.review_spv', compact('user', 'submission'));
-    }
-
-    public function reviewSpvStore(Request $request, $id)
-    {
-        if (!$this->checkAdmin()) abort(403);
-
-        $request->validate([
-            'action' => 'required|in:approved,rejected',
-            'spv_notes' => 'nullable|string',
-        ]);
-
-        $submission = SsSubmission::findOrFail($id);
-        $submission->spv_notes = $request->spv_notes;
-        $submission->spv_status = $request->action;
-        $submission->spv_approved_at = now();
-        // Ganti spv_id dengan spv_npk
-        $submission->spv_npk = Auth::user()->employee->npk ?? null;
-
-        if ($request->action === 'approved') {
-            $submission->status = 'kdp_review';
-        } else {
-            $submission->status = 'rejected';
-        }
-
-        $submission->save();
-
-        return redirect()->route('ss.admin.submissions')->with('success', 'Review SPV berhasil.');
-    }
-
-    public function reviewKdpForm($id)
-    {
-        if (!$this->checkAdmin()) abort(403);
-        $user = $this->getUser();
-
-        $submission = SsSubmission::findOrFail($id);
-
-        return view('ss.admin.review_kdp', compact('user', 'submission'));
-    }
-
-    public function reviewKdpStore(Request $request, $id)
-    {
-        if (!$this->checkAdmin()) abort(403);
-
-        $request->validate([
-            'action' => 'required|in:approved,rejected',
-            'kdp_notes' => 'nullable|string',
-        ]);
-
-        $submission = SsSubmission::findOrFail($id);
-        $submission->kdp_notes = $request->kdp_notes;
-        $submission->kdp_status = $request->action;
-        $submission->kdp_approved_at = now();
-        // Ganti kdp_id dengan kdp_npk
-        $submission->kdp_npk = Auth::user()->employee->npk ?? null;
-
-        if ($request->action === 'approved') {
-            $submission->status = 'approved';
-            $submission->final_approved_at = now();
-        } else {
-            $submission->status = 'rejected';
-        }
-
-        $submission->save();
-
-        return redirect()->route('ss.admin.submissions')->with('success', 'Review KDP berhasil.');
     }
 
     public function rewardForm($id)

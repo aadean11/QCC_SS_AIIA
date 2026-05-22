@@ -510,14 +510,20 @@ class AdminQccController extends Controller
         $search = $request->get('search');
 
         $targets = QccTarget::with(['period', 'department'])
-            ->whereHas('department', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%");
-            })
-            ->orWhereHas('period', function ($q) use ($search) {
-                $q->where('period_name', 'like', "%{$search}%");
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('department', function ($dq) use ($search) {
+                        $dq->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('period', function ($pq) use ($search) {
+                        $pq->where('period_name', 'like', "%{$search}%");
+                    })
+                    ->orWhere('department_code', 'like', "%{$search}%");
+                });
             })
             ->orderBy('created_at', 'desc')
-            ->paginate($perPage)->withQueryString();
+            ->paginate($perPage)
+            ->withQueryString();
 
         $periods = QccPeriod::where('status', 'ACTIVE')->get();
         $departments = Department::orderBy('name', 'asc')->get();
@@ -528,8 +534,8 @@ class AdminQccController extends Controller
     public function storeTarget(Request $request)
     {
         $request->validate([
-            'qcc_period_id' => 'required',
-            'department_code' => 'required',
+            'qcc_period_id' => ['required', Rule::exists('m_qcc_periods', 'id')],
+            'department_code' => ['required', Rule::exists('m_departments', 'code')],
             'target_amount' => 'required|numeric|min:1',
         ]);
 

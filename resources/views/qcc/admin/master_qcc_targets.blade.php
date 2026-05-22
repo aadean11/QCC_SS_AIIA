@@ -59,11 +59,20 @@
                         </td>
 
                         <td class="px-3 md:px-6 py-2 md:py-4 border-y">
-                            <p class="font-bold text-[#091E6E] text-xs md:text-sm uppercase">{{ $t->department->name }}</p>
+                            <p class="font-bold text-[#091E6E] text-xs md:text-sm uppercase">
+                                {{ $t->department?->name ?? $t->department_code }}
+                            </p>
+                            @if(!$t->department)
+                                <span class="text-[9px] text-amber-600 font-semibold">Departemen tidak ditemukan di master</span>
+                            @endif
                         </td>
                         
                         <td class="px-3 md:px-6 py-2 md:py-4 border-y">
-                            <span class="text-[10px] md:text-xs font-bold text-gray-500">{{ $t->period->period_name }} ({{ $t->period->year }})</span>
+                            @if($t->period)
+                                <span class="text-[10px] md:text-xs font-bold text-gray-500">{{ $t->period->period_name }} ({{ $t->period->year }})</span>
+                            @else
+                                <span class="text-[10px] md:text-xs font-bold text-amber-600">Periode tidak ditemukan</span>
+                            @endif
                         </td>
                         
                         <td class="px-3 md:px-6 py-2 md:py-4 border-y text-center">
@@ -124,7 +133,9 @@
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Pilih Departemen</label>
                     <select name="department_code" required class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border rounded-lg md:rounded-xl font-bold text-[#091E6E] text-xs md:text-sm focus:ring-2 focus:ring-[#091E6E] outline-none">
                         <option value="">-- Pilih Departemen --</option>
-                        @foreach($departments as $d) <option value="{{ $d->code }}">{{ $d->name }}</option> @endforeach
+                        @foreach($departments as $d)
+                            <option value="{{ $d->code }}">{{ $d->name }} ({{ $d->code }})</option>
+                        @endforeach
                     </select>
                 </div>
                 <div>

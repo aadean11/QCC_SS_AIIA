@@ -63,12 +63,12 @@
             <i class="fa-regular fa-lightbulb absolute -right-2 -bottom-2 opacity-5 text-blue-600 text-3xl sm:text-4xl md:text-6xl"></i>
         </div>
 
-        <!-- Belum Dinilai -->
+        <!-- Menunggu Review SPV -->
         <div class="glass-card py-2 px-3 sm:py-3 sm:px-4 md:py-4 md:px-6 rounded-[1.2rem] sm:rounded-[1.5rem] md:rounded-[2rem] shadow-sm border-l-4 border-amber-500 transition-all duration-300 hover:scale-[1.02] md:hover:scale-[1.05] hover:shadow-xl group relative overflow-hidden">
             <div class="flex items-center justify-between relative z-10">
                 <div>
-                    <p class="text-[7px] sm:text-[8px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Belum Dinilai</p>
-                    <h3 class="text-xl sm:text-2xl md:text-3xl font-black text-amber-600">{{ $pendingScore }}</h3>
+                    <p class="text-[7px] sm:text-[8px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Menunggu SPV</p>
+                    <h3 class="text-xl sm:text-2xl md:text-3xl font-black text-amber-600">{{ $pendingSpv }}</h3>
                 </div>
                 <div class="w-6 h-6 sm:w-8 sm:h-8 md:w-12 md:h-12 bg-amber-50 text-amber-600 rounded-lg sm:rounded-xl md:rounded-2xl flex items-center justify-center shadow-inner group-hover:bg-amber-600 group-hover:text-white transition-all duration-500">
                     <i class="fa-regular fa-hourglass-half text-xs sm:text-sm md:text-xl"></i>

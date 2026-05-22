@@ -18,21 +18,6 @@
                     <p class="text-blue-200 text-[10px] md:text-xs mt-1">Informasi lengkap pengajuan SS</p>
                 </div>
                 <div class="flex gap-2">
-                    @if(is_null($submission->score))
-                        <a href="{{ route('ss.admin.assess.form', $submission->id) }}" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 md:px-4 md:py-1.5 rounded-xl text-xs md:text-sm font-semibold transition shadow-md flex items-center gap-1">
-                            <i class="fa-regular fa-pen-to-square"></i> Beri Nilai
-                        </a>
-                    @endif
-                    @if($submission->status == 'assessed')
-                        <a href="{{ route('ss.admin.review_spv.form', $submission->id) }}" class="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1.5 md:px-4 md:py-1.5 rounded-xl text-xs md:text-sm font-semibold transition shadow-md flex items-center gap-1">
-                            <i class="fa-regular fa-check-circle"></i> Review SPV
-                        </a>
-                    @endif
-                    @if($submission->status == 'kdp_review')
-                        <a href="{{ route('ss.admin.review_kdp.form', $submission->id) }}" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 md:px-4 md:py-1.5 rounded-xl text-xs md:text-sm font-semibold transition shadow-md flex items-center gap-1">
-                            <i class="fa-solid fa-user-check"></i> Review KDP
-                        </a>
-                    @endif
                     @if($submission->status == 'approved' && is_null($submission->reward_amount))
                         <a href="{{ route('ss.admin.reward.form', $submission->id) }}" class="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 md:px-4 md:py-1.5 rounded-xl text-xs md:text-sm font-semibold transition shadow-md flex items-center gap-1">
                             <i class="fa-regular fa-money-bill-1"></i> Beri Reward
@@ -47,8 +32,12 @@
                 <!-- Informasi Pengajuan -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div class="bg-gray-50/50 p-3 md:p-4 rounded-xl border border-gray-100">
-                        <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Pengaju</span>
+                        <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Operator (OPR)</span>
                         <p class="text-sm md:text-base font-semibold text-gray-800 mt-1">{{ $submission->employee->nama ?? $submission->employee_npk }}</p>
+                    </div>
+                    <div class="bg-gray-50/50 p-3 md:p-4 rounded-xl border border-gray-100">
+                        <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Penilai</span>
+                        <p class="text-sm md:text-base font-semibold text-gray-800 mt-1">{{ $submission->ldr->nama ?? $submission->ldr_npk ?? '-' }}</p>
                     </div>
                     <div class="bg-gray-50/50 p-3 md:p-4 rounded-xl border border-gray-100">
                         <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Departemen</span>

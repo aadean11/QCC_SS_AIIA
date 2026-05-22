@@ -6,14 +6,16 @@
 <div class="animate-reveal">
     @include('partials.breadcrumb', ['items' => [
         ['label' => 'Suggestion System', 'icon' => 'fa-solid fa-lightbulb'],
-        'Daftar SS Saya',
+        $user->isLdr() ? 'Daftar SS Dept' : 'Daftar SS Saya',
     ]])
 
     <!-- Header & Search -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 md:mb-8 gap-4">
         <div>
-            <h2 class="text-2xl md:text-3xl font-bold text-[#091E6E]">Daftar SS Saya</h2>
-            <p class="text-xs md:text-sm text-gray-400">Riwayat Suggestion System yang Anda ajukan</p>
+            <h2 class="text-2xl md:text-3xl font-bold text-[#091E6E]">{{ $user->isLdr() ? 'Daftar SS Departemen' : 'Daftar SS Saya' }}</h2>
+            <p class="text-xs md:text-sm text-gray-400">
+                {{ $user->isLdr() ? 'Semua pengajuan SS di departemen Anda' : 'Riwayat Suggestion System Anda' }}
+            </p>
         </div>
         
         <div class="flex flex-wrap gap-3 w-full md:w-auto justify-start md:justify-end items-center">
@@ -34,9 +36,11 @@
                 </div>
             </form>
 
+            @if($user->canSubmitOwnSs())
             <a href="{{ route('ss.karyawan.create') }}" class="bg-[#091E6E] hover:bg-[#130998] text-white px-4 md:px-5 py-2 rounded-xl flex items-center gap-2 shadow-lg transition-all active:scale-95 text-[10px] md:text-xs font-bold uppercase tracking-wider w-full sm:w-auto justify-center">
-                <i class="fa-solid fa-plus"></i> Upload SS Baru
+                <i class="fa-solid fa-plus"></i> Pengajuan SS
             </a>
+            @endif
         </div>
     </div>
 
@@ -47,6 +51,9 @@
                 <thead>
                     <tr class="sidebar-gradient shadow-md">
                         <th class="px-2 md:px-4 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold rounded-tl-2xl text-center w-12">No</th>
+                        @if($user->isLdr())
+                        <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold">Pengaju</th>
+                        @endif
                         <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold">Tanggal Upload</th>
                         <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold">File PDF</th>
                         <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold">Score</th>
@@ -61,6 +68,15 @@
                         <td class="px-2 md:px-4 py-2 md:py-3 rounded-l-xl border-y border-l border-gray-100 text-center font-bold text-gray-500 text-xs md:text-sm">
                             {{ ($submissions->currentPage() - 1) * $submissions->perPage() + $loop->iteration }}
                         </td>
+
+                        @if($user->isLdr())
+                        <td class="px-3 md:px-6 py-2 md:py-3 border-y border-gray-100">
+                            <span class="font-semibold text-[#091E6E] text-xs md:text-sm">{{ $ss->employee->nama ?? $ss->employee_npk }}</span>
+                            @if($ss->employee_npk === $ss->ldr_npk)
+                                <span class="block text-[9px] text-purple-600 font-bold">SS Pribadi</span>
+                            @endif
+                        </td>
+                        @endif
 
                         <td class="px-3 md:px-6 py-2 md:py-3 border-y border-gray-100">
                             <span class="font-medium text-gray-700 text-xs md:text-sm">{{ \Carbon\Carbon::parse($ss->submission_date)->format('d/m/Y H:i') }}</span>
@@ -117,7 +133,7 @@
                      </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="text-center py-10 text-gray-300 italic text-xs md:text-sm">Belum ada pengajuan SS.</td>
+                        <td colspan="{{ $user->isLdr() ? 8 : 7 }}" class="text-center py-10 text-gray-300 italic text-xs md:text-sm">Belum ada pengajuan SS.</td>
                     </tr>
                     @endforelse
                 </tbody>

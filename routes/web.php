@@ -10,6 +10,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\QccApprovalController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminSsController;
+use App\Http\Controllers\SsApprovalController;
 use App\Http\Controllers\KaryawanSsController;
 
 // Redirect root ke login jika belum login, ke welcome jika sudah
@@ -110,6 +111,14 @@ Route::middleware(['auth'])->group(function () {
     // Approval Progres PDCA (Step 1-8)
     Route::get('/qcc/approval/progress', [QccApprovalController::class, 'index'])->name('qcc.approval.progress');
     Route::post('/qcc/approval/progress/process/{id}', [QccApprovalController::class, 'process'])->name('qcc.approval.process');
+
+    // Approval SS (SPV / KDP — role employee)
+    Route::get('/ss/approval/spv', [SsApprovalController::class, 'indexSpv'])->name('ss.approval.spv');
+    Route::get('/ss/approval/spv/{id}/review', [SsApprovalController::class, 'reviewSpvForm'])->name('ss.approval.spv.review');
+    Route::post('/ss/approval/spv/{id}/review', [SsApprovalController::class, 'reviewSpvStore'])->name('ss.approval.spv.store');
+    Route::get('/ss/approval/kdp', [SsApprovalController::class, 'indexKdp'])->name('ss.approval.kdp');
+    Route::get('/ss/approval/kdp/{id}/review', [SsApprovalController::class, 'reviewKdpForm'])->name('ss.approval.kdp.review');
+    Route::post('/ss/approval/kdp/{id}/review', [SsApprovalController::class, 'reviewKdpStore'])->name('ss.approval.kdp.store');
 });
 
 // Group untuk karyawan SS
@@ -125,12 +134,6 @@ Route::prefix('ss/admin')->name('ss.admin.')->middleware('auth')->group(function
     Route::get('/dashboard', [AdminSsController::class, 'dashboard'])->name('dashboard');
     Route::get('/submissions', [AdminSsController::class, 'submissions'])->name('submissions');
     Route::get('/submissions/{id}', [AdminSsController::class, 'show'])->name('show');
-    Route::get('/assess/{id}', [AdminSsController::class, 'assessForm'])->name('assess.form');
-    Route::post('/assess/{id}', [AdminSsController::class, 'assessStore'])->name('assess.store');
-    Route::get('/review-spv/{id}', [AdminSsController::class, 'reviewSpvForm'])->name('review_spv.form');
-    Route::post('/review-spv/{id}', [AdminSsController::class, 'reviewSpvStore'])->name('review_spv.store');
-    Route::get('/review-kdp/{id}', [AdminSsController::class, 'reviewKdpForm'])->name('review_kdp.form');
-    Route::post('/review-kdp/{id}', [AdminSsController::class, 'reviewKdpStore'])->name('review_kdp.store');
     Route::get('/reward/{id}', [AdminSsController::class, 'rewardForm'])->name('reward.form');
     Route::post('/reward/{id}', [AdminSsController::class, 'rewardStore'])->name('reward.store');
 });

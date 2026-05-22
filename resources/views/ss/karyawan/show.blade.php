@@ -26,6 +26,16 @@
         <div class="p-4 md:p-8 space-y-6 md:space-y-8">
             <!-- Informasi Pengajuan -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                @if($user->isLdr())
+                <div class="bg-gray-50/50 p-3 md:p-4 rounded-xl border border-gray-100">
+                    <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Operator (OPR)</span>
+                    <p class="text-sm md:text-base font-semibold text-gray-800 mt-1">{{ $submission->employee->nama ?? $submission->employee_npk }}</p>
+                </div>
+                @endif
+                <div class="bg-gray-50/50 p-3 md:p-4 rounded-xl border border-gray-100">
+                    <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Penilai (LDR/SPV/KDP)</span>
+                    <p class="text-sm md:text-base font-semibold text-gray-800 mt-1">{{ $submission->ldr->nama ?? $submission->ldr_npk ?? '-' }}</p>
+                </div>
                 <div class="bg-gray-50/50 p-3 md:p-4 rounded-xl border border-gray-100">
                     <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Tanggal Upload</span>
                     <p class="text-sm md:text-base font-semibold text-gray-800 mt-1">{{ \Carbon\Carbon::parse($submission->submission_date)->format('d/m/Y H:i') }}</p>

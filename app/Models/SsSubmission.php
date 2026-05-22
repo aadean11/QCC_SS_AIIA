@@ -19,6 +19,7 @@ class SsSubmission extends Model
         'submission_date',
         'score',
         'notes',
+        'ldr_npk',
         'spv_npk',
         'spv_notes',
         'spv_approved_at',
@@ -49,6 +50,11 @@ class SsSubmission extends Model
     public function employee()
     {
         return $this->belongsTo(Employee::class, 'employee_npk', 'npk');
+    }
+
+    public function ldr()
+    {
+        return $this->belongsTo(Employee::class, 'ldr_npk', 'npk');
     }
 
     /**

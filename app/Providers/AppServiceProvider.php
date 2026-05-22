@@ -47,32 +47,33 @@ class AppServiceProvider extends ServiceProvider
 
                 if ($employee && in_array($employee->occupation, ['SPV', 'KDP'])) {
                     $myDept = $employee->getDeptCode();
-                    
-                    // Penentuan Status WAITING
+
+                    // Penentuan Status WAITING QCC
                     $stCircle = ($employee->occupation === 'KDP') ? 'WAITING KDP' : 'WAITING SPV';
                     $stProgress = ($employee->occupation === 'KDP') ? 'WAITING KDP' : 'WAITING SPV';
 
-                    // HITUNG HANYA DEPARTEMEN SENDIRI
                     $countCircle = QccCircle::where('department_code', $myDept)->where('status', $stCircle)->count();
-                    $countProgress = QccCircleStepTransaction::whereHas('circle', fn($q) => $q->where('department_code', $myDept))
-                                    ->where('status', $stProgress)->count();
+                    $countProgress = QccCircleStepTransaction::whereHas('circle', fn ($q) => $q->where('department_code', $myDept))
+                        ->where('status', $stProgress)->count();
 
-                    $view->with([
+                    $extra = [
                         'countCircle' => $countCircle,
                         'countProgress' => $countProgress,
                         'countQccApproval' => $countCircle + $countProgress,
-                    ]);
-                }
+                    ];
 
-                if (session('active_role') === 'admin') {
-                    $countSsSpvApproval = SsSubmission::where('status', 'assessed')->count();
-                    $countSsKdpApproval = SsSubmission::where('status', 'kdp_review')->count();
+                    // Badge approval SS per jabatan & departemen
+                    if ($employee->occupation === 'SPV') {
+                        $countSsSpv = SsSubmission::where('department_code', $myDept)->where('status', 'assessed')->count();
+                        $extra['countSsSpvApproval'] = $countSsSpv;
+                        $extra['countSsApproval'] = $countSsSpv;
+                    } else {
+                        $countSsKdp = SsSubmission::where('department_code', $myDept)->where('status', 'kdp_review')->count();
+                        $extra['countSsKdpApproval'] = $countSsKdp;
+                        $extra['countSsApproval'] = $countSsKdp;
+                    }
 
-                    $view->with([
-                        'countSsSpvApproval' => $countSsSpvApproval,
-                        'countSsKdpApproval' => $countSsKdpApproval,
-                        'countSsApproval' => $countSsSpvApproval + $countSsKdpApproval,
-                    ]);
+                    $view->with($extra);
                 }
             }
         });
