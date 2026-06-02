@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Employee;
 use App\Models\SsSubmission;
+use App\Services\SsScoringService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -100,6 +101,34 @@ class KaryawanSsController extends Controller
         return $path;
     }
 
+    private function initialApprovalData(Employee $submitter): array
+    {
+        if ($submitter->isKadept()) {
+            return [
+                'ldr_status' => 'approved',
+                'spv_status' => 'approved',
+                'status' => 'kdp_review',
+            ];
+        }
+
+        if ($submitter->isSpv()) {
+            return [
+                'ldr_status' => 'approved',
+                'spv_npk' => $submitter->npk,
+                'spv_status' => 'approved',
+                'spv_approved_at' => now(),
+                'status' => 'kdp_review',
+            ];
+        }
+
+        return [
+            'ldr_npk' => $submitter->npk,
+            'ldr_status' => 'approved',
+            'ldr_approved_at' => now(),
+            'status' => 'spv_review',
+        ];
+    }
+
     public function index(Request $request)
     {
         if (!$this->checkAccess()) {
@@ -141,8 +170,10 @@ class KaryawanSsController extends Controller
 
         $oprList = $employee->isLdr() ? $this->oprListForDepartment($employee) : collect();
         $myDept = $employee->getDepartment();
+        $ideaTypes = SsScoringService::ideaTypes();
+        $implementationStatuses = SsScoringService::implementationStatuses();
 
-        return view('ss.karyawan.create', compact('user', 'oprList', 'myDept'));
+        return view('ss.karyawan.create', compact('user', 'oprList', 'myDept', 'ideaTypes', 'implementationStatuses'));
     }
 
     public function store(Request $request)
@@ -155,7 +186,19 @@ class KaryawanSsController extends Controller
 
         $request->validate([
             'submission_type' => 'required|in:opr,self',
-            'score' => 'required|numeric|min:0',
+            'idea_title' => 'required|string|max:255',
+            'idea_types' => 'required|array|min:1',
+            'idea_types.*' => ['string', Rule::in(array_keys(SsScoringService::ideaTypes()))],
+            'implemented_date' => 'required|date',
+            'idea_location' => 'required|string|max:255',
+            'before_condition' => 'required|string',
+            'cause' => 'required|string',
+            'action' => 'required|string',
+            'result' => 'required|string',
+            'standardization' => 'nullable|string',
+            'benefit' => 'required|string',
+            'benefit_amount' => 'nullable|numeric|min:0',
+            'implementation_status' => ['required', 'string', Rule::in(array_keys(SsScoringService::implementationStatuses()))],
             'file' => 'required|mimes:pdf|max:5120',
             'notes' => 'nullable|string|max:500',
             'employee_npk' => 'nullable|string',
@@ -185,33 +228,57 @@ class KaryawanSsController extends Controller
 
                 $path = $this->storeSubmissionFile($request, $opr->npk);
 
-                SsSubmission::create([
+                SsSubmission::create(array_merge([
                     'employee_npk' => $opr->npk,
                     'department_code' => $departmentCode,
+                    'idea_no' => $this->generateIdeaNo($departmentCode),
+                    'idea_title' => $request->idea_title,
+                    'idea_types' => $request->idea_types,
                     'file_path' => $path,
                     'submission_date' => now(),
-                    'score' => $request->score,
+                    'implemented_date' => $request->implemented_date,
+                    'idea_location' => $request->idea_location,
                     'notes' => $request->notes,
-                    'ldr_npk' => $submitter->npk,
-                    'status' => 'assessed',
-                ]);
+                    'before_condition' => $request->before_condition,
+                    'cause' => $request->cause,
+                    'action' => $request->action,
+                    'result' => $request->result,
+                    'standardization' => $request->standardization,
+                    'benefit' => $request->benefit,
+                    'benefit_amount' => $request->benefit_amount ?? 0,
+                    'implementation_status' => $request->implementation_status,
+                ], $this->initialApprovalData($submitter)));
 
-                $message = 'SS operator berhasil diajukan dengan nilai. Menunggu review SPV.';
+                $message = 'SS operator berhasil diajukan. Menunggu review dan penilaian SPV.';
             } else {
                 $path = $this->storeSubmissionFile($request, $submitter->npk);
 
-                SsSubmission::create([
+                SsSubmission::create(array_merge([
                     'employee_npk' => $submitter->npk,
                     'department_code' => $departmentCode,
+                    'idea_no' => $this->generateIdeaNo($departmentCode),
+                    'idea_title' => $request->idea_title,
+                    'idea_types' => $request->idea_types,
                     'file_path' => $path,
                     'submission_date' => now(),
-                    'score' => $request->score,
+                    'implemented_date' => $request->implemented_date,
+                    'idea_location' => $request->idea_location,
                     'notes' => $request->notes,
-                    'ldr_npk' => $submitter->isLdr() ? $submitter->npk : null,
-                    'status' => 'assessed',
-                ]);
+                    'before_condition' => $request->before_condition,
+                    'cause' => $request->cause,
+                    'action' => $request->action,
+                    'result' => $request->result,
+                    'standardization' => $request->standardization,
+                    'benefit' => $request->benefit,
+                    'benefit_amount' => $request->benefit_amount ?? 0,
+                    'implementation_status' => $request->implementation_status,
+                ], $this->initialApprovalData($submitter)));
 
-                $message = 'SS pribadi berhasil diajukan. Menunggu review SPV.';
+                $message = match (true) {
+                    $submitter->isKadept() => 'SS pribadi berhasil diajukan. Menunggu review KDP.',
+                    $submitter->isSpv() => 'SS pribadi berhasil diajukan. Menunggu review KDP.',
+                    default => 'SS pribadi berhasil diajukan. Menunggu review SPV.',
+                };
             }
 
             return redirect()->route('ss.karyawan.index')->with('success', $message);
@@ -238,5 +305,13 @@ class KaryawanSsController extends Controller
         $user = $employee;
 
         return view('ss.karyawan.show', compact('user', 'submission'));
+    }
+
+    private function generateIdeaNo(string $departmentCode): string
+    {
+        $prefix = 'SS-' . now()->format('Ym') . '-' . strtoupper($departmentCode);
+        $next = SsSubmission::where('idea_no', 'like', $prefix . '-%')->count() + 1;
+
+        return $prefix . '-' . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 }

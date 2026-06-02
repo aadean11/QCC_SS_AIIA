@@ -398,6 +398,10 @@
                                         <i class="fa-solid fa-trophy"></i>
                                         <span class="menu-text">Hasil & Reward</span>
                                     </a>
+                                    <a href="{{ route('ss.admin.master_scoring') }}" class="{{ request()->is('ss/admin/master-scoring*') ? 'font-bold' : '' }}">
+                                        <i class="fa-solid fa-ranking-star"></i>
+                                        <span class="menu-text">Master Scoring</span>
+                                    </a>
                                 @endif
 
                                 @if($user->occupation === 'SPV')

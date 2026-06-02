@@ -30,6 +30,25 @@
             <form action="{{ route('ss.approval.spv.store', $submission->id) }}" method="POST" id="formReviewSpv">
                 @csrf
 
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">No Ide</span>
+                        <p class="text-sm font-bold text-[#091E6E] mt-1">{{ $submission->idea_no ?? '-' }}</p>
+                    </div>
+                    <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">Nama Ide</span>
+                        <p class="text-sm font-bold text-[#091E6E] mt-1">{{ $submission->idea_title ?? '-' }}</p>
+                    </div>
+                    <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">Status SS dari Leader</span>
+                        <p class="text-sm text-gray-700 mt-1">{{ $implementationStatuses[$submission->implementation_status] ?? '-' }}</p>
+                    </div>
+                    <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">File Ide</span>
+                        <p class="mt-1"><a href="{{ asset('storage/' . $submission->file_path) }}" target="_blank" class="text-blue-600 hover:underline text-sm font-semibold"><i class="fa-regular fa-file-pdf mr-1"></i>Buka PDF</a></p>
+                    </div>
+                </div>
+
                 <div class="mb-6">
                     <label class="block text-gray-700 text-sm font-bold mb-2">Tindakan <span class="text-red-500">*</span></label>
                     <div class="bg-gray-50/30 rounded-xl border border-gray-200 p-2">
@@ -38,6 +57,58 @@
                             <option value="rejected">❌ Reject</option>
                         </select>
                     </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Keputusan Ide / Penilaian Supervisor <span class="text-red-500">*</span></label>
+                        <div class="bg-gray-50/30 rounded-xl border border-gray-200 p-2">
+                            <select name="supervisor_decision" class="w-full bg-transparent outline-none text-sm md:text-base font-medium text-gray-800 p-2" required>
+                                @foreach($decisions as $key => $label)
+                                    <option value="{{ $key }}" @selected(old('supervisor_decision') === $key)>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @error('supervisor_decision') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Tinjauan Terhadap STD</label>
+                        <div class="bg-gray-50/30 rounded-xl border border-gray-200 p-2">
+                            <select name="standard_review" class="w-full bg-transparent outline-none text-sm md:text-base font-medium text-gray-800 p-2">
+                                <option value="">-- Pilih bila relevan --</option>
+                                @foreach($standardReviews as $key => $label)
+                                    <option value="{{ $key }}" @selected(old('standard_review') === $key)>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @error('standard_review') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Alasan / Komentar Supervisor</label>
+                    <textarea name="supervisor_reason" rows="3" class="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-[#091E6E] bg-gray-50/30 text-sm" placeholder="Alasan keputusan ide...">{{ old('supervisor_reason') }}</textarea>
+                    @error('supervisor_reason') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <div class="mb-8">
+                    <div class="flex items-center justify-between gap-3 mb-2">
+                        <label class="block text-gray-700 text-sm font-bold">Penilaian Kriteria <span class="text-red-500">*</span></label>
+                        <span class="text-xs font-bold text-[#091E6E]">Total: <span id="spvScoreTotal">0</span></span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        @foreach($criteria as $key => $label)
+                            <div class="flex items-center justify-between gap-3 bg-gray-50/50 border border-gray-200 rounded-xl px-3 py-2">
+                                <label class="text-xs md:text-sm font-semibold text-gray-700">
+                                    {{ $loop->iteration }}. {{ $label }}
+                                    <span class="block text-[9px] text-gray-400">Max {{ $criteriaMaxScores[$key] ?? 0 }}</span>
+                                </label>
+                                <input type="number" name="scores[{{ $key }}]" min="0" max="{{ $criteriaMaxScores[$key] ?? 0 }}" value="{{ old('scores.' . $key, 0) }}" class="score-input w-20 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-[#091E6E] text-center outline-none focus:ring-2 focus:ring-[#091E6E]">
+                            </div>
+                            @error('scores.' . $key) <p class="text-red-500 text-xs -mt-2">{{ $message }}</p> @enderror
+                        @endforeach
+                    </div>
+                    @error('scores') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <div class="mb-8">
@@ -62,6 +133,19 @@
 
 @push('scripts')
 <script>
+    function updateSpvScoreTotal() {
+        const total = [...document.querySelectorAll('.score-input')].reduce((sum, input) => {
+            const max = Number(input.max || 0);
+            const value = Math.max(0, Math.min(Number(input.value || 0), max));
+            input.value = value;
+            return sum + value;
+        }, 0);
+        document.getElementById('spvScoreTotal').textContent = total;
+    }
+
+    document.querySelectorAll('.score-input').forEach(input => input.addEventListener('input', updateSpvScoreTotal));
+    updateSpvScoreTotal();
+
     document.getElementById('formReviewSpv')?.addEventListener('submit', function(e) {
         e.preventDefault();
         Swal.fire({

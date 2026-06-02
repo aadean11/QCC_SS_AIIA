@@ -30,6 +30,25 @@
             <form action="{{ route('ss.approval.kdp.store', $submission->id) }}" method="POST" id="formReviewKdp">
                 @csrf
 
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">No Ide</span>
+                        <p class="text-sm font-bold text-[#091E6E] mt-1">{{ $submission->idea_no ?? '-' }}</p>
+                    </div>
+                    <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">Nama Ide</span>
+                        <p class="text-sm font-bold text-[#091E6E] mt-1">{{ $submission->idea_title ?? '-' }}</p>
+                    </div>
+                    <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">Nilai SPV</span>
+                        <p class="text-sm font-bold text-purple-700 mt-1">{{ $submission->spv_score_total ?? '-' }}</p>
+                    </div>
+                    <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">File Ide</span>
+                        <p class="mt-1"><a href="{{ asset('storage/' . $submission->file_path) }}" target="_blank" class="text-blue-600 hover:underline text-sm font-semibold"><i class="fa-regular fa-file-pdf mr-1"></i>Buka PDF</a></p>
+                    </div>
+                </div>
+
                 <div class="mb-6">
                     <label class="block text-gray-700 text-sm font-bold mb-2">Tindakan <span class="text-red-500">*</span></label>
                     <div class="bg-gray-50/30 rounded-xl border border-gray-200 p-2">
@@ -38,6 +57,47 @@
                             <option value="rejected">❌ Reject</option>
                         </select>
                     </div>
+                </div>
+
+                @if($submission->spv_scores)
+                    <div class="mb-6 overflow-x-auto border border-purple-100 rounded-xl">
+                        <table class="w-full text-sm">
+                            <thead class="bg-purple-50 text-purple-700">
+                                <tr>
+                                    <th class="text-left px-3 py-2">Kriteria SPV</th>
+                                    <th class="text-center px-3 py-2 w-24">Nilai</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($criteria as $key => $label)
+                                    <tr class="border-t border-purple-50">
+                                        <td class="px-3 py-2 text-gray-700">{{ $loop->iteration }}. {{ $label }}</td>
+                                        <td class="px-3 py-2 text-center font-bold text-[#091E6E]">{{ $submission->spv_scores[$key] ?? 0 }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+
+                <div class="mb-8">
+                    <div class="flex items-center justify-between gap-3 mb-2">
+                        <label class="block text-gray-700 text-sm font-bold">Penilaian Final Dept. Head <span class="text-red-500">*</span></label>
+                        <span class="text-xs font-bold text-[#091E6E]">Total: <span id="kdpScoreTotal">0</span></span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        @foreach($criteria as $key => $label)
+                            <div class="flex items-center justify-between gap-3 bg-gray-50/50 border border-gray-200 rounded-xl px-3 py-2">
+                                <label class="text-xs md:text-sm font-semibold text-gray-700">
+                                    {{ $loop->iteration }}. {{ $label }}
+                                    <span class="block text-[9px] text-gray-400">Max {{ $criteriaMaxScores[$key] ?? 0 }}</span>
+                                </label>
+                                <input type="number" name="scores[{{ $key }}]" min="0" max="{{ $criteriaMaxScores[$key] ?? 0 }}" value="{{ old('scores.' . $key, $submission->spv_scores[$key] ?? 0) }}" class="score-input w-20 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-[#091E6E] text-center outline-none focus:ring-2 focus:ring-[#091E6E]">
+                            </div>
+                            @error('scores.' . $key) <p class="text-red-500 text-xs -mt-2">{{ $message }}</p> @enderror
+                        @endforeach
+                    </div>
+                    @error('scores') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <div class="mb-8">
@@ -62,6 +122,19 @@
 
 @push('scripts')
 <script>
+    function updateKdpScoreTotal() {
+        const total = [...document.querySelectorAll('.score-input')].reduce((sum, input) => {
+            const max = Number(input.max || 0);
+            const value = Math.max(0, Math.min(Number(input.value || 0), max));
+            input.value = value;
+            return sum + value;
+        }, 0);
+        document.getElementById('kdpScoreTotal').textContent = total;
+    }
+
+    document.querySelectorAll('.score-input').forEach(input => input.addEventListener('input', updateKdpScoreTotal));
+    updateKdpScoreTotal();
+
     document.getElementById('formReviewKdp')?.addEventListener('submit', function(e) {
         e.preventDefault();
         Swal.fire({

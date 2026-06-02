@@ -51,7 +51,7 @@
                 <div class="bg-gray-50/50 p-3 md:p-4 rounded-xl border border-gray-100">
                     <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Status</span>
                     @php
-                        $statusColors = ['draft'=>'gray','submitted'=>'yellow','assessed'=>'blue','spv_review'=>'purple','kdp_review'=>'orange','approved'=>'green','rejected'=>'red','rewarded'=>'emerald'];
+                        $statusColors = ['draft'=>'gray','submitted'=>'yellow','spv_review'=>'purple','kdp_review'=>'orange','approved'=>'green','rejected'=>'red','rewarded'=>'emerald'];
                         $color = $statusColors[$submission->status] ?? 'gray';
                     @endphp
                     <span class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold uppercase bg-{{ $color }}-100 text-{{ $color }}-800">
@@ -126,8 +126,13 @@
                 <h3 class="text-sm md:text-base font-bold text-[#091E6E] border-l-4 border-[#091E6E] pl-3 mb-4">Reward</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div class="bg-gradient-to-r from-emerald-50 to-white p-4 rounded-xl border border-emerald-100">
-                        <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Nominal Reward</span>
-                        <p class="text-2xl md:text-3xl font-bold text-emerald-600 mt-1">{{ $submission->reward_amount ? 'Rp ' . number_format($submission->reward_amount, 0, ',', '.') : '-' }}</p>
+                            <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Nominal Reward</span>
+                        <p class="text-2xl md:text-3xl font-bold {{ $submission->reward_amount ? 'text-emerald-600' : 'text-amber-600' }} mt-1">
+                            {{ ($submission->reward_amount ?? $submission->calculated_reward_amount) ? 'Rp ' . number_format($submission->reward_amount ?? $submission->calculated_reward_amount, 0, ',', '.') : '-' }}
+                        </p>
+                        @if(!$submission->paid_at && $submission->calculated_reward_amount)
+                            <span class="text-[10px] font-bold text-amber-600">Belum dibayar admin</span>
+                        @endif
                     </div>
                     @if($submission->paid_at)
                     <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-100">

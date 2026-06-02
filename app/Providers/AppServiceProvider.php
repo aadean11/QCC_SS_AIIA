@@ -64,7 +64,7 @@ class AppServiceProvider extends ServiceProvider
 
                     // Badge approval SS per jabatan & departemen
                     if ($employee->occupation === 'SPV') {
-                        $countSsSpv = SsSubmission::where('department_code', $myDept)->where('status', 'assessed')->count();
+                        $countSsSpv = SsSubmission::where('department_code', $myDept)->where('status', 'spv_review')->count();
                         $extra['countSsSpvApproval'] = $countSsSpv;
                         $extra['countSsApproval'] = $countSsSpv;
                     } else {

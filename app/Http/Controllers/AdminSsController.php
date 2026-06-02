@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SsSubmission;
 use App\Models\Department;
+use App\Models\SsScoringRange;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -40,7 +41,7 @@ class AdminSsController extends Controller
 
         // Statistik card
         $total = (clone $query)->count();
-        $pendingSpv = (clone $query)->where('status', 'assessed')->count();
+        $pendingSpv = (clone $query)->where('status', 'spv_review')->count();
         $approved = (clone $query)->where('status', 'approved')->count();
         $rewarded = (clone $query)->where('status', 'rewarded')->count();
 
@@ -132,6 +133,19 @@ class AdminSsController extends Controller
         $user = $this->getUser();
 
         $submission = SsSubmission::findOrFail($id);
+        if ($submission->status === 'rewarded') {
+            return redirect()->route('ss.admin.show', $submission->id)->with('info', 'Reward untuk SS ini sudah dibayar.');
+        }
+        if ($submission->status !== 'approved') {
+            return redirect()->route('ss.admin.show', $submission->id)->with('error', 'Reward hanya bisa dikonfirmasi untuk SS yang sudah approved.');
+        }
+
+        if ($submission->calculated_reward_amount === null) {
+            $submission->calculated_reward_amount = SsScoringRange::rewardForScore($submission->final_score ?? $submission->score);
+        }
+        if ($submission->reward_amount === null) {
+            $submission->reward_amount = $submission->calculated_reward_amount;
+        }
 
         return view('ss.admin.reward', compact('user', 'submission'));
     }
@@ -145,11 +159,111 @@ class AdminSsController extends Controller
         ]);
 
         $submission = SsSubmission::findOrFail($id);
+        if ($submission->status === 'rewarded') {
+            return redirect()->route('ss.admin.show', $submission->id)->with('info', 'Reward untuk SS ini sudah pernah dibayar.');
+        }
+        if ($submission->status !== 'approved') {
+            return redirect()->route('ss.admin.show', $submission->id)->with('error', 'Reward hanya bisa dibayar untuk SS yang sudah approved.');
+        }
+
         $submission->reward_amount = $request->reward_amount;
         $submission->paid_at = now();
         $submission->status = 'rewarded';
         $submission->save();
 
         return redirect()->route('ss.admin.submissions')->with('success', 'Reward berhasil diberikan.');
+    }
+
+    public function masterScoring(Request $request)
+    {
+        if (!$this->checkAdmin()) abort(403);
+        $user = $this->getUser();
+
+        $perPage = $request->get('per_page', 20);
+        $search = $request->get('search');
+
+        $query = SsScoringRange::query();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('approver_level', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhere('ranking', $search);
+            });
+        }
+
+        $ranges = $query->orderBy('min_score')->paginate($perPage)->withQueryString();
+
+        return view('ss.admin.master_scoring', compact('user', 'ranges', 'perPage'));
+    }
+
+    public function storeScoring(Request $request)
+    {
+        if (!$this->checkAdmin()) abort(403);
+
+        $data = $this->validateScoringRange($request);
+        if ($this->hasOverlappingActiveRange($data)) {
+            return redirect()->back()->withInput()->with('error', 'Range total nilai aktif tidak boleh tumpang tindih.');
+        }
+
+        SsScoringRange::create($data);
+
+        return redirect()->route('ss.admin.master_scoring')->with('success', 'Master scoring SS berhasil ditambahkan.');
+    }
+
+    public function updateScoring(Request $request, $id)
+    {
+        if (!$this->checkAdmin()) abort(403);
+
+        $range = SsScoringRange::findOrFail($id);
+        $data = $this->validateScoringRange($request);
+        if ($this->hasOverlappingActiveRange($data, (int) $id)) {
+            return redirect()->back()->withInput()->with('error', 'Range total nilai aktif tidak boleh tumpang tindih.');
+        }
+
+        $range->update($data);
+
+        return redirect()->route('ss.admin.master_scoring')->with('success', 'Master scoring SS berhasil diperbarui.');
+    }
+
+    public function deleteScoring($id)
+    {
+        if (!$this->checkAdmin()) abort(403);
+
+        SsScoringRange::findOrFail($id)->delete();
+
+        return redirect()->route('ss.admin.master_scoring')->with('success', 'Master scoring SS berhasil dihapus.');
+    }
+
+    private function validateScoringRange(Request $request): array
+    {
+        $data = $request->validate([
+            'min_score' => 'required|integer|min:0',
+            'max_score' => 'required|integer|gte:min_score',
+            'ranking' => 'required|integer|min:1|max:255',
+            'reward_amount' => 'required|numeric|min:0',
+            'approver_level' => 'nullable|string|max:100',
+            'description' => 'nullable|string|max:1000',
+            'extra_score_increment' => 'nullable|integer|min:1',
+            'extra_reward_increment' => 'nullable|numeric|min:0',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $data['is_active'] = $request->boolean('is_active');
+
+        return $data;
+    }
+
+    private function hasOverlappingActiveRange(array $data, ?int $ignoreId = null): bool
+    {
+        if (!($data['is_active'] ?? false)) {
+            return false;
+        }
+
+        return SsScoringRange::where('is_active', true)
+            ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
+            ->where('min_score', '<=', $data['max_score'])
+            ->where('max_score', '>=', $data['min_score'])
+            ->exists();
     }
 }

@@ -132,6 +132,10 @@ Route::prefix('ss/karyawan')->name('ss.karyawan.')->middleware('auth')->group(fu
 // Group untuk admin SS
 Route::prefix('ss/admin')->name('ss.admin.')->middleware('auth')->group(function () {
     Route::get('/dashboard', [AdminSsController::class, 'dashboard'])->name('dashboard');
+    Route::get('/master-scoring', [AdminSsController::class, 'masterScoring'])->name('master_scoring');
+    Route::post('/master-scoring', [AdminSsController::class, 'storeScoring'])->name('store_scoring');
+    Route::put('/master-scoring/{id}', [AdminSsController::class, 'updateScoring'])->name('update_scoring');
+    Route::delete('/master-scoring/{id}', [AdminSsController::class, 'deleteScoring'])->name('delete_scoring');
     Route::get('/submissions', [AdminSsController::class, 'submissions'])->name('submissions');
     Route::get('/submissions/{id}', [AdminSsController::class, 'show'])->name('show');
     Route::get('/reward/{id}', [AdminSsController::class, 'rewardForm'])->name('reward.form');

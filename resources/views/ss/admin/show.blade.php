@@ -18,9 +18,9 @@
                     <p class="text-blue-200 text-[10px] md:text-xs mt-1">Informasi lengkap pengajuan SS</p>
                 </div>
                 <div class="flex gap-2">
-                    @if($submission->status == 'approved' && is_null($submission->reward_amount))
+                    @if($submission->status == 'approved' && is_null($submission->paid_at))
                         <a href="{{ route('ss.admin.reward.form', $submission->id) }}" class="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 md:px-4 md:py-1.5 rounded-xl text-xs md:text-sm font-semibold transition shadow-md flex items-center gap-1">
-                            <i class="fa-regular fa-money-bill-1"></i> Beri Reward
+                            <i class="fa-regular fa-money-bill-1"></i> Konfirmasi Reward
                         </a>
                     @endif
                 </div>
@@ -120,7 +120,12 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                         <div class="bg-gradient-to-r from-emerald-50 to-white p-4 rounded-xl border border-emerald-100">
                             <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Nominal Reward</span>
-                            <p class="text-2xl md:text-3xl font-bold text-emerald-600 mt-1">{{ $submission->reward_amount ? 'Rp ' . number_format($submission->reward_amount, 0, ',', '.') : '-' }}</p>
+                            <p class="text-2xl md:text-3xl font-bold {{ $submission->reward_amount ? 'text-emerald-600' : 'text-amber-600' }} mt-1">
+                                {{ ($submission->reward_amount ?? $submission->calculated_reward_amount) ? 'Rp ' . number_format($submission->reward_amount ?? $submission->calculated_reward_amount, 0, ',', '.') : '-' }}
+                            </p>
+                            @if(!$submission->paid_at && $submission->calculated_reward_amount)
+                                <span class="text-[10px] font-bold text-amber-600">Belum dibayar admin</span>
+                            @endif
                         </div>
                         @if($submission->paid_at)
                         <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-100">

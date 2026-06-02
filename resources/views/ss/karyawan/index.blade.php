@@ -101,7 +101,6 @@
                                 $statusColors = [
                                     'draft' => 'gray',
                                     'submitted' => 'yellow',
-                                    'assessed' => 'blue',
                                     'spv_review' => 'purple',
                                     'kdp_review' => 'orange',
                                     'approved' => 'green',
@@ -118,6 +117,9 @@
                         <td class="px-3 md:px-6 py-2 md:py-3 border-y border-gray-100">
                             @if($ss->reward_amount)
                                 <span class="text-emerald-600 font-bold text-xs md:text-sm">Rp {{ number_format($ss->reward_amount, 0, ',', '.') }}</span>
+                            @elseif($ss->calculated_reward_amount)
+                                <span class="text-amber-600 font-bold text-xs md:text-sm">Rp {{ number_format($ss->calculated_reward_amount, 0, ',', '.') }}</span>
+                                <span class="block text-[9px] text-gray-400">Belum dibayar</span>
                             @else
                                 <span class="text-gray-400 italic text-xs">-</span>
                             @endif

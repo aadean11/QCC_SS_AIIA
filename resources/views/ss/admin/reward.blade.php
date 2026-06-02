@@ -27,8 +27,9 @@
                     <div class="mb-8">
                         <label class="block text-gray-700 text-sm font-bold mb-2">Nominal Reward (Rp) <span class="text-red-500">*</span></label>
                         <div class="bg-gray-50/30 rounded-xl border border-gray-200 p-3">
-                            <input type="number" name="reward_amount" min="0" step="1000" required 
+                            <input type="number" name="reward_amount" min="0" step="500" required 
                                 class="w-full bg-transparent outline-none text-sm md:text-base font-medium text-gray-800 placeholder-gray-400"
+                                value="{{ old('reward_amount', $submission->reward_amount ?? $submission->calculated_reward_amount ?? 0) }}"
                                 placeholder="Contoh: 50000">
                         </div>
                         <p class="text-[10px] text-gray-400 mt-1 flex items-center gap-1"><i class="fa-solid fa-circle-info"></i> Masukkan nominal dalam Rupiah (tanpa titik atau koma)</p>

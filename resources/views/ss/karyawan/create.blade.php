@@ -77,13 +77,88 @@
                         </div>
                     </div>
 
-                    <div class="mb-6">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Nilai / Score <span class="text-red-500">*</span></label>
-                        <input type="number" name="score" min="0" step="any" required value="{{ old('score') }}"
-                            class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-bold text-[#091E6E] text-sm focus:ring-2 focus:ring-[#091E6E] outline-none"
-                            placeholder="Masukkan nilai">
-                        <p class="text-[10px] text-gray-400 mt-1">Nilai tidak dibatasi maksimum</p>
-                        @error('score') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="md:col-span-2">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Nama Ide <span class="text-red-500">*</span></label>
+                            <input type="text" name="idea_title" required value="{{ old('idea_title') }}"
+                                class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-bold text-[#091E6E] text-sm focus:ring-2 focus:ring-[#091E6E] outline-none"
+                                placeholder="Masukkan nama ide SS">
+                            @error('idea_title') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Diterapkan Tanggal <span class="text-red-500">*</span></label>
+                            <input type="date" name="implemented_date" required value="{{ old('implemented_date', now()->format('Y-m-d')) }}"
+                                class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-bold text-[#091E6E] text-sm focus:ring-2 focus:ring-[#091E6E] outline-none">
+                            @error('implemented_date') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Lokasi Ide <span class="text-red-500">*</span></label>
+                            <input type="text" name="idea_location" required value="{{ old('idea_location') }}"
+                                class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-bold text-[#091E6E] text-sm focus:ring-2 focus:ring-[#091E6E] outline-none"
+                                placeholder="Contoh: Line A / Area Produksi">
+                            @error('idea_location') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Status SS / Kenyataan Ide <span class="text-red-500">*</span></label>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 bg-gray-50 border border-gray-200 rounded-xl p-3">
+                                @foreach($implementationStatuses as $key => $label)
+                                    <label class="flex items-center gap-2 text-xs md:text-sm font-bold text-[#091E6E]">
+                                        <input type="radio" name="implementation_status" value="{{ $key }}" @checked(old('implementation_status', 'sudah_dilaksanakan') === $key) class="border-gray-300">
+                                        {{ $label }}
+                                    </label>
+                                @endforeach
+                            </div>
+                            @error('implementation_status') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Jenis Ide <span class="text-red-500">*</span></label>
+                            <div class="grid grid-cols-2 md:grid-cols-5 gap-2 bg-gray-50 border border-gray-200 rounded-xl p-3">
+                                @foreach($ideaTypes as $key => $label)
+                                    <label class="flex items-center gap-2 text-xs md:text-sm font-bold text-[#091E6E]">
+                                        <input type="checkbox" name="idea_types[]" value="{{ $key }}" @checked(in_array($key, old('idea_types', []))) class="rounded border-gray-300">
+                                        {{ $label }}
+                                    </label>
+                                @endforeach
+                            </div>
+                            @error('idea_types') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Keadaan Sebelumnya <span class="text-red-500">*</span></label>
+                            <textarea name="before_condition" rows="6" required class="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-[#091E6E] bg-gray-50/30 text-sm" placeholder="Uraikan kondisi sebelum perbaikan...">{{ old('before_condition') }}</textarea>
+                            @error('before_condition') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Penyebab & Action <span class="text-red-500">*</span></label>
+                            <textarea name="cause" rows="3" required class="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-[#091E6E] bg-gray-50/30 text-sm mb-3" placeholder="Penyebab...">{{ old('cause') }}</textarea>
+                            <textarea name="action" rows="3" required class="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-[#091E6E] bg-gray-50/30 text-sm" placeholder="Action/perbaikan...">{{ old('action') }}</textarea>
+                            @error('cause') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            @error('action') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Hasil <span class="text-red-500">*</span></label>
+                            <textarea name="result" rows="6" required class="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-[#091E6E] bg-gray-50/30 text-sm" placeholder="Uraikan hasil sesudah perbaikan...">{{ old('result') }}</textarea>
+                            @error('result') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Standardisasi</label>
+                            <textarea name="standardization" rows="4" class="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-[#091E6E] bg-gray-50/30 text-sm" placeholder="Standardisasi setelah perbaikan...">{{ old('standardization') }}</textarea>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Manfaat Ide <span class="text-red-500">*</span></label>
+                            <textarea name="benefit" rows="3" required class="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-[#091E6E] bg-gray-50/30 text-sm mb-3" placeholder="Uraikan manfaat secara singkat dan jelas...">{{ old('benefit') }}</textarea>
+                            <input type="number" name="benefit_amount" min="0" step="1000" value="{{ old('benefit_amount') }}" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-bold text-[#091E6E] text-sm focus:ring-2 focus:ring-[#091E6E] outline-none" placeholder="Estimasi manfaat Rp (opsional)">
+                            @error('benefit') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
                     </div>
 
                     <div class="mb-6">

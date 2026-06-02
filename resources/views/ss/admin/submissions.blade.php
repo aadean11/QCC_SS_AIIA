@@ -32,8 +32,7 @@
                     <select name="status" onchange="this.form.submit()" class="text-[10px] md:text-xs font-bold text-[#091E6E] outline-none cursor-pointer bg-transparent w-full sm:w-auto">
                         <option value="">Semua Status</option>
                         <option value="submitted" {{ request('status') == 'submitted' ? 'selected' : '' }}>Submitted</option>
-                        <option value="assessed" {{ request('status') == 'assessed' ? 'selected' : '' }}>Assessed (Need SPV)</option>
-                        <option value="spv_review" {{ request('status') == 'spv_review' ? 'selected' : '' }}>SPV Review</option>
+                        <option value="spv_review" {{ request('status') == 'spv_review' ? 'selected' : '' }}>Need SPV</option>
                         <option value="kdp_review" {{ request('status') == 'kdp_review' ? 'selected' : '' }}>KDP Review</option>
                         <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
                         <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
@@ -114,6 +113,9 @@
                         <td class="px-3 md:px-6 py-2 md:py-3 border-y border-gray-100">
                             @if($ss->reward_amount)
                                 <span class="text-emerald-600 font-bold text-xs md:text-sm">Rp {{ number_format($ss->reward_amount, 0, ',', '.') }}</span>
+                            @elseif($ss->calculated_reward_amount)
+                                <span class="text-amber-600 font-bold text-xs md:text-sm">Rp {{ number_format($ss->calculated_reward_amount, 0, ',', '.') }}</span>
+                                <span class="block text-[9px] text-gray-400">Belum dibayar</span>
                             @else
                                 <span class="text-gray-400 italic text-xs">-</span>
                             @endif
