@@ -85,6 +85,19 @@ class SsScoringService
         return $rules;
     }
 
+    public static function requiredScoreValidationRules(): array
+    {
+        $rules = [
+            'scores' => 'required|array',
+        ];
+
+        foreach (self::CRITERIA as $key => $label) {
+            $rules["scores.{$key}"] = 'required|integer|min:0|max:' . self::maxScoreForCriterion($key);
+        }
+
+        return $rules;
+    }
+
     public static function ideaTypes(): array
     {
         return self::IDEA_TYPES;

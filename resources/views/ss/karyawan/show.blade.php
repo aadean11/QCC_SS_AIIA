@@ -51,7 +51,7 @@
                 <div class="bg-gray-50/50 p-3 md:p-4 rounded-xl border border-gray-100">
                     <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Status</span>
                     @php
-                        $statusColors = ['draft'=>'gray','submitted'=>'yellow','spv_review'=>'purple','kdp_review'=>'orange','approved'=>'green','rejected'=>'red','rewarded'=>'emerald'];
+                        $statusColors = ['draft'=>'gray','submitted'=>'yellow','spv_review'=>'purple','kdp_review'=>'orange','admin_review'=>'cyan','approved'=>'green','rejected'=>'red','rewarded'=>'emerald'];
                         $color = $statusColors[$submission->status] ?? 'gray';
                     @endphp
                     <span class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold uppercase bg-{{ $color }}-100 text-{{ $color }}-800">

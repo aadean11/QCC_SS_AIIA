@@ -77,6 +77,9 @@
                         </div>
                     </div>
 
+                    {{--
+                    Form detail SS lama dinonaktifkan sementara.
+                    Untuk mengaktifkan lagi, buka komentar blok ini dan aktifkan kembali validasi detail di KaryawanSsController::store().
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <div class="md:col-span-2">
                             <label class="block text-gray-700 text-sm font-bold mb-2">Nama Ide <span class="text-red-500">*</span></label>
@@ -160,6 +163,29 @@
                             @error('benefit') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
+                    --}}
+
+                    @if($user->isLdr())
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between gap-3 mb-2">
+                            <label class="block text-gray-700 text-sm font-bold">Penilaian Leader <span class="text-red-500">*</span></label>
+                            <span class="text-xs font-bold text-[#091E6E]">Total: <span id="ldrScoreTotal">0</span></span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            @foreach($criteria as $key => $label)
+                                <div class="flex items-center justify-between gap-3 bg-gray-50/50 border border-gray-200 rounded-xl px-3 py-2">
+                                    <label class="text-xs md:text-sm font-semibold text-gray-700">
+                                        {{ $loop->iteration }}. {{ $label }}
+                                        <span class="block text-[9px] text-gray-400">Max {{ $criteriaMaxScores[$key] ?? 0 }}</span>
+                                    </label>
+                                    <input type="number" name="scores[{{ $key }}]" min="0" max="{{ $criteriaMaxScores[$key] ?? 0 }}" value="{{ old('scores.' . $key, 0) }}" class="score-input w-20 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-[#091E6E] text-center outline-none focus:ring-2 focus:ring-[#091E6E]">
+                                </div>
+                                @error('scores.' . $key) <p class="text-red-500 text-xs -mt-2">{{ $message }}</p> @enderror
+                            @endforeach
+                        </div>
+                        @error('scores') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    @endif
 
                     <div class="mb-6">
                         <label class="block text-gray-700 text-sm font-bold mb-2">File PDF Ide SS <span class="text-red-500">*</span></label>
@@ -207,6 +233,20 @@
     const selectOpr = document.getElementById('employee_npk');
     const submitLabel = document.getElementById('submitLabel');
 
+    function updateLdrScoreTotal() {
+        const totalEl = document.getElementById('ldrScoreTotal');
+        if (!totalEl) return;
+
+        const total = [...document.querySelectorAll('.score-input')].reduce((sum, input) => {
+            const max = Number(input.max || 0);
+            const value = Math.max(0, Math.min(Number(input.value || 0), max));
+            input.value = value;
+            return sum + value;
+        }, 0);
+
+        totalEl.textContent = total;
+    }
+
     function setTab(type) {
         if (!isLdr) return;
         typeInput.value = type;
@@ -236,12 +276,15 @@
         else setTab(initial);
     }
 
+    document.querySelectorAll('.score-input').forEach(input => input.addEventListener('input', updateLdrScoreTotal));
+    updateLdrScoreTotal();
+
     document.getElementById('formSsSubmit')?.addEventListener('submit', function(e) {
         e.preventDefault();
         const t = typeInput?.value === 'opr' ? 'operator (OPR)' : 'Anda sendiri';
         Swal.fire({
             title: 'Ajukan SS?',
-            text: 'Pengajuan untuk ' + t + ' akan dikirim ke review SPV.',
+            text: 'Pengajuan untuk ' + t + ' beserta nilai Leader akan dikirim ke review SPV.',
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#091E6E',

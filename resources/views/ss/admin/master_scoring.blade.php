@@ -93,7 +93,7 @@
                         </td>
                         <td class="px-3 md:px-5 py-3 md:py-4 rounded-r-xl border-y border-r border-gray-100 text-center">
                             <div class="flex justify-center gap-2">
-                                <button onclick="openEditModal(@json($range))" class="w-8 h-8 flex items-center justify-center bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-500 hover:text-white transition-all shadow-sm" title="Edit">
+                                <button onclick="openEditModalById({{ $range->id }})" class="w-8 h-8 flex items-center justify-center bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-500 hover:text-white transition-all shadow-sm" title="Edit">
                                     <i class="fa-solid fa-pen-to-square text-[10px]"></i>
                                 </button>
                                 <button onclick="confirmDelete('{{ $range->id }}')" class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-500 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm" title="Hapus">
@@ -170,38 +170,44 @@
 
 <div id="modalEdit" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black/50 backdrop-blur-sm">
     <div class="flex items-center justify-center min-h-screen p-2 md:p-4 text-left">
-        <div class="bg-white rounded-[1.5rem] md:rounded-[2rem] w-full max-w-2xl shadow-2xl animate-reveal overflow-hidden">
+        <div class="bg-white rounded-[1.5rem] md:rounded-[2.5rem] w-full max-w-2xl shadow-2xl animate-reveal overflow-hidden">
             <div class="sidebar-gradient p-4 md:p-6 text-white flex justify-between items-center">
-                <h3 class="text-base md:text-xl font-bold"><i class="fa-solid fa-pen-to-square mr-2"></i>Edit Master Scoring</h3>
+                <h3 class="text-base md:text-xl font-bold">
+                    <i class="fa-solid fa-pen-to-square mr-2"></i>
+                    Update Master Scoring
+                </h3>
                 <button onclick="closeModal('modalEdit')" class="text-white/70 hover:text-white text-xl md:text-2xl">&times;</button>
             </div>
-            <form id="formEdit" method="POST" class="p-4 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form id="formEdit" method="POST" class="p-4 md:p-8 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                 @csrf @method('PUT')
                 @foreach($formFields as $field)
                     <div>
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">{{ $field['label'] }}</label>
-                        <input type="{{ $field['type'] }}" name="{{ $field['name'] }}" id="edit_{{ $field['name'] }}" @if(isset($field['min'])) min="{{ $field['min'] }}" @endif @if(isset($field['step'])) step="{{ $field['step'] }}" @endif required class="w-full mt-2 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-bold text-[#091E6E] text-sm">
+                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">{{ $field['label'] }}</label>
+                        <input type="{{ $field['type'] }}" name="{{ $field['name'] }}" id="edit_{{ $field['name'] }}" @if(isset($field['min'])) min="{{ $field['min'] }}" @endif @if(isset($field['step'])) step="{{ $field['step'] }}" @endif required class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-[#091E6E] text-xs md:text-sm">
                     </div>
                 @endforeach
-                <div class="md:col-span-2">
-                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Keterangan</label>
-                    <textarea name="description" id="edit_description" rows="3" class="w-full mt-2 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none text-sm"></textarea>
+                <div class="col-span-1 sm:col-span-2">
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Keterangan</label>
+                    <textarea name="description" id="edit_description" rows="3" class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-[#091E6E] text-xs md:text-sm"></textarea>
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tambahan Nilai</label>
-                    <input type="number" name="extra_score_increment" id="edit_extra_score_increment" min="1" class="w-full mt-2 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-bold text-[#091E6E] text-sm">
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tambahan Nilai</label>
+                    <input type="number" name="extra_score_increment" id="edit_extra_score_increment" min="1" placeholder="Contoh: 27" class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tambahan Hadiah (Rp)</label>
-                    <input type="number" name="extra_reward_increment" id="edit_extra_reward_increment" min="0" step="500" class="w-full mt-2 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-bold text-[#091E6E] text-sm">
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tambahan Hadiah (Rp)</label>
+                    <input type="number" name="extra_reward_increment" id="edit_extra_reward_increment" min="0" step="500" placeholder="Contoh: 3500" class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-[#091E6E] text-xs md:text-sm">
                 </div>
-                <label class="md:col-span-2 flex items-center gap-2 text-xs font-bold text-[#091E6E]">
-                    <input type="checkbox" name="is_active" value="1" id="edit_is_active" class="rounded border-gray-300">
-                    Aktif
+                <label class="col-span-1 sm:col-span-2 flex items-center justify-between gap-3 p-3 md:p-4 bg-gray-50 border border-gray-100 rounded-xl md:rounded-2xl text-xs md:text-sm font-bold text-[#091E6E]">
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-toggle-on text-emerald-500"></i>
+                        Status Range Aktif
+                    </span>
+                    <input type="checkbox" name="is_active" value="1" id="edit_is_active" class="rounded border-gray-300 text-amber-500 focus:ring-amber-500">
                 </label>
-                <div class="md:col-span-2 flex flex-col sm:flex-row gap-3">
-                    <button type="button" onclick="closeModal('modalEdit')" class="flex-1 py-4 bg-gray-100 text-gray-500 rounded-xl font-bold uppercase tracking-widest text-xs">Batal</button>
-                    <button type="submit" class="flex-1 py-4 bg-amber-500 text-white rounded-xl font-bold shadow-lg hover:bg-amber-600 transition-all uppercase tracking-widest text-xs">Update Master</button>
+                <div class="col-span-1 sm:col-span-2 flex flex-col sm:flex-row gap-2 md:gap-3 mt-2 md:mt-4">
+                    <button type="button" onclick="closeModal('modalEdit')" class="flex-1 py-3 md:py-4 bg-gray-100 text-gray-500 rounded-xl font-bold uppercase tracking-widest text-[9px] md:text-[10px] hover:bg-gray-200 transition-all">Batal</button>
+                    <button type="submit" class="flex-1 py-3 md:py-4 bg-amber-500 text-white rounded-xl font-bold shadow-lg hover:bg-amber-600 transition-all uppercase tracking-widest text-[9px] md:text-xs">Update Data</button>
                 </div>
             </form>
         </div>
@@ -228,8 +234,16 @@
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.body.style.overflow = 'auto'; }
 
+    const masterScoringUrl = @json(url('/ss/admin/master-scoring'));
+    const scoringRanges = @json($ranges->getCollection()->keyBy('id'));
+
+    function openEditModalById(id) {
+        const range = scoringRanges[id];
+        if (range) openEditModal(range);
+    }
+
     function openEditModal(range) {
-        document.getElementById('formEdit').action = `/ss/admin/master-scoring/${range.id}`;
+        document.getElementById('formEdit').action = `${masterScoringUrl}/${range.id}`;
         ['min_score', 'max_score', 'ranking', 'reward_amount', 'approver_level', 'description', 'extra_score_increment', 'extra_reward_increment'].forEach(field => {
             const input = document.getElementById('edit_' + field);
             if (input) input.value = range[field] ?? '';
@@ -237,6 +251,14 @@
         document.getElementById('edit_is_active').checked = !!range.is_active;
         openModal('modalEdit');
     }
+
+    @if(Session::has('success'))
+        Swal.fire({ icon: 'success', title: 'Berhasil!', text: "{{ Session::get('success') }}", timer: 2500, showConfirmButton: false, background: '#ffffff', iconColor: '#10B981', customClass: { title: 'text-[#091E6E] font-bold' } });
+    @endif
+
+    @if(Session::has('error'))
+        Swal.fire({ icon: 'error', title: 'Gagal!', text: "{{ Session::get('error') }}", confirmButtonColor: '#091E6E', background: '#ffffff', customClass: { title: 'text-[#091E6E] font-bold' } });
+    @endif
 
     document.getElementById('formAdd')?.addEventListener('submit', function(e) {
         e.preventDefault();

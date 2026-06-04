@@ -45,18 +45,61 @@ class SsScoringRange extends Model
 
     public static function needsApprovalAfterSpv(?int $score): bool
     {
+        return self::needsKdpScoringAfterSpv($score);
+    }
+
+    public static function needsKdpScoringAfterSpv(?int $score): bool
+    {
         if ($score === null) {
             return false;
         }
 
         $range = self::rangeForScore($score);
-        if (!$range) {
-            $topRange = self::where('is_active', true)->orderByDesc('max_score')->first();
 
-            return $topRange && $score > $topRange->max_score;
+        if ($range) {
+            return strtoupper((string) $range->approver_level) !== 'SPV';
         }
 
-        return $range->max_score > 57 || strtoupper((string) $range->approver_level) !== 'SPV';
+        $spvMaxScore = self::maxActiveScoreForApprovers(['SPV']);
+
+        return $spvMaxScore !== null && $score > $spvMaxScore;
+    }
+
+    public static function needsAdminScoringAfterKdp(?int $score): bool
+    {
+        if ($score === null) {
+            return false;
+        }
+
+        $range = self::rangeForScore($score);
+
+        if ($range) {
+            return !in_array(strtoupper((string) $range->approver_level), ['SPV', 'MANAGER', 'MGR', 'KDP'], true);
+        }
+
+        $managerMaxScore = self::maxActiveScoreForApprovers(['SPV', 'MANAGER', 'MGR', 'KDP']);
+
+        return $managerMaxScore !== null && $score > $managerMaxScore;
+    }
+
+    private static function maxActiveScoreForApprovers(array $approverLevels): ?int
+    {
+        $normalizedLevels = array_map('strtoupper', $approverLevels);
+
+        $maxScore = self::where('is_active', true)
+            ->whereIn('approver_level', $approverLevels)
+            ->max('max_score');
+
+        if ($maxScore !== null) {
+            return (int) $maxScore;
+        }
+
+        $fallbackMaxScore = self::where('is_active', true)
+            ->get(['approver_level', 'max_score'])
+            ->filter(fn ($range) => in_array(strtoupper((string) $range->approver_level), $normalizedLevels, true))
+            ->max('max_score');
+
+        return $fallbackMaxScore !== null ? (int) $fallbackMaxScore : null;
     }
 
     public static function rewardForScore(?int $score): int

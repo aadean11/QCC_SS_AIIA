@@ -385,11 +385,13 @@
                             <div class="menu-gap"></div>
 
                             <div id="ssSubmenu" class="submenu space-y-1 {{ request()->is('ss/admin*') || request()->is('ss/approval*') ? 'show' : '' }}">
-                                @if(session('active_role') === 'admin')
+                                @if(session('active_role') === 'admin' || in_array($user->occupation, ['GMR', 'SPV', 'KDP']))
                                     <a href="{{ route('ss.admin.dashboard') }}" class="{{ request()->is('ss/admin/dashboard') ? 'font-bold' : '' }}">
                                         <i class="fa-solid fa-chart-line"></i>
                                         <span class="menu-text">Dashboard SS</span>
                                     </a>
+                                @endif
+                                @if(session('active_role') === 'admin')
                                     <a href="{{ route('ss.admin.submissions') }}" class="{{ request()->is('ss/admin/submissions') && !request()->get('status') ? 'font-bold' : '' }}">
                                         <i class="fa-solid fa-list"></i>
                                         <span class="menu-text">Daftar Ide</span>
@@ -397,6 +399,14 @@
                                     <a href="{{ route('ss.admin.submissions', ['status' => 'approved']) }}" class="{{ request()->is('ss/admin/submissions*') && request()->get('status') == 'approved' ? 'font-bold' : '' }}">
                                         <i class="fa-solid fa-trophy"></i>
                                         <span class="menu-text">Hasil & Reward</span>
+                                    </a>
+                                    <a href="{{ route('ss.admin.review.index') }}" class="{{ request()->is('ss/admin/review-komite*') ? 'font-bold' : '' }}">
+                                        <i class="fa-solid fa-user-shield"></i>
+                                        <span class="menu-text">Review Komite</span>
+                                    </a>
+                                    <a href="{{ route('ss.admin.master_targets') }}" class="{{ request()->is('ss/admin/master-targets*') ? 'font-bold' : '' }}">
+                                        <i class="fa-solid fa-crosshairs"></i>
+                                        <span class="menu-text">Master Target</span>
                                     </a>
                                     <a href="{{ route('ss.admin.master_scoring') }}" class="{{ request()->is('ss/admin/master-scoring*') ? 'font-bold' : '' }}">
                                         <i class="fa-solid fa-ranking-star"></i>

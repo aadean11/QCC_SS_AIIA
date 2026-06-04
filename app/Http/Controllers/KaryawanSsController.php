@@ -101,7 +101,7 @@ class KaryawanSsController extends Controller
         return $path;
     }
 
-    private function initialApprovalData(Employee $submitter): array
+    private function initialApprovalData(Employee $submitter, ?array $ldrScores = null, ?int $ldrScoreTotal = null): array
     {
         if ($submitter->isKadept()) {
             return [
@@ -125,6 +125,9 @@ class KaryawanSsController extends Controller
             'ldr_npk' => $submitter->npk,
             'ldr_status' => 'approved',
             'ldr_approved_at' => now(),
+            'ldr_scores' => $ldrScores,
+            'ldr_score_total' => $ldrScoreTotal,
+            'score' => $ldrScoreTotal,
             'status' => 'spv_review',
         ];
     }
@@ -172,8 +175,10 @@ class KaryawanSsController extends Controller
         $myDept = $employee->getDepartment();
         $ideaTypes = SsScoringService::ideaTypes();
         $implementationStatuses = SsScoringService::implementationStatuses();
+        $criteria = SsScoringService::criteria();
+        $criteriaMaxScores = SsScoringService::criteriaMaxScores();
 
-        return view('ss.karyawan.create', compact('user', 'oprList', 'myDept', 'ideaTypes', 'implementationStatuses'));
+        return view('ss.karyawan.create', compact('user', 'oprList', 'myDept', 'ideaTypes', 'implementationStatuses', 'criteria', 'criteriaMaxScores'));
     }
 
     public function store(Request $request)
@@ -186,6 +191,7 @@ class KaryawanSsController extends Controller
 
         $request->validate([
             'submission_type' => 'required|in:opr,self',
+            /*
             'idea_title' => 'required|string|max:255',
             'idea_types' => 'required|array|min:1',
             'idea_types.*' => ['string', Rule::in(array_keys(SsScoringService::ideaTypes()))],
@@ -199,10 +205,20 @@ class KaryawanSsController extends Controller
             'benefit' => 'required|string',
             'benefit_amount' => 'nullable|numeric|min:0',
             'implementation_status' => ['required', 'string', Rule::in(array_keys(SsScoringService::implementationStatuses()))],
+            */
             'file' => 'required|mimes:pdf|max:5120',
             'notes' => 'nullable|string|max:500',
             'employee_npk' => 'nullable|string',
         ]);
+
+        $ldrScores = null;
+        $ldrScoreTotal = null;
+
+        if ($submitter->isLdr()) {
+            $request->validate(SsScoringService::requiredScoreValidationRules());
+            $ldrScores = SsScoringService::normalizeScores($request->input('scores', []));
+            $ldrScoreTotal = SsScoringService::total($ldrScores);
+        }
 
         $departmentCode = $submitter->getDeptCode();
         if (!$departmentCode) {
@@ -246,10 +262,10 @@ class KaryawanSsController extends Controller
                     'standardization' => $request->standardization,
                     'benefit' => $request->benefit,
                     'benefit_amount' => $request->benefit_amount ?? 0,
-                    'implementation_status' => $request->implementation_status,
-                ], $this->initialApprovalData($submitter)));
+                    'implementation_status' => $request->implementation_status ?? 'sudah_dilaksanakan',
+                ], $this->initialApprovalData($submitter, $ldrScores, $ldrScoreTotal)));
 
-                $message = 'SS operator berhasil diajukan. Menunggu review dan penilaian SPV.';
+                $message = 'SS operator berhasil diajukan dan dinilai Leader. Menunggu review dan penilaian SPV.';
             } else {
                 $path = $this->storeSubmissionFile($request, $submitter->npk);
 
@@ -271,13 +287,13 @@ class KaryawanSsController extends Controller
                     'standardization' => $request->standardization,
                     'benefit' => $request->benefit,
                     'benefit_amount' => $request->benefit_amount ?? 0,
-                    'implementation_status' => $request->implementation_status,
-                ], $this->initialApprovalData($submitter)));
+                    'implementation_status' => $request->implementation_status ?? 'sudah_dilaksanakan',
+                ], $this->initialApprovalData($submitter, $ldrScores, $ldrScoreTotal)));
 
                 $message = match (true) {
                     $submitter->isKadept() => 'SS pribadi berhasil diajukan. Menunggu review KDP.',
                     $submitter->isSpv() => 'SS pribadi berhasil diajukan. Menunggu review KDP.',
-                    default => 'SS pribadi berhasil diajukan. Menunggu review SPV.',
+                    default => 'SS pribadi berhasil diajukan dan dinilai Leader. Menunggu review SPV.',
                 };
             }
 

@@ -103,6 +103,7 @@
                                     'submitted' => 'yellow',
                                     'spv_review' => 'purple',
                                     'kdp_review' => 'orange',
+                                    'admin_review' => 'cyan',
                                     'approved' => 'green',
                                     'rejected' => 'red',
                                     'rewarded' => 'emerald'

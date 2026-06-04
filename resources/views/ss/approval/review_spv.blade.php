@@ -15,7 +15,7 @@
             <h2 class="text-white text-lg md:text-2xl font-bold tracking-tight">Review SPV</h2>
             <p class="text-blue-200 text-[10px] md:text-xs mt-1">
                 {{ $submission->employee->nama ?? $submission->employee_npk }}
-                · Score: <strong>{{ $submission->score }}</strong>
+                &middot; Nilai Leader: <strong>{{ $submission->ldr_score_total ?? $submission->score ?? '-' }}</strong>
             </p>
         </div>
 
@@ -48,6 +48,27 @@
                         <p class="mt-1"><a href="{{ asset('storage/' . $submission->file_path) }}" target="_blank" class="text-blue-600 hover:underline text-sm font-semibold"><i class="fa-regular fa-file-pdf mr-1"></i>Buka PDF</a></p>
                     </div>
                 </div>
+
+                @if($submission->ldr_scores)
+                    <div class="mb-6 overflow-x-auto border border-blue-100 rounded-xl">
+                        <table class="w-full text-sm">
+                            <thead class="bg-blue-50 text-blue-700">
+                                <tr>
+                                    <th class="text-left px-3 py-2">Kriteria Leader</th>
+                                    <th class="text-center px-3 py-2 w-24">Nilai</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($criteria as $key => $label)
+                                    <tr class="border-t border-blue-50">
+                                        <td class="px-3 py-2 text-gray-700">{{ $loop->iteration }}. {{ $label }}</td>
+                                        <td class="px-3 py-2 text-center font-bold text-[#091E6E]">{{ $submission->ldr_scores[$key] ?? 0 }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
 
                 <div class="mb-6">
                     <label class="block text-gray-700 text-sm font-bold mb-2">Tindakan <span class="text-red-500">*</span></label>
@@ -103,7 +124,7 @@
                                     {{ $loop->iteration }}. {{ $label }}
                                     <span class="block text-[9px] text-gray-400">Max {{ $criteriaMaxScores[$key] ?? 0 }}</span>
                                 </label>
-                                <input type="number" name="scores[{{ $key }}]" min="0" max="{{ $criteriaMaxScores[$key] ?? 0 }}" value="{{ old('scores.' . $key, 0) }}" class="score-input w-20 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-[#091E6E] text-center outline-none focus:ring-2 focus:ring-[#091E6E]">
+                                <input type="number" name="scores[{{ $key }}]" min="0" max="{{ $criteriaMaxScores[$key] ?? 0 }}" value="{{ old('scores.' . $key, $submission->ldr_scores[$key] ?? 0) }}" class="score-input w-20 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-[#091E6E] text-center outline-none focus:ring-2 focus:ring-[#091E6E]">
                             </div>
                             @error('scores.' . $key) <p class="text-red-500 text-xs -mt-2">{{ $message }}</p> @enderror
                         @endforeach

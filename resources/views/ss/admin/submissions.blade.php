@@ -34,6 +34,7 @@
                         <option value="submitted" {{ request('status') == 'submitted' ? 'selected' : '' }}>Submitted</option>
                         <option value="spv_review" {{ request('status') == 'spv_review' ? 'selected' : '' }}>Need SPV</option>
                         <option value="kdp_review" {{ request('status') == 'kdp_review' ? 'selected' : '' }}>KDP Review</option>
+                        <option value="admin_review" {{ request('status') == 'admin_review' ? 'selected' : '' }}>Admin Review</option>
                         <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
                         <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
                         <option value="rewarded" {{ request('status') == 'rewarded' ? 'selected' : '' }}>Rewarded</option>
@@ -99,6 +100,7 @@
                                     'assessed' => 'blue',
                                     'spv_review' => 'purple',
                                     'kdp_review' => 'orange',
+                                    'admin_review' => 'cyan',
                                     'approved' => 'green',
                                     'rejected' => 'red',
                                     'rewarded' => 'emerald'

@@ -23,4 +23,9 @@ class Department extends Model
     {
         return $this->hasMany(Section::class, 'code_department', 'code');
     }
+
+    public function ssTargets()
+    {
+        return $this->hasMany(SsTarget::class, 'department_code', 'code');
+    }
 }

@@ -132,10 +132,17 @@ Route::prefix('ss/karyawan')->name('ss.karyawan.')->middleware('auth')->group(fu
 // Group untuk admin SS
 Route::prefix('ss/admin')->name('ss.admin.')->middleware('auth')->group(function () {
     Route::get('/dashboard', [AdminSsController::class, 'dashboard'])->name('dashboard');
+    Route::get('/master-targets', [AdminSsController::class, 'masterTargets'])->name('master_targets');
+    Route::post('/master-targets', [AdminSsController::class, 'storeTarget'])->name('store_target');
+    Route::put('/master-targets/{id}', [AdminSsController::class, 'updateTarget'])->name('update_target');
+    Route::delete('/master-targets/{id}', [AdminSsController::class, 'deleteTarget'])->name('delete_target');
     Route::get('/master-scoring', [AdminSsController::class, 'masterScoring'])->name('master_scoring');
     Route::post('/master-scoring', [AdminSsController::class, 'storeScoring'])->name('store_scoring');
     Route::put('/master-scoring/{id}', [AdminSsController::class, 'updateScoring'])->name('update_scoring');
     Route::delete('/master-scoring/{id}', [AdminSsController::class, 'deleteScoring'])->name('delete_scoring');
+    Route::get('/review-komite', [AdminSsController::class, 'adminReviewIndex'])->name('review.index');
+    Route::get('/review-komite/{id}', [AdminSsController::class, 'adminReviewForm'])->name('review.form');
+    Route::post('/review-komite/{id}', [AdminSsController::class, 'adminReviewStore'])->name('review.store');
     Route::get('/submissions', [AdminSsController::class, 'submissions'])->name('submissions');
     Route::get('/submissions/{id}', [AdminSsController::class, 'show'])->name('show');
     Route::get('/reward/{id}', [AdminSsController::class, 'rewardForm'])->name('reward.form');
