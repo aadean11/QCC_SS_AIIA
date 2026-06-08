@@ -144,6 +144,7 @@ Route::prefix('ss/admin')->name('ss.admin.')->middleware('auth')->group(function
     Route::get('/review-komite/{id}', [AdminSsController::class, 'adminReviewForm'])->name('review.form');
     Route::post('/review-komite/{id}', [AdminSsController::class, 'adminReviewStore'])->name('review.store');
     Route::get('/submissions', [AdminSsController::class, 'submissions'])->name('submissions');
+    Route::get('/submissions/export-pdf', [AdminSsController::class, 'exportSubmissionsPdf'])->name('submissions.export_pdf');
     Route::get('/submissions/{id}', [AdminSsController::class, 'show'])->name('show');
     Route::get('/reward/{id}', [AdminSsController::class, 'rewardForm'])->name('reward.form');
     Route::post('/reward/{id}', [AdminSsController::class, 'rewardStore'])->name('reward.store');

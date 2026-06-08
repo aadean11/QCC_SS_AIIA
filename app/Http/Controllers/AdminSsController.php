@@ -9,6 +9,7 @@ use App\Models\SsTarget;
 use App\Models\SsScoringRange;
 use App\Services\SsScoringService;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -63,7 +64,7 @@ class AdminSsController extends Controller
 
         $viewLevel = $request->get('view_level', 'company');
         $selectedYear = (int) $request->get('year', date('Y'));
-        $selectedMonth = (int) $request->get('month', date('m'));
+        $selectedMonth = $request->filled('month') ? (int) $request->get('month') : null;
         $selectedDiv = $request->get('division_code');
         $selectedDept = null;
 
@@ -132,8 +133,38 @@ class AdminSsController extends Controller
         ));
     }
 
-    private function getSsChartData(int $year, int $month, $deptCodes = null): array
+    private function getSsChartData(int $year, ?int $month = null, $deptCodes = null): array
     {
+        if ($month === null) {
+            $months = $this->monthNames();
+            $labels = array_values($months);
+            $target = [];
+            $submitted = [];
+            $approved = [];
+
+            foreach (array_keys($months) as $monthNumber) {
+                $target[] = (int) SsTarget::where('year', $year)
+                    ->where('month', $monthNumber)
+                    ->when($deptCodes, fn ($q) => $q->whereIn('department_code', $deptCodes))
+                    ->sum('target_amount');
+
+                $base = SsSubmission::whereYear('submission_date', $year)
+                    ->whereMonth('submission_date', $monthNumber)
+                    ->when($deptCodes, fn ($q) => $q->whereIn('department_code', $deptCodes));
+
+                $submitted[] = (clone $base)->count();
+                $approved[] = (clone $base)->whereIn('status', ['approved', 'rewarded'])->count();
+            }
+
+            return [
+                'mode' => 'yearly',
+                'labels' => $labels,
+                'target' => $target,
+                'submitted' => $submitted,
+                'approved' => $approved,
+            ];
+        }
+
         $target = SsTarget::where('year', $year)
             ->where('month', $month)
             ->when($deptCodes, fn ($q) => $q->whereIn('department_code', $deptCodes))
@@ -148,6 +179,7 @@ class AdminSsController extends Controller
         $rewarded = (clone $base)->where('status', 'rewarded')->count();
 
         return [
+            'mode' => 'monthly',
             'labels' => ['Pengajuan', 'Disetujui', 'Reward'],
             'target' => [$target, $target, $target],
             'submitted' => [$submitted, $submitted, $submitted],
@@ -155,7 +187,7 @@ class AdminSsController extends Controller
         ];
     }
 
-    private function calculateSsStats(int $year, int $month, string $level, ?string $divCode, ?string $deptCode): array
+    private function calculateSsStats(int $year, ?int $month, string $level, ?string $divCode, ?string $deptCode): array
     {
         $deptCodes = $deptCode ? [$deptCode] : null;
         if (!$deptCodes && $divCode) {
@@ -163,12 +195,12 @@ class AdminSsController extends Controller
         }
 
         $target = SsTarget::where('year', $year)
-            ->where('month', $month)
+            ->when($month, fn ($q) => $q->where('month', $month))
             ->when($deptCodes, fn ($q) => $q->whereIn('department_code', $deptCodes))
             ->sum('target_amount');
 
         $base = SsSubmission::whereYear('submission_date', $year)
-            ->whereMonth('submission_date', $month)
+            ->when($month, fn ($q) => $q->whereMonth('submission_date', $month))
             ->when($deptCodes, fn ($q) => $q->whereIn('department_code', $deptCodes));
 
         $actualToday = SsSubmission::whereDate('submission_date', Carbon::today())
@@ -277,25 +309,108 @@ class AdminSsController extends Controller
         $user = $this->getUser();
 
         $perPage = $request->get('per_page', 20);
+
+        $submissions = $this->filteredSubmissionsQuery($request)
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        $departments = Department::orderBy('name')->get();
+        $years = $this->submissionYears();
+
+        return view('ss.admin.submissions', compact('user', 'submissions', 'departments', 'years'));
+    }
+
+    public function exportSubmissionsPdf(Request $request)
+    {
+        if (!$this->checkAdmin()) abort(403);
+
+        $submissions = $this->filteredSubmissionsQuery($request)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $department = $request->filled('department_code')
+            ? Department::where('code', $request->get('department_code'))->first()
+            : null;
+        $dateRange = $this->resolveSubmissionDateRange($request);
+
+        $pdf = Pdf::loadView('ss.admin.submissions_pdf', [
+            'submissions' => $submissions,
+            'filters' => [
+                'status' => $request->get('status'),
+                'department' => $department,
+                'date_from' => $dateRange['from']?->toDateString(),
+                'date_to' => $dateRange['to']?->toDateString(),
+                'search' => $request->get('search'),
+            ],
+        ])->setPaper('a4', 'landscape');
+
+        $fileName = 'daftar-ss-'.now()->format('Ymd-His').'.pdf';
+
+        return $pdf->download($fileName);
+    }
+
+    private function filteredSubmissionsQuery(Request $request)
+    {
         $search = $request->get('search');
         $status = $request->get('status');
+        $departmentCode = $request->get('department_code');
+        $dateRange = $this->resolveSubmissionDateRange($request);
 
-        $query = SsSubmission::with(['employee', 'ldr', 'spv', 'kdp']);
-
-        if ($status) {
-            $query->where('status', $status);
-        }
-        if ($search) {
-            $query->where(function($q) use ($search) {
-                $q->whereHas('employee', function($sq) use ($search) {
-                    $sq->where('nama', 'like', "%{$search}%");
-                })->orWhere('department_code', 'like', "%{$search}%");
+        return SsSubmission::with(['employee', 'department', 'ldr', 'spv', 'kdp'])
+            ->when($status, fn ($query) => $query->where('status', $status))
+            ->when($departmentCode, fn ($query) => $query->where('department_code', $departmentCode))
+            ->when($dateRange['from'], fn ($query) => $query->whereDate('submission_date', '>=', $dateRange['from']))
+            ->when($dateRange['to'], fn ($query) => $query->whereDate('submission_date', '<=', $dateRange['to']))
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('employee', fn ($sq) => $sq->where('nama', 'like', "%{$search}%"))
+                        ->orWhere('employee_npk', 'like', "%{$search}%")
+                        ->orWhere('department_code', 'like', "%{$search}%")
+                        ->orWhere('idea_title', 'like', "%{$search}%");
+                });
             });
+    }
+
+    private function resolveSubmissionDateRange(Request $request): array
+    {
+        $dateFrom = $request->filled('date_from')
+            ? Carbon::parse($request->get('date_from'))->startOfDay()
+            : null;
+        $dateTo = $request->filled('date_to')
+            ? Carbon::parse($request->get('date_to'))->endOfDay()
+            : null;
+
+        if (!$dateFrom && !$dateTo && ($request->filled('month') || $request->filled('year'))) {
+            $month = $request->filled('month') ? (int) $request->get('month') : null;
+            $year = $request->filled('year') ? (int) $request->get('year') : (int) date('Y');
+
+            if ($month && $request->filled('year')) {
+                $dateFrom = Carbon::create($year, $month, 1)->startOfMonth();
+                $dateTo = Carbon::create($year, $month, 1)->endOfMonth();
+            } elseif ($request->filled('year')) {
+                $dateFrom = Carbon::create($year, 1, 1)->startOfYear();
+                $dateTo = Carbon::create($year, 12, 31)->endOfYear();
+            } elseif ($month) {
+                $dateFrom = Carbon::create($year, $month, 1)->startOfMonth();
+                $dateTo = Carbon::create($year, $month, 1)->endOfMonth();
+            }
         }
 
-        $submissions = $query->orderBy('created_at', 'desc')->paginate($perPage);
+        return ['from' => $dateFrom, 'to' => $dateTo];
+    }
 
-        return view('ss.admin.submissions', compact('user', 'submissions'));
+    private function submissionYears(): array
+    {
+        $years = SsSubmission::selectRaw('YEAR(submission_date) as year')
+            ->whereNotNull('submission_date')
+            ->distinct()
+            ->orderByDesc('year')
+            ->pluck('year')
+            ->map(fn ($year) => (int) $year)
+            ->toArray();
+
+        return $years ?: [date('Y')];
     }
 
     public function show($id)

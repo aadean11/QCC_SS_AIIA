@@ -3,51 +3,129 @@
 @section('title', 'Daftar Ide SS')
 
 @section('content')
+@php
+    $dateFrom = request('date_from');
+    $dateTo = request('date_to');
+
+    if (!$dateFrom && !$dateTo && request()->filled('month') && request()->filled('year')) {
+        $dateFrom = sprintf('%04d-%02d-01', (int) request('year'), (int) request('month'));
+        $dateTo = \Carbon\Carbon::parse($dateFrom)->endOfMonth()->toDateString();
+    }
+
+    $periodDisplay = ($dateFrom && $dateTo)
+        ? \Carbon\Carbon::parse($dateFrom)->format('d/m/Y') . ' — ' . \Carbon\Carbon::parse($dateTo)->format('d/m/Y')
+        : '';
+    $minYear = min($years);
+    $maxYear = max($years);
+    $hasDateFilter = filled($dateFrom) || filled($dateTo);
+@endphp
 <div class="animate-reveal">
     @include('partials.breadcrumb', ['items' => [
         ['label' => 'Monitoring SS', 'icon' => 'fa-regular fa-lightbulb'],
         'Daftar Ide',
     ]])
 
-    <!-- Header & Filter -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 md:mb-8 gap-4">
-        <div>
-            <h2 class="text-2xl md:text-3xl font-bold text-[#091E6E]">Daftar Ide SS</h2>
-            <p class="text-xs md:text-sm text-gray-400">Kelola semua pengajuan Suggestion System</p>
-        </div>
-        
-        <div class="flex flex-wrap gap-3 w-full md:w-auto justify-start md:justify-end items-center">
-            <form method="GET" id="filterForm" class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full md:w-auto">
-                <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-[#091E6E] w-full sm:w-auto">
-                    <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase">Show</span>
-                    <select name="per_page" onchange="this.form.submit()" class="text-[10px] md:text-xs font-bold text-[#091E6E] outline-none cursor-pointer bg-transparent w-full sm:w-auto">
-                        <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
-                        <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
-                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
-                    </select>
+    <!-- Header -->
+    <div class="mb-4 md:mb-6">
+        <h2 class="text-2xl md:text-3xl font-bold text-[#091E6E]">Daftar Ide SS</h2>
+        <p class="text-xs md:text-sm text-gray-400">Kelola semua pengajuan Suggestion System</p>
+    </div>
+
+    <!-- Filter Panel (full-width grid, tidak menumpuk ke samping) -->
+    <div class="glass-card rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-5 shadow-sm border border-white mb-6 md:mb-8">
+        <form method="GET" id="filterForm" class="space-y-4">
+            {{-- Baris 1: Pencarian full-width --}}
+            <div class="relative w-full">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama pengaju, departemen..."
+                    class="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] shadow-sm transition-all text-xs md:text-sm font-medium">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] md:text-xs"></i>
+            </div>
+
+            {{-- Baris 2: Grid filter --}}
+            <input type="hidden" name="date_from" id="filterDateFrom" value="{{ $dateFrom }}">
+            <input type="hidden" name="date_to" id="filterDateTo" value="{{ $dateTo }}">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div class="flex flex-col gap-1">
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-1">Tampilkan</label>
+                    <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-[#091E6E]">
+                        <select name="per_page" onchange="this.form.submit()" class="text-[10px] md:text-xs font-bold text-[#091E6E] outline-none cursor-pointer bg-transparent w-full">
+                            <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10 data</option>
+                            <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25 data</option>
+                            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 data</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-[#091E6E] w-full sm:w-auto">
-                    <i class="fa-solid fa-filter text-[10px] text-gray-400"></i>
-                    <select name="status" onchange="this.form.submit()" class="text-[10px] md:text-xs font-bold text-[#091E6E] outline-none cursor-pointer bg-transparent w-full sm:w-auto">
-                        <option value="">Semua Status</option>
-                        <option value="submitted" {{ request('status') == 'submitted' ? 'selected' : '' }}>Submitted</option>
-                        <option value="spv_review" {{ request('status') == 'spv_review' ? 'selected' : '' }}>Need SPV</option>
-                        <option value="kdp_review" {{ request('status') == 'kdp_review' ? 'selected' : '' }}>KDP Review</option>
-                        <option value="admin_review" {{ request('status') == 'admin_review' ? 'selected' : '' }}>Admin Review</option>
-                        <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
-                        <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
-                        <option value="rewarded" {{ request('status') == 'rewarded' ? 'selected' : '' }}>Rewarded</option>
-                    </select>
+                <div class="flex flex-col gap-1">
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-1">Status</label>
+                    <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-[#091E6E]">
+                        <i class="fa-solid fa-filter text-[10px] text-gray-400 shrink-0"></i>
+                        <select name="status" onchange="this.form.submit()" class="text-[10px] md:text-xs font-bold text-[#091E6E] outline-none cursor-pointer bg-transparent w-full min-w-0">
+                            <option value="">Semua Status</option>
+                            <option value="submitted" {{ request('status') == 'submitted' ? 'selected' : '' }}>Submitted</option>
+                            <option value="spv_review" {{ request('status') == 'spv_review' ? 'selected' : '' }}>Need SPV</option>
+                            <option value="kdp_review" {{ request('status') == 'kdp_review' ? 'selected' : '' }}>KDP Review</option>
+                            <option value="admin_review" {{ request('status') == 'admin_review' ? 'selected' : '' }}>Admin Review</option>
+                            <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
+                            <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
+                            <option value="rewarded" {{ request('status') == 'rewarded' ? 'selected' : '' }}>Rewarded</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="relative w-full sm:w-64">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama pengaju, departemen..." 
-                        class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] shadow-sm transition-all text-xs md:text-sm font-medium">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] md:text-xs"></i>
+                <div class="flex flex-col gap-1">
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-1">Departemen</label>
+                    <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-[#091E6E]">
+                        <i class="fa-solid fa-building text-[10px] text-gray-400 shrink-0"></i>
+                        <select name="department_code" onchange="this.form.submit()" class="text-[10px] md:text-xs font-bold text-[#091E6E] outline-none cursor-pointer bg-transparent w-full min-w-0">
+                            <option value="">Semua Departemen</option>
+                            @foreach($departments as $dept)
+                                <option value="{{ $dept->code }}" {{ request('department_code') == $dept->code ? 'selected' : '' }}>{{ $dept->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
-            </form>
-        </div>
+            </div>
+
+            {{-- Baris 3: Periode dengan preset + Air Datepicker range --}}
+            <div class="flex flex-col gap-2 pt-1">
+                <label for="periodPicker" class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-1">Periode Tanggal</label>
+                <div class="flex flex-wrap gap-2" id="periodPresets">
+                    <button type="button" data-preset="this_month" class="period-preset px-3 py-1.5 rounded-xl text-[9px] md:text-[10px] font-bold uppercase tracking-wider border transition-all">Bulan Ini</button>
+                    <button type="button" data-preset="last_month" class="period-preset px-3 py-1.5 rounded-xl text-[9px] md:text-[10px] font-bold uppercase tracking-wider border transition-all">Bulan Lalu</button>
+                    <button type="button" data-preset="this_year" class="period-preset px-3 py-1.5 rounded-xl text-[9px] md:text-[10px] font-bold uppercase tracking-wider border transition-all">Tahun Ini</button>
+                    <button type="button" data-preset="all" class="period-preset px-3 py-1.5 rounded-xl text-[9px] md:text-[10px] font-bold uppercase tracking-wider border transition-all">Semua</button>
+                </div>
+                <div class="relative flex items-center bg-white rounded-xl border border-gray-200 shadow-sm transition-all hover:border-[#091E6E] focus-within:border-[#091E6E] focus-within:ring-2 focus-within:ring-[#091E6E]/20">
+                    <i class="fa-regular fa-calendar-days text-[10px] text-gray-400 shrink-0 pl-3"></i>
+                    <input type="text" id="periodPicker" value="{{ $periodDisplay }}" placeholder="Pilih rentang tanggal (dari — sampai)..." readonly
+                        class="flex-1 min-w-0 py-2.5 pr-9 pl-2 text-[10px] md:text-xs font-bold text-[#091E6E] outline-none bg-transparent cursor-pointer placeholder:font-medium placeholder:text-gray-400">
+                    @if($hasDateFilter)
+                        <button type="button" id="clearPeriod" class="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Hapus periode">
+                            <i class="fa-solid fa-xmark text-[10px]"></i>
+                        </button>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Baris 4: Aksi --}}
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1 border-t border-gray-100">
+                @if(request()->hasAny(['search', 'status', 'department_code', 'date_from', 'date_to']) || (request('per_page') && request('per_page') != 10))
+                    <a href="{{ route('ss.admin.submissions') }}" class="inline-flex items-center justify-center gap-2 text-gray-500 hover:text-[#091E6E] px-3 py-2 rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        Reset Filter
+                    </a>
+                @else
+                    <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest">Filter aktif otomatis saat dipilih</span>
+                @endif
+
+                <a href="{{ route('ss.admin.submissions.export_pdf', request()->query()) }}" class="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-sm transition-all sm:ml-auto">
+                    <i class="fa-regular fa-file-pdf"></i>
+                    Export PDF
+                </a>
+            </div>
+        </form>
     </div>
 
     <!-- Table Section -->
@@ -156,7 +234,20 @@
 @endsection
 
 @push('scripts')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/air-datepicker@3.5.3/air-datepicker.css">
 <style>
+    .air-datepicker { font-family: 'Poppins', sans-serif; border-radius: 1rem; border: 1px solid #e5e7eb; box-shadow: 0 10px 25px -5px rgba(9, 30, 110, 0.15); }
+    .air-datepicker-nav--title { font-weight: 700; color: #091E6E; }
+    .air-datepicker-nav--action:hover { background: #eff6ff; }
+    .air-datepicker-cell.-selected-, .air-datepicker-cell.-selected-.-focus- { background: #091E6E; }
+    .air-datepicker-cell.-range-from-, .air-datepicker-cell.-range-to- { background: #091E6E; border-color: #091E6E; }
+    .air-datepicker-cell.-in-range- { background: rgba(9, 30, 110, 0.12); color: #091E6E; }
+    .air-datepicker-cell.-current- { color: #091E6E; border-color: #091E6E; }
+    .air-datepicker-button { font-weight: 700; color: #091E6E; }
+    .period-preset { background: #fff; border-color: #e5e7eb; color: #64748b; }
+    .period-preset:hover { border-color: #091E6E; color: #091E6E; background: #f8fafc; }
+    .period-preset.active { background: #091E6E; border-color: #091E6E; color: #fff; box-shadow: 0 4px 6px -1px rgba(9, 30, 110, 0.2); }
+
     /* Styling Paging Horizontal */
     .custom-pagination nav { display: flex; align-items: center; justify-content: center; gap: 4px; }
     .custom-pagination nav svg { width: 0.875rem; height: 0.875rem; }
@@ -179,4 +270,155 @@
     }
     .custom-pagination a:hover { background-color: #f8fafc !important; border-color: #091E6E !important; color: #091E6E !important; }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/air-datepicker@3.5.3/air-datepicker.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('filterForm');
+        const dateFromInput = document.getElementById('filterDateFrom');
+        const dateToInput = document.getElementById('filterDateTo');
+        const clearBtn = document.getElementById('clearPeriod');
+        const presetButtons = document.querySelectorAll('.period-preset');
+
+        const localeId = {
+            days: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
+            daysShort: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
+            daysMin: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
+            months: ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'],
+            monthsShort: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'],
+            today: 'Hari ini',
+            clear: 'Hapus',
+            dateFormat: 'dd/MM/yyyy',
+            timeFormat: 'HH:mm',
+            firstDay: 1,
+        };
+
+        const selectedDates = @json(
+            ($dateFrom && $dateTo)
+                ? [$dateFrom, $dateTo]
+                : []
+        ).map((value) => new Date(value + 'T00:00:00'));
+
+        function formatYmd(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function startOfMonth(date) {
+            return new Date(date.getFullYear(), date.getMonth(), 1);
+        }
+
+        function endOfMonth(date) {
+            return new Date(date.getFullYear(), date.getMonth() + 1, 0);
+        }
+
+        function getPresetRange(preset) {
+            const now = new Date();
+
+            if (preset === 'this_month') {
+                return { from: startOfMonth(now), to: endOfMonth(now) };
+            }
+
+            if (preset === 'last_month') {
+                const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                return { from: startOfMonth(lastMonth), to: endOfMonth(lastMonth) };
+            }
+
+            if (preset === 'this_year') {
+                return {
+                    from: new Date(now.getFullYear(), 0, 1),
+                    to: new Date(now.getFullYear(), 11, 31),
+                };
+            }
+
+            return null;
+        }
+
+        function updatePresetActive() {
+            const from = dateFromInput.value;
+            const to = dateToInput.value;
+
+            presetButtons.forEach((button) => {
+                button.classList.remove('active');
+                const preset = button.dataset.preset;
+
+                if (preset === 'all' && !from && !to) {
+                    button.classList.add('active');
+                    return;
+                }
+
+                const range = getPresetRange(preset);
+                if (!range || !from || !to) return;
+
+                if (formatYmd(range.from) === from && formatYmd(range.to) === to) {
+                    button.classList.add('active');
+                }
+            });
+        }
+
+        function applyRange(fromDate, toDate, shouldSubmit = true) {
+            dateFromInput.value = fromDate ? formatYmd(fromDate) : '';
+            dateToInput.value = toDate ? formatYmd(toDate) : '';
+
+            if (fromDate && toDate) {
+                picker.selectDate([fromDate, toDate], { silent: true });
+            } else {
+                picker.clear({ silent: true });
+            }
+
+            updatePresetActive();
+
+            if (shouldSubmit) {
+                form.submit();
+            }
+        }
+
+        const picker = new AirDatepicker('#periodPicker', {
+            locale: localeId,
+            range: true,
+            multipleDatesSeparator: ' — ',
+            dateFormat: 'dd/MM/yyyy',
+            autoClose: true,
+            selectedDates: selectedDates,
+            minDate: new Date('{{ $minYear }}-01-01T00:00:00'),
+            maxDate: new Date('{{ $maxYear }}-12-31T00:00:00'),
+            buttons: ['clear'],
+            onSelect({ date }) {
+                if (!date || (Array.isArray(date) && date.length === 0)) {
+                    applyRange(null, null, true);
+                    return;
+                }
+
+                if (Array.isArray(date) && date.length === 2) {
+                    applyRange(date[0], date[1], true);
+                }
+            },
+        });
+
+        presetButtons.forEach((button) => {
+            button.addEventListener('click', function () {
+                const preset = this.dataset.preset;
+
+                if (preset === 'all') {
+                    applyRange(null, null, true);
+                    return;
+                }
+
+                const range = getPresetRange(preset);
+                if (range) {
+                    applyRange(range.from, range.to, true);
+                }
+            });
+        });
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function () {
+                applyRange(null, null, true);
+            });
+        }
+
+        updatePresetActive();
+    });
+</script>
 @endpush

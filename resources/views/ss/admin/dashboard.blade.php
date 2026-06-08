@@ -38,6 +38,7 @@
             <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm">
                 <i class="fa-regular fa-calendar text-blue-500 text-xs"></i>
                 <select name="month" onchange="this.form.submit()" class="text-xs font-bold text-[#091E6E] outline-none bg-transparent cursor-pointer">
+                    <option value="" {{ $selectedMonth === null ? 'selected' : '' }}>Semua Bulan</option>
                     @foreach($months as $num => $name)
                         <option value="{{ $num }}" {{ $selectedMonth == $num ? 'selected' : '' }}>{{ $name }}</option>
                     @endforeach
@@ -129,7 +130,7 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
                 <div>
                     <h2 class="text-base md:text-lg font-bold text-[#091E6E] uppercase tracking-tight">{{ $chart['title'] }}</h2>
-                    <p class="text-[10px] md:text-xs text-gray-400 italic font-medium">{{ $months[$selectedMonth] }} {{ $selectedYear }}</p>
+                    <p class="text-[10px] md:text-xs text-gray-400 italic font-medium">{{ $selectedMonth ? $months[$selectedMonth].' ' : 'Tahun ' }}{{ $selectedYear }}</p>
                 </div>
                 <div class="flex gap-2 md:gap-3 text-[7px] md:text-[9px] font-black uppercase tracking-widest">
                     <div class="flex items-center gap-1"><span class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-blue-100 shadow-sm"></span> Submitted</div>
@@ -173,9 +174,10 @@
             if (!canvas) return;
 
             const d = chartItem.data;
-            const submittedBars = [d.submitted[0] ?? 0, 0, 0];
-            const approvedBars = [0, d.approved[1] ?? 0, d.approved[2] ?? 0];
-            const barThickness = countBarThickness(chartsData.length);
+            const isYearly = d.mode === 'yearly';
+            const submittedBars = isYearly ? d.submitted : [d.submitted[0] ?? 0, 0, 0];
+            const approvedBars = isYearly ? d.approved : [0, d.approved[1] ?? 0, d.approved[2] ?? 0];
+            const barThickness = isYearly ? 18 : countBarThickness(chartsData.length);
 
             new Chart(canvas.getContext('2d'), {
                 type: 'bar',
