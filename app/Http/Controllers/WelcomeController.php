@@ -2,103 +2,192 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Auth;
-use App\Models\Employee;
-use App\Models\QccCircle;
 use App\Models\Department;
-use App\Models\User;
-use App\Models\SsSubmission; // Import model SS
+use App\Models\QccCircle;
+use App\Models\SsSubmission;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class WelcomeController extends Controller
 {
     public function showWelcome()
     {
-        // Ambil user yang sedang login dari tabel users
-        $userAuth = Auth::user();
-        
-        if (!$userAuth) {
+        $authUser = Auth::user();
+
+        if (!$authUser) {
             Auth::logout();
             return redirect('/login');
         }
 
-        $activeRole = session('active_role'); // 'admin' atau 'employee'
+        $employee = $authUser->employee;
 
-        // Ambil data employee dari relasi user (jika ada)
-        $employee = $userAuth->employee;
-        
-        if ($employee) {
-            $user = $employee;
-        } else {
+        if (!$employee) {
+            Auth::logout();
             return redirect('/login')->with('error', 'Data karyawan tidak ditemukan. Hubungi administrator.');
         }
 
-        // ========== FILTER QCC ==========
-        $qccQuery = QccCircle::query();
-        $viewScope = "All Company"; // Default Label
+        $activeRole = session('active_role', 'employee');
+        $roleLabel = match ($activeRole) {
+            'admin' => 'Administrator',
+            'employee' => 'Employee',
+            default => ucfirst($activeRole),
+        };
 
-        // Logika Filter berdasarkan Otoritas (Jika bukan role Admin)
+        [$qccQuery, $ssQuery, $scopeLabel, $scopeDescription, $scopeLevel] = $this->buildScopedQueries($employee, $activeRole);
+
+        $jumlahQcc = (clone $qccQuery)->count();
+        $jumlahSs = (clone $ssQuery)->count();
+
+        $jumlahDeptTercakup = $this->countDepartmentsInScope($employee, $activeRole);
+
+        $jumlahQccMembers = (clone $qccQuery)
+            ->withCount('members')
+            ->get()
+            ->sum('members_count');
+
+        $qccAvgMembers = $jumlahQcc > 0 ? round($jumlahQccMembers / $jumlahQcc, 1) : 0;
+
+        $jumlahQccThisMonth = (clone $qccQuery)
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+
+        $jumlahSsPending = (clone $ssQuery)
+            ->whereIn('status', ['submitted', 'spv_review', 'kdp_review', 'admin_review'])
+            ->count();
+
+        $jumlahSsApproved = (clone $ssQuery)
+            ->whereIn('status', ['approved', 'rewarded'])
+            ->count();
+
+        $jumlahSsRejected = (clone $ssQuery)
+            ->where('status', 'rejected')
+            ->count();
+
+        $jumlahSsThisMonth = (clone $ssQuery)
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+
+        $completionRate = $jumlahSs > 0 ? (int) round(($jumlahSsApproved / $jumlahSs) * 100) : 0;
+        $pendingRate = $jumlahSs > 0 ? (int) round(($jumlahSsPending / $jumlahSs) * 100) : 0;
+        $rejectedRate = $jumlahSs > 0 ? (int) round(($jumlahSsRejected / $jumlahSs) * 100) : 0;
+
+        $latestQccAt = (clone $qccQuery)->latest('created_at')->value('created_at');
+        $latestSsAt = (clone $ssQuery)->latest('created_at')->value('created_at');
+
+        $latestQccAt = $latestQccAt ? Carbon::parse($latestQccAt) : null;
+        $latestSsAt = $latestSsAt ? Carbon::parse($latestSsAt) : null;
+
+        $lastUpdateAt = collect([$latestQccAt, $latestSsAt])
+            ->filter()
+            ->sortByDesc(fn ($date) => $date->timestamp)
+            ->first();
+
+        $user = $employee;
+
+        return view('home', compact(
+            'user',
+            'roleLabel',
+            'activeRole',
+            'scopeLabel',
+            'scopeDescription',
+            'scopeLevel',
+            'jumlahQcc',
+            'jumlahQccMembers',
+            'qccAvgMembers',
+            'jumlahQccThisMonth',
+            'jumlahSs',
+            'jumlahSsPending',
+            'jumlahSsApproved',
+            'jumlahSsRejected',
+            'jumlahSsThisMonth',
+            'jumlahDeptTercakup',
+            'completionRate',
+            'pendingRate',
+            'rejectedRate',
+            'latestQccAt',
+            'latestSsAt',
+            'lastUpdateAt'
+        ));
+    }
+
+    private function buildScopedQueries($employee, string $activeRole): array
+    {
+        $qccQuery = QccCircle::query();
+        $ssQuery = SsSubmission::query();
+
+        $scopeLabel = 'All Company';
+        $scopeDescription = 'Seluruh data perusahaan';
+        $scopeLevel = 'Company';
+
         if ($activeRole !== 'admin') {
-            $deptCode = $user->getDeptCode();
-            
-            if ($user->occupation === 'GMR') {
-                // GMR: Lihat semua departemen dalam divisinya
+            $deptCode = $employee->getDeptCode();
+
+            if ($employee->occupation === 'GMR') {
                 $myDept = Department::where('code', $deptCode)->first();
                 $divCode = $myDept ? $myDept->code_division : null;
                 $divName = $myDept && $myDept->division ? $myDept->division->name : 'N/A';
 
-                $qccQuery->whereHas('department', function($q) use ($divCode) {
-                    $q->where('code_division', $divCode);
-                });
-                $viewScope = "Division: " . $divName;
-            } 
-            elseif (in_array($user->occupation, ['KDP', 'SPV'])) {
-                // KDP & SPV: Hanya departemen sendiri
-                $qccQuery->where('department_code', $deptCode);
-                $deptName = $user->getDepartment()->name ?? $deptCode;
-                $viewScope = "Department: " . $deptName;
-            } 
-            else {
-                // Employee Biasa: Hanya Circle yang dia ikuti
-                $qccQuery->whereHas('members', function($q) use ($user) {
-                    $q->where('employee_npk', $user->npk);
-                });
-                $viewScope = "Personal & My Circle";
-            }
-        }
-
-        $jumlahQcc = $qccQuery->count();
-
-        // ========== FILTER SS (Suggestion System) ==========
-        $ssQuery = SsSubmission::query();
-
-        if ($activeRole !== 'admin') {
-            $deptCode = $user->getDeptCode();
-
-            if ($user->occupation === 'GMR') {
-                // GMR: Lihat semua SS dalam divisinya
-                $myDept = Department::where('code', $deptCode)->first();
-                $divCode = $myDept ? $myDept->code_division : null;
                 if ($divCode) {
-                    // Ambil semua kode departemen dalam divisi tersebut
+                    $qccQuery->whereHas('department', function ($q) use ($divCode) {
+                        $q->where('code_division', $divCode);
+                    });
+
                     $deptCodesInDiv = Department::where('code_division', $divCode)->pluck('code');
                     $ssQuery->whereIn('department_code', $deptCodesInDiv);
                 } else {
-                    $ssQuery->where('department_code', $deptCode); // fallback
+                    $qccQuery->where('department_code', $deptCode);
+                    $ssQuery->where('department_code', $deptCode);
                 }
-                // viewScope sudah diatur dari QCC, tidak diubah
-            } 
-            elseif (in_array($user->occupation, ['KDP', 'SPV'])) {
-                // KDP & SPV: Hanya departemen sendiri
+
+                $scopeLabel = 'Division: ' . $divName;
+                $scopeDescription = 'Seluruh departemen dalam divisi yang sama';
+                $scopeLevel = 'Division';
+            } elseif (in_array($employee->occupation, ['KDP', 'SPV'])) {
+                $qccQuery->where('department_code', $deptCode);
                 $ssQuery->where('department_code', $deptCode);
-            } 
-            else {
-                // Employee biasa: Hanya SS yang diajukan sendiri
-                $ssQuery->where('employee_npk', $user->npk);
+
+                $deptName = optional($employee->getDepartment())->name ?? $deptCode;
+
+                $scopeLabel = 'Department: ' . $deptName;
+                $scopeDescription = 'Hanya data dari departemen sendiri';
+                $scopeLevel = 'Department';
+            } else {
+                $qccQuery->whereHas('members', function ($q) use ($employee) {
+                    $q->where('employee_npk', $employee->npk);
+                });
+
+                $ssQuery->where('employee_npk', $employee->npk);
+
+                $scopeLabel = 'Personal & My Circle';
+                $scopeDescription = 'Data personal dan circle yang diikuti';
+                $scopeLevel = 'Personal';
             }
         }
 
-        $jumlahSs = $ssQuery->count();
+        return [$qccQuery, $ssQuery, $scopeLabel, $scopeDescription, $scopeLevel];
+    }
 
-        return view('home', compact('user', 'jumlahQcc', 'jumlahSs', 'viewScope'));
+    private function countDepartmentsInScope($employee, string $activeRole): int
+    {
+        if ($activeRole === 'admin') {
+            return Department::count();
+        }
+
+        $deptCode = $employee->getDeptCode();
+
+        if ($employee->occupation === 'GMR') {
+            $myDept = Department::where('code', $deptCode)->first();
+            $divCode = $myDept ? $myDept->code_division : null;
+
+            if ($divCode) {
+                return Department::where('code_division', $divCode)->count();
+            }
+
+            return 1;
+        }
+
+        return 1;
     }
 }

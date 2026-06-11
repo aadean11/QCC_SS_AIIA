@@ -134,7 +134,7 @@ class KaryawanQccController extends Controller
         }
 
         $myCircleIds = QccCircleMember::where('employee_npk', $user->npk)->pluck('qcc_circle_id');
-        $circles = QccCircle::with(['department', 'activeTheme.stepProgress.step'])
+        $circles = QccCircle::with(['department', 'members.employee', 'activeTheme.stepProgress.step'])
             ->whereIn('id', $myCircleIds)
             ->where('qcc_period_id', $selectedPeriod)
             ->when($search, function ($q) use ($search) {

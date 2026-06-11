@@ -691,7 +691,7 @@ class AdminQccController extends Controller
         $divisions = Division::all();
         $departments = Department::when($selectedDiv, fn ($q) => $q->where('code_division', $selectedDiv))->get();
 
-        $query = QccCircle::with(['department', 'activeTheme.stepProgress.step'])
+        $query = QccCircle::with(['department', 'members.employee', 'activeTheme.stepProgress.step'])
             ->where('qcc_period_id', $selectedPeriod);
 
         if ($selectedDept) {

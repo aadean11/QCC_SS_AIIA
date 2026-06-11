@@ -109,14 +109,17 @@
                         </td>
                         
                         <td class="px-3 md:px-6 py-2 md:py-4 rounded-r-xl border-y border-r border-gray-100 text-center">
-                            @if($c->activeTheme)
-                                <a href="{{ route('qcc.karyawan.progress', ['theme_id' => $c->activeTheme->id]) }}" 
-                                    class="inline-flex items-center gap-2 bg-[#091E6E] text-white px-2 md:px-4 py-1 md:py-1.5 rounded-lg text-[8px] md:text-[10px] font-bold hover:bg-[#130998] transition-all shadow-md">
-                                    <i class="fa-solid fa-cloud-arrow-up text-[9px] md:text-xs"></i> UPDATE
-                                </a>
-                            @else
-                                <span class="text-[8px] md:text-[10px] text-gray-400 italic font-bold">SET TEMA DULU</span>
-                            @endif
+                            <div class="flex flex-wrap justify-center items-center gap-1 md:gap-2">
+                                @include('partials.qcc_circle_members_button', ['circle' => $c])
+                                @if($c->activeTheme)
+                                    <a href="{{ route('qcc.karyawan.progress', ['theme_id' => $c->activeTheme->id]) }}"
+                                        class="inline-flex items-center gap-2 bg-[#091E6E] text-white px-2 md:px-4 py-1 md:py-1.5 rounded-lg text-[8px] md:text-[10px] font-bold hover:bg-[#130998] transition-all shadow-md">
+                                        <i class="fa-solid fa-cloud-arrow-up text-[9px] md:text-xs"></i> UPDATE
+                                    </a>
+                                @else
+                                    <span class="text-[8px] md:text-[10px] text-gray-400 italic font-bold">SET TEMA DULU</span>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                     @empty
@@ -138,8 +141,12 @@
         <div class="flex items-center gap-1 md:gap-2 text-[7px] md:text-[9px] font-bold text-gray-500 uppercase"><span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-red-500"></span> Rejected</div>
     </div>
 </div>
+@endsection
 
-<!-- Modal Preview PDF (Tetap Sama) -->
+@push('modals')
+@include('partials.qcc_circle_members_modal')
+
+<!-- Modal Preview PDF -->
 <div id="modalFilePreview" class="fixed inset-0 z-[110] hidden overflow-y-auto bg-black/70 backdrop-blur-md">
     <div class="flex items-center justify-center min-h-screen p-2 md:p-4">
         <div class="bg-white rounded-[1.5rem] md:rounded-[2rem] w-full max-w-5xl h-[90vh] shadow-2xl animate-reveal overflow-hidden flex flex-col">
@@ -154,9 +161,10 @@
         </div>
     </div>
 </div>
-@endsection
+@endpush
 
 @push('scripts')
+@include('partials.qcc_circle_members_scripts')
 <script>
     function openFilePreview(url, title) {
         document.getElementById('fileIframe').src = url;

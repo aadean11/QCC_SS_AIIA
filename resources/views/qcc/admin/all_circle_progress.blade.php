@@ -122,10 +122,13 @@
                         </td>
 
                         <td class="px-3 md:px-6 py-3 md:py-4 rounded-r-xl border-y border-r border-gray-100 text-center">
-                            <a href="{{ route('qcc.admin.dashboard', ['view_level' => 'circle', 'department_code' => $c->department_code]) }}" 
-                                class="inline-flex items-center gap-1 md:gap-2 bg-blue-50 text-blue-600 px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-[8px] md:text-[10px] font-bold hover:bg-blue-600 hover:text-white transition-all shadow-sm">
-                                <i class="fa-solid fa-chart-pie text-xs"></i> ANALYTIC
-                            </a>
+                            <div class="flex flex-wrap justify-center items-center gap-1 md:gap-2">
+                                @include('partials.qcc_circle_members_button', ['circle' => $c])
+                                <a href="{{ route('qcc.admin.dashboard', ['view_level' => 'circle', 'department_code' => $c->department_code]) }}"
+                                    class="inline-flex items-center gap-1 md:gap-2 bg-blue-50 text-blue-600 px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-[8px] md:text-[10px] font-bold hover:bg-blue-600 hover:text-white transition-all shadow-sm">
+                                    <i class="fa-solid fa-chart-pie text-xs"></i> ANALYTIC
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     @empty
@@ -141,8 +144,12 @@
         </div>
     </div>
 </div>
+@endsection
 
-<!-- Modal Preview PDF (Tetap Sama) -->
+@push('modals')
+@include('partials.qcc_circle_members_modal')
+
+<!-- Modal Preview PDF -->
 <div id="modalFilePreview" class="fixed inset-0 z-[110] hidden overflow-y-auto bg-black/70 backdrop-blur-md">
     <div class="flex items-center justify-center min-h-screen p-2 md:p-4">
         <div class="bg-white rounded-[1.5rem] md:rounded-[2rem] w-full max-w-5xl h-[90vh] shadow-2xl animate-reveal overflow-hidden flex flex-col">
@@ -154,9 +161,10 @@
         </div>
     </div>
 </div>
-@endsection
+@endpush
 
 @push('scripts')
+@include('partials.qcc_circle_members_scripts')
 <script>
     function openFilePreview(url, title) {
         document.getElementById('fileIframe').src = url;
