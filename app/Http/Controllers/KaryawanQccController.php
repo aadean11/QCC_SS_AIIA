@@ -74,9 +74,9 @@ class KaryawanQccController extends Controller
 
         $stepMonths = [];
         if ($period) {
-            $stepMonths[] = Carbon::parse($period->start_date)->translatedFormat('M');
+            $stepMonths[] = Carbon::parse($period->start_date)->locale('id')->translatedFormat('M');
             foreach ($periodSteps as $ps) {
-                $stepMonths[] = Carbon::parse($ps->deadline_date)->translatedFormat('M');
+                $stepMonths[] = Carbon::parse($ps->deadline_date)->locale('id')->translatedFormat('M');
             }
         }
         while (count($stepMonths) < 9) { $stepMonths[] = ''; }
