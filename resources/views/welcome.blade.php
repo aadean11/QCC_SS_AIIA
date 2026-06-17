@@ -229,7 +229,7 @@
                     <!-- ==================== MONITORING QCC DROPDOWN (UNIFIED) ==================== -->
                     @if(session('active_role') === 'admin' || in_array($user->occupation, ['GMR', 'KDP', 'SPV']))
                         <div class="relative group" data-submenu="qccSubmenu">
-                            <button type="button" class="sidebar-link w-full justify-between dropdown-toggle {{ request()->is('qcc/admin*') || request()->is('qcc/approval*') || request()->is('qcc/dashboard*') ? 'bg-white/10' : '' }}" data-dropdown="qcc">
+                            <button type="button" class="sidebar-link w-full justify-between dropdown-toggle {{ (request()->is('qcc/admin*') && !request()->is('*/master-schedule*')) || request()->is('qcc/approval*') || request()->is('qcc/dashboard*') ? 'bg-white/10' : '' }}" data-dropdown="qcc">
                                 <div class="flex items-center gap-3">
                                     <div class="icon-box {{ ($countQccApproval ?? 0) > 0 ? 'has-approval' : '' }}">
                                         <i class="fa-solid fa-people-group text-blue-200"></i>
@@ -242,11 +242,11 @@
                                     </div>
                                     <span class="menu-text font-medium whitespace-nowrap">Monitoring QCC</span>
                                 </div>
-                                <i class="fa-solid fa-chevron-down text-[10px] dropdown-arrow {{ request()->is('qcc/admin*') || request()->is('qcc/approval*') || request()->is('qcc/dashboard*') ? 'rotate-180' : '' }}" data-dropdown="qcc"></i>
+                                <i class="fa-solid fa-chevron-down text-[10px] dropdown-arrow {{ (request()->is('qcc/admin*') && !request()->is('*/master-schedule*')) || request()->is('qcc/approval*') || request()->is('qcc/dashboard*') ? 'rotate-180' : '' }}" data-dropdown="qcc"></i>
                             </button>
                             <div class="menu-gap"></div>
 
-                            <div id="qccSubmenu" class="submenu space-y-1 {{ request()->is('qcc/admin*') || request()->is('qcc/approval*') || request()->is('qcc/dashboard*') ? 'show' : '' }}">
+                            <div id="qccSubmenu" class="submenu space-y-1 {{ (request()->is('qcc/admin*') && !request()->is('*/master-schedule*')) || request()->is('qcc/approval*') || request()->is('qcc/dashboard*') ? 'show' : '' }}">
                                 @if(session('active_role') === 'admin')
                                     <a href="{{ route('qcc.admin.dashboard') }}" class="{{ request()->is('qcc/admin/dashboard') ? 'font-bold' : '' }}">
                                         <i class="fa-solid fa-chart-line"></i>

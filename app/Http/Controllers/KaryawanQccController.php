@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\QueryException;
 
 class KaryawanQccController extends Controller
 {
@@ -345,6 +346,9 @@ class KaryawanQccController extends Controller
             DB::commit();
             return redirect()->route('qcc.karyawan.my_circle')->with('success', 'Circle berhasil dihapus.');
 
+        } catch (QueryException $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Circle tidak bisa dihapus karena sudah digunakan pada tema, anggota, progress, atau approval. Hapus data terkait terlebih dahulu.');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Gagal: '.$e->getMessage());
@@ -360,17 +364,28 @@ class KaryawanQccController extends Controller
         $circleId = $request->get('circle_id');
         $myCircleIds = QccCircleMember::where('employee_npk', $user->npk)->pluck('qcc_circle_id');
 
+        // Hanya ambil circle yang sudah ACTIVE untuk dropdown dan navigasi default
+        $myActiveCircles = QccCircle::whereIn('id', $myCircleIds)->where('status', 'ACTIVE')->get();
+
         if ($myCircleIds->isEmpty()) return redirect()->route('qcc.karyawan.my_circle')->with('info', 'Buat circle dulu!');
-        if (!$circleId) return redirect()->route('qcc.karyawan.themes', ['circle_id' => $myCircleIds->first()]);
+
+        // Jika tidak ada circle_id di request, redirect ke circle ACTIVE pertama
+        // Jika tidak ada circle yang ACTIVE sama sekali, kembali ke my_circle tanpa sweetalert warning
+        if (!$circleId) {
+            if ($myActiveCircles->isEmpty()) {
+                return redirect()->route('qcc.karyawan.my_circle');
+            }
+            return redirect()->route('qcc.karyawan.themes', ['circle_id' => $myActiveCircles->first()->id]);
+        }
 
         $circle = QccCircle::findOrFail($circleId);
-        if ($circle->status !== 'ACTIVE') return redirect()->route('qcc.karyawan.my_circle')->with('warning', 'Circle belum di-approve.');
+        if ($circle->status !== 'ACTIVE') return redirect()->route('qcc.karyawan.my_circle');
 
         // Ambil per_page dari request, default 10
         $perPage = $request->get('per_page', 10);
         $themes = QccTheme::with('period')->where('qcc_circle_id', $circleId)->orderBy('created_at', 'desc')->paginate($perPage);
         
-        $myCircles = QccCircle::whereIn('id', $myCircleIds)->get();
+        $myCircles = $myActiveCircles;
         $activePeriods = QccPeriod::where('status', 'ACTIVE')->get();
 
         return view('qcc.karyawan.manage_themes', compact('user', 'circle', 'themes', 'activePeriods', 'myCircles', 'perPage'));
@@ -430,6 +445,9 @@ class KaryawanQccController extends Controller
             return redirect()->route('qcc.karyawan.themes', ['circle_id' => $circle->id])
                 ->with('success', 'Tema berhasil dibuat.');
 
+        } catch (QueryException $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Tema tidak bisa dibuat karena data circle atau periode tidak valid. Periksa kembali data terkait.');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Gagal: '.$e->getMessage());
@@ -515,6 +533,9 @@ class KaryawanQccController extends Controller
             return redirect()->route('qcc.karyawan.themes', ['circle_id' => $circle->id])
                 ->with('success', 'Tema berhasil dihapus.');
 
+        } catch (QueryException $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Tema tidak bisa dihapus karena sudah digunakan pada progress atau approval QCC. Hapus data terkait terlebih dahulu.');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Gagal: '.$e->getMessage());

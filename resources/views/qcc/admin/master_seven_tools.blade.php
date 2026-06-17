@@ -161,7 +161,7 @@
             <form id="formAdd" action="{{ route('qcc.admin.store_seven_tool') }}" method="POST" enctype="multipart/form-data" class="p-4 md:p-8 space-y-4 md:space-y-6">
                 @csrf
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Tool</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Tool <span class="text-red-500">*</span></label>
                     <input type="text" name="tool_name" required placeholder="Contoh: Fishbone Diagram" class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-[#091E6E] outline-none font-medium text-xs md:text-sm">
                 </div>
                 <div>
@@ -189,7 +189,7 @@
             <form id="formEdit" method="POST" enctype="multipart/form-data" class="p-4 md:p-8 space-y-4 md:space-y-6">
                 @csrf @method('PUT')
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Tool</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Tool <span class="text-red-500">*</span></label>
                     <input type="text" name="tool_name" id="edit_name" required class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-xs md:text-sm">
                 </div>
                 <div>

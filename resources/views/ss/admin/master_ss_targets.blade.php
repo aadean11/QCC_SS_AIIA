@@ -106,7 +106,7 @@
                 @csrf
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tahun</label>
+                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tahun <span class="text-red-500">*</span></label>
                         <select name="year" required class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border rounded-lg md:rounded-xl font-bold text-[#091E6E] text-xs md:text-sm focus:ring-2 focus:ring-[#091E6E] outline-none">
                             @foreach($years as $y)
                                 <option value="{{ $y }}" @selected(old('year', date('Y')) == $y)>{{ $y }}</option>
@@ -114,7 +114,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Bulan</label>
+                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Bulan <span class="text-red-500">*</span></label>
                         <select name="month" required class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border rounded-lg md:rounded-xl font-bold text-[#091E6E] text-xs md:text-sm focus:ring-2 focus:ring-[#091E6E] outline-none">
                             @foreach($months as $num => $name)
                                 <option value="{{ $num }}" @selected(old('month', date('n')) == $num)>{{ $name }}</option>
@@ -123,7 +123,7 @@
                     </div>
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Departemen</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Departemen <span class="text-red-500">*</span></label>
                     <select name="department_code" required class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border rounded-lg md:rounded-xl font-bold text-[#091E6E] text-xs md:text-sm focus:ring-2 focus:ring-[#091E6E] outline-none">
                         <option value="">-- Pilih Departemen --</option>
                         @foreach($departments as $d)
@@ -132,7 +132,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Target Jumlah SS</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Target Jumlah SS <span class="text-red-500">*</span></label>
                     <input type="number" name="target_amount" required min="1" placeholder="0" class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border rounded-lg md:rounded-xl focus:ring-2 focus:ring-[#091E6E] outline-none font-bold text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div>
@@ -159,7 +159,7 @@
                     <p id="edit_period_label" class="font-bold text-[#091E6E] mt-1"></p>
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Target Jumlah SS</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Target Jumlah SS <span class="text-red-500">*</span></label>
                     <input type="number" name="target_amount" id="edit_target_amount" required min="1" class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-bold text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div>

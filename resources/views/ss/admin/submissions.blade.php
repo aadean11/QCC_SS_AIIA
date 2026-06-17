@@ -12,6 +12,10 @@
         $dateTo = \Carbon\Carbon::parse($dateFrom)->endOfMonth()->toDateString();
     }
 
+    // Derive month-year values for the pickers
+    $monthFrom = $dateFrom ? \Carbon\Carbon::parse($dateFrom)->format('Y-m') : '';
+    $monthTo   = $dateTo   ? \Carbon\Carbon::parse($dateTo)->format('Y-m')   : '';
+
     $periodDisplay = ($dateFrom && $dateTo)
         ? \Carbon\Carbon::parse($dateFrom)->format('d/m/Y') . ' — ' . \Carbon\Carbon::parse($dateTo)->format('d/m/Y')
         : '';
@@ -117,12 +121,23 @@
                 </div>
             </div>
 
-            <!-- Date filter -->
+            <!-- Date filter — Month/Year Range Picker -->
             <div class="flex flex-col gap-2 pt-1">
-                <label for="periodPicker" class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-1">
-                    Periode Tanggal
-                </label>
+                <div class="flex items-center justify-between">
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-1">
+                        Periode Bulan
+                    </label>
+                    @if($hasDateFilter)
+                        <button type="button" id="clearPeriod"
+                            class="flex items-center gap-1 text-[9px] md:text-[10px] font-bold text-red-400 hover:text-red-600 transition-colors"
+                            title="Hapus periode">
+                            <i class="fa-solid fa-xmark text-[9px]"></i>
+                            Hapus Filter
+                        </button>
+                    @endif
+                </div>
 
+                <!-- Preset buttons -->
                 <div class="flex flex-wrap gap-2">
                     <button type="button" data-preset="this_month" class="period-preset px-3 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-wider border transition-all">
                         Bulan Ini
@@ -138,18 +153,50 @@
                     </button>
                 </div>
 
-                <div class="relative flex items-center bg-white h-11 rounded-2xl border border-gray-200 shadow-sm transition-all hover:border-[#091E6E] focus-within:border-[#091E6E] focus-within:ring-2 focus-within:ring-[#091E6E]/20">
-                    <i class="fa-regular fa-calendar-days text-[10px] text-gray-400 shrink-0 pl-3"></i>
-                    <input type="text" id="periodPicker" value="{{ $periodDisplay }}" placeholder="Pilih rentang tanggal..."
-                        readonly class="flex-1 min-w-0 py-2 pr-9 pl-2 text-[10px] md:text-xs font-bold text-[#091E6E] outline-none bg-transparent cursor-pointer placeholder:font-medium placeholder:text-gray-400">
-                    @if($hasDateFilter)
-                        <button type="button" id="clearPeriod"
-                            class="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                            title="Hapus periode">
-                            <i class="fa-solid fa-xmark text-[10px]"></i>
-                        </button>
-                    @endif
+                <!-- Month-Year range pickers -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- From -->
+                    <div class="flex flex-col gap-1">
+                        <span class="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider pl-1">Dari</span>
+                        <div class="flex items-center gap-2 bg-white px-3 h-11 rounded-2xl border border-gray-200 shadow-sm transition-all hover:border-[#091E6E] focus-within:border-[#091E6E] focus-within:ring-2 focus-within:ring-[#091E6E]/20">
+                            <i class="fa-regular fa-calendar text-[10px] text-blue-400 shrink-0"></i>
+                            <input
+                                type="month"
+                                id="monthFromPicker"
+                                value="{{ $monthFrom }}"
+                                min="{{ $minYear }}-01"
+                                max="{{ $maxYear }}-12"
+                                class="flex-1 min-w-0 text-[10px] md:text-xs font-bold text-[#091E6E] outline-none bg-transparent cursor-pointer"
+                                title="Dari bulan"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- To -->
+                    <div class="flex flex-col gap-1">
+                        <span class="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider pl-1">Sampai</span>
+                        <div class="flex items-center gap-2 bg-white px-3 h-11 rounded-2xl border border-gray-200 shadow-sm transition-all hover:border-[#091E6E] focus-within:border-[#091E6E] focus-within:ring-2 focus-within:ring-[#091E6E]/20">
+                            <i class="fa-regular fa-calendar text-[10px] text-blue-400 shrink-0"></i>
+                            <input
+                                type="month"
+                                id="monthToPicker"
+                                value="{{ $monthTo }}"
+                                min="{{ $minYear }}-01"
+                                max="{{ $maxYear }}-12"
+                                class="flex-1 min-w-0 text-[10px] md:text-xs font-bold text-[#091E6E] outline-none bg-transparent cursor-pointer"
+                                title="Sampai bulan"
+                            >
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Active period display -->
+                @if($hasDateFilter)
+                <div class="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-xl border border-blue-100">
+                    <i class="fa-solid fa-calendar-check text-[10px] text-blue-500"></i>
+                    <span class="text-[10px] md:text-xs font-bold text-[#091E6E]">{{ $periodDisplay }}</span>
+                </div>
+                @endif
             </div>
         </form>
     </div>
@@ -260,17 +307,7 @@
 @endsection
 
 @push('scripts')
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/air-datepicker@3.5.3/air-datepicker.css">
 <style>
-    .air-datepicker { font-family: 'Poppins', sans-serif; border-radius: 1rem; border: 1px solid #e5e7eb; box-shadow: 0 10px 25px -5px rgba(9, 30, 110, 0.15); }
-    .air-datepicker-nav--title { font-weight: 700; color: #091E6E; }
-    .air-datepicker-nav--action:hover { background: #eff6ff; }
-    .air-datepicker-cell.-selected-, .air-datepicker-cell.-selected-.-focus- { background: #091E6E; }
-    .air-datepicker-cell.-range-from-, .air-datepicker-cell.-range-to- { background: #091E6E; border-color: #091E6E; }
-    .air-datepicker-cell.-in-range- { background: rgba(9, 30, 110, 0.12); color: #091E6E; }
-    .air-datepicker-cell.-current- { color: #091E6E; border-color: #091E6E; }
-    .air-datepicker-button { font-weight: 700; color: #091E6E; }
-
     .period-preset { background: #fff; border-color: #e5e7eb; color: #64748b; }
     .period-preset:hover { border-color: #091E6E; color: #091E6E; background: #f8fafc; }
     .period-preset.active { background: #091E6E; border-color: #091E6E; color: #fff; box-shadow: 0 4px 6px -1px rgba(9, 30, 110, 0.2); }
@@ -307,154 +344,154 @@
     .custom-pagination a:hover { background-color: #f8fafc !important; border-color: #091E6E !important; color: #091E6E !important; }
 </style>
 
-<script src="https://cdn.jsdelivr.net/npm/air-datepicker@3.5.3/air-datepicker.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const form = document.getElementById('filterForm');
+        const form          = document.getElementById('filterForm');
         const dateFromInput = document.getElementById('filterDateFrom');
-        const dateToInput = document.getElementById('filterDateTo');
-        const clearBtn = document.getElementById('clearPeriod');
+        const dateToInput   = document.getElementById('filterDateTo');
+        const pickerFrom    = document.getElementById('monthFromPicker');
+        const pickerTo      = document.getElementById('monthToPicker');
+        const clearBtn      = document.getElementById('clearPeriod');
         const presetButtons = document.querySelectorAll('.period-preset');
 
-        const localeId = {
-            days: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
-            daysShort: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
-            daysMin: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
-            months: ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'],
-            monthsShort: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'],
-            today: 'Hari ini',
-            clear: 'Hapus',
-            dateFormat: 'dd/MM/yyyy',
-            timeFormat: 'HH:mm',
-            firstDay: 1,
-        };
-
-        const selectedDates = @json(
-            ($dateFrom && $dateTo)
-                ? [$dateFrom, $dateTo]
-                : []
-        ).map((value) => new Date(value + 'T00:00:00'));
-
-        function formatYmd(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
+        // ── helpers ──────────────────────────────────────────────────────────
+        function monthToFirstDay(ym) {
+            // ym = "YYYY-MM"  →  "YYYY-MM-01"
+            return ym ? ym + '-01' : '';
         }
 
-        function startOfMonth(date) {
-            return new Date(date.getFullYear(), date.getMonth(), 1);
+        function monthToLastDay(ym) {
+            if (!ym) return '';
+            const [y, m] = ym.split('-').map(Number);
+            const last = new Date(y, m, 0).getDate(); // day 0 of next month = last day of this month
+            return `${y}-${String(m).padStart(2, '0')}-${String(last).padStart(2, '0')}`;
         }
 
-        function endOfMonth(date) {
-            return new Date(date.getFullYear(), date.getMonth() + 1, 0);
+        function toYm(dateStr) {
+            // "YYYY-MM-DD" → "YYYY-MM"
+            return dateStr ? dateStr.substring(0, 7) : '';
         }
 
-        function getPresetRange(preset) {
-            const now = new Date();
+        function padMonth(n) { return String(n).padStart(2, '0'); }
 
-            if (preset === 'this_month') {
-                return { from: startOfMonth(now), to: endOfMonth(now) };
-            }
-
-            if (preset === 'last_month') {
-                const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-                return { from: startOfMonth(lastMonth), to: endOfMonth(lastMonth) };
-            }
-
-            if (preset === 'this_year') {
-                return {
-                    from: new Date(now.getFullYear(), 0, 1),
-                    to: new Date(now.getFullYear(), 11, 31),
-                };
-            }
-
-            return null;
+        function nowYm() {
+            const d = new Date();
+            return `${d.getFullYear()}-${padMonth(d.getMonth() + 1)}`;
         }
 
-        function updatePresetActive() {
-            const from = dateFromInput.value;
-            const to = dateToInput.value;
-
-            presetButtons.forEach((button) => {
-                button.classList.remove('active');
-                const preset = button.dataset.preset;
-
-                if (preset === 'all' && !from && !to) {
-                    button.classList.add('active');
-                    return;
-                }
-
-                const range = getPresetRange(preset);
-                if (!range || !from || !to) return;
-
-                if (formatYmd(range.from) === from && formatYmd(range.to) === to) {
-                    button.classList.add('active');
-                }
-            });
+        function prevMonthYm() {
+            const d = new Date();
+            d.setDate(1);
+            d.setMonth(d.getMonth() - 1);
+            return `${d.getFullYear()}-${padMonth(d.getMonth() + 1)}`;
         }
 
-        function applyRange(fromDate, toDate, shouldSubmit = true) {
-            dateFromInput.value = fromDate ? formatYmd(fromDate) : '';
-            dateToInput.value = toDate ? formatYmd(toDate) : '';
+        function thisYearRange() {
+            const y = new Date().getFullYear();
+            return { from: `${y}-01`, to: `${y}-12` };
+        }
 
-            if (fromDate && toDate) {
-                picker.selectDate([fromDate, toDate], { silent: true });
-            } else {
-                picker.clear({ silent: true });
+        // ── apply a from/to month range and submit ────────────────────────────
+        function applyRange(ymFrom, ymTo, shouldSubmit = true) {
+            dateFromInput.value = monthToFirstDay(ymFrom);
+            dateToInput.value   = monthToLastDay(ymTo);
+
+            pickerFrom.value = ymFrom || '';
+            pickerTo.value   = ymTo   || '';
+
+            // keep "to" >= "from"
+            if (ymFrom && ymTo && ymTo < ymFrom) {
+                pickerTo.value      = ymFrom;
+                dateToInput.value   = monthToLastDay(ymFrom);
             }
 
             updatePresetActive();
-
-            if (shouldSubmit) {
-                form.submit();
-            }
+            if (shouldSubmit) form.submit();
         }
 
-        const picker = new AirDatepicker('#periodPicker', {
-            locale: localeId,
-            range: true,
-            multipleDatesSeparator: ' — ',
-            dateFormat: 'dd/MM/yyyy',
-            autoClose: true,
-            selectedDates: selectedDates,
-            minDate: new Date('{{ $minYear }}-01-01T00:00:00'),
-            maxDate: new Date('{{ $maxYear }}-12-31T00:00:00'),
-            buttons: ['clear'],
-            onSelect({ date }) {
-                if (!date || (Array.isArray(date) && date.length === 0)) {
-                    applyRange(null, null, true);
+        // ── highlight matching preset ─────────────────────────────────────────
+        function updatePresetActive() {
+            const from = toYm(dateFromInput.value);
+            const to   = toYm(dateToInput.value);
+
+            presetButtons.forEach(btn => {
+                btn.classList.remove('active');
+                const preset = btn.dataset.preset;
+
+                if (preset === 'all' && !from && !to) {
+                    btn.classList.add('active');
                     return;
                 }
 
-                if (Array.isArray(date) && date.length === 2) {
-                    applyRange(date[0], date[1], true);
-                }
-            },
+                const now = nowYm();
+                const prev = prevMonthYm();
+                const yr = thisYearRange();
+
+                if (preset === 'this_month'  && from === now  && to === now)  btn.classList.add('active');
+                if (preset === 'last_month'  && from === prev && to === prev) btn.classList.add('active');
+                if (preset === 'this_year'   && from === yr.from && to === yr.to) btn.classList.add('active');
+            });
+        }
+
+        // ── picker events ─────────────────────────────────────────────────────
+        pickerFrom.addEventListener('change', function () {
+            let ymFrom = this.value;
+            let ymTo   = pickerTo.value;
+
+            // auto-set "to" if empty or before "from"
+            if (!ymTo || ymTo < ymFrom) ymTo = ymFrom;
+
+            applyRange(ymFrom, ymTo, true);
         });
 
-        presetButtons.forEach((button) => {
-            button.addEventListener('click', function () {
+        pickerTo.addEventListener('change', function () {
+            let ymTo   = this.value;
+            let ymFrom = pickerFrom.value;
+
+            // auto-set "from" if empty or after "to"
+            if (!ymFrom || ymFrom > ymTo) ymFrom = ymTo;
+
+            applyRange(ymFrom, ymTo, true);
+        });
+
+        // ── preset buttons ────────────────────────────────────────────────────
+        presetButtons.forEach(btn => {
+            btn.addEventListener('click', function () {
                 const preset = this.dataset.preset;
 
                 if (preset === 'all') {
-                    applyRange(null, null, true);
+                    applyRange('', '', true);
                     return;
                 }
 
-                const range = getPresetRange(preset);
-                if (range) {
-                    applyRange(range.from, range.to, true);
+                if (preset === 'this_month') {
+                    const ym = nowYm();
+                    applyRange(ym, ym, true);
+                    return;
+                }
+
+                if (preset === 'last_month') {
+                    const ym = prevMonthYm();
+                    applyRange(ym, ym, true);
+                    return;
+                }
+
+                if (preset === 'this_year') {
+                    const yr = thisYearRange();
+                    applyRange(yr.from, yr.to, true);
+                    return;
                 }
             });
         });
 
+        // ── clear button ──────────────────────────────────────────────────────
         if (clearBtn) {
             clearBtn.addEventListener('click', function () {
-                applyRange(null, null, true);
+                applyRange('', '', true);
             });
         }
 
+        // ── init active state ─────────────────────────────────────────────────
         updatePresetActive();
     });
 </script>

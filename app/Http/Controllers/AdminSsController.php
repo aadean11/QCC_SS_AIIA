@@ -13,9 +13,18 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Database\QueryException;
 
 class AdminSsController extends Controller
 {
+    private function deleteConstraintResponse(string $label)
+    {
+        return redirect()->back()->with(
+            'error',
+            "{$label} tidak bisa dihapus karena sudah digunakan pada data SS atau relasi lain. Hapus atau ubah data terkait terlebih dahulu."
+        );
+    }
+
     private function checkAdmin()
     {
         return Auth::check() && session('active_role') === 'admin';
@@ -298,9 +307,13 @@ class AdminSsController extends Controller
             abort(403);
         }
 
-        SsTarget::destroy($id);
+        try {
+            SsTarget::destroy($id);
 
-        return redirect()->route('ss.admin.master_targets')->with('success', 'Target SS berhasil dihapus!');
+            return redirect()->route('ss.admin.master_targets')->with('success', 'Target SS berhasil dihapus!');
+        } catch (QueryException $e) {
+            return $this->deleteConstraintResponse('Target SS');
+        }
     }
 
     public function submissions(Request $request)
@@ -611,9 +624,13 @@ class AdminSsController extends Controller
     {
         if (!$this->checkAdmin()) abort(403);
 
-        SsScoringRange::findOrFail($id)->delete();
+        try {
+            SsScoringRange::findOrFail($id)->delete();
 
-        return redirect()->route('ss.admin.master_scoring')->with('success', 'Master scoring SS berhasil dihapus.');
+            return redirect()->route('ss.admin.master_scoring')->with('success', 'Master scoring SS berhasil dihapus.');
+        } catch (QueryException $e) {
+            return $this->deleteConstraintResponse('Master scoring SS');
+        }
     }
 
     private function validateScoringRange(Request $request): array

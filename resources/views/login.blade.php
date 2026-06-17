@@ -150,15 +150,15 @@
                     <form id="formForgot" class="space-y-4">
                         @csrf
                         <div>
-                            <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Username (NPK)</label>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Username (NPK) <span class="text-red-500">*</span></label>
                             <input type="text" id="forgot_npk" required class="w-full px-5 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] text-sm">
                         </div>
                         <div>
-                            <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Password Baru</label>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Password Baru <span class="text-red-500">*</span></label>
                             <input type="password" id="new_pass" required class="w-full px-5 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] text-sm">
                         </div>
                         <div>
-                            <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Konfirmasi Password</label>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Konfirmasi Password <span class="text-red-500">*</span></label>
                             <input type="password" id="confirm_pass" required class="w-full px-5 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] text-sm">
                         </div>
                         <button type="submit" class="w-full btn-gradient py-4 text-white rounded-xl font-black shadow-lg uppercase tracking-widest text-xs mt-4">Update Password</button>

@@ -19,9 +19,18 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Database\QueryException;
 
 class AdminQccController extends Controller
 {
+    private function deleteConstraintResponse(string $label)
+    {
+        return redirect()->back()->with(
+            'error',
+            "{$label} tidak bisa dihapus karena sudah digunakan pada data lain. Hapus atau ubah data terkait terlebih dahulu."
+        );
+    }
+
     /**
      * Ambil data employee dari user yang sedang login.
      * Jika tidak ada, return null.
@@ -370,12 +379,17 @@ class AdminQccController extends Controller
 
     public function deleteStep($id)
     {
-        $step = QccStep::findOrFail($id);
-        if ($step->template_file_path && Storage::disk('public')->exists($step->template_file_path)) {
-            Storage::disk('public')->delete($step->template_file_path);
+        try {
+            $step = QccStep::findOrFail($id);
+            $templatePath = $step->template_file_path;
+            $step->delete();
+            if ($templatePath && Storage::disk('public')->exists($templatePath)) {
+                Storage::disk('public')->delete($templatePath);
+            }
+            return redirect()->back()->with('success', 'Step berhasil dihapus!');
+        } catch (QueryException $e) {
+            return $this->deleteConstraintResponse('Step QCC');
         }
-        $step->delete();
-        return redirect()->back()->with('success', 'Step berhasil dihapus!');
     }
 
     public function masterPeriods(Request $request)
@@ -432,7 +446,12 @@ class AdminQccController extends Controller
                     'deadline_date' => $request->end_date,
                 ]);
             }
-            return $period->load('periodSteps.step');
+            $period->load(['periodSteps' => function ($query) {
+                $query->join('m_qcc_steps', 'm_qcc_period_steps.qcc_step_id', '=', 'm_qcc_steps.id')
+                    ->orderBy('m_qcc_steps.step_number', 'asc')
+                    ->select('m_qcc_period_steps.*');
+            }, 'periodSteps.step']);
+            return $period;
         });
 
         return redirect()->back()->with([
@@ -475,27 +494,29 @@ class AdminQccController extends Controller
 
     public function deletePeriod($id)
     {
-        $period = QccPeriod::findOrFail($id);
+        try {
+            $period = QccPeriod::findOrFail($id);
 
-        DB::transaction(function () use ($period) {
-            QccPeriodStep::where('qcc_period_id', $period->id)->delete();
+            DB::transaction(function () use ($period) {
+                QccPeriodStep::where('qcc_period_id', $period->id)->delete();
 
-            $circles = QccCircle::where('qcc_period_id', $period->id)->get();
-            foreach ($circles as $circle) {
-                
-                QccCircleStepTransaction::where('qcc_circle_id', $circle->id)->delete();
-           
-                QccTheme::where('qcc_circle_id', $circle->id)->delete();
+                $circles = QccCircle::where('qcc_period_id', $period->id)->get();
+                foreach ($circles as $circle) {
+                    QccCircleStepTransaction::where('qcc_circle_id', $circle->id)->delete();
+                    QccTheme::where('qcc_circle_id', $circle->id)->delete();
 
-                $circle->delete();
-            }
+                    $circle->delete();
+                }
 
-            QccTarget::where('qcc_period_id', $period->id)->delete();
+                QccTarget::where('qcc_period_id', $period->id)->delete();
 
-            $period->delete();
-        });
+                $period->delete();
+            });
 
-        return redirect()->back()->with('success', 'Periode berhasil dihapus!');
+            return redirect()->back()->with('success', 'Periode berhasil dihapus!');
+        } catch (QueryException $e) {
+            return $this->deleteConstraintResponse('Periode QCC');
+        }
     }
 
     public function masterTargets(Request $request)
@@ -560,8 +581,12 @@ class AdminQccController extends Controller
 
     public function deleteTarget($id)
     {
-        QccTarget::destroy($id);
-        return redirect()->back()->with('success', 'Target berhasil dihapus!');
+        try {
+            QccTarget::destroy($id);
+            return redirect()->back()->with('success', 'Target berhasil dihapus!');
+        } catch (QueryException $e) {
+            return $this->deleteConstraintResponse('Target QCC');
+        }
     }
 
     public function masterEmployees(Request $request)
@@ -609,8 +634,12 @@ class AdminQccController extends Controller
 
     public function deleteEmployee($id)
     {
-        Employee::destroy($id);
-        return redirect()->back()->with('success', 'Data karyawan telah dihapus.');
+        try {
+            Employee::destroy($id);
+            return redirect()->back()->with('success', 'Data karyawan telah dihapus.');
+        } catch (QueryException $e) {
+            return $this->deleteConstraintResponse('Data karyawan');
+        }
     }
 
     private function employeeRules(?int $employeeId = null): array
@@ -786,11 +815,16 @@ class AdminQccController extends Controller
 
     public function deleteSevenTool($id)
     {
-        $tool = QccSevenTool::findOrFail($id);
-        if ($tool->template_file_path && Storage::disk('public')->exists($tool->template_file_path)) {
-            Storage::disk('public')->delete($tool->template_file_path);
+        try {
+            $tool = QccSevenTool::findOrFail($id);
+            $templatePath = $tool->template_file_path;
+            $tool->delete();
+            if ($templatePath && Storage::disk('public')->exists($templatePath)) {
+                Storage::disk('public')->delete($templatePath);
+            }
+            return redirect()->back()->with('success', 'Seven Tool berhasil dihapus!');
+        } catch (QueryException $e) {
+            return $this->deleteConstraintResponse('Seven Tool');
         }
-        $tool->delete();
-        return redirect()->back()->with('success', 'Seven Tool berhasil dihapus!');
     }
 }

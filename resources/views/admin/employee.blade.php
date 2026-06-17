@@ -197,15 +197,15 @@
             <form id="formAdd" action="{{ route('admin.master_employee.store') }}" method="POST" class="p-4 md:p-8 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5 text-left">
                 @csrf
                 <div class="col-span-1 sm:col-span-2 text-left">
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Lengkap</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Lengkap <span class="text-red-500">*</span></label>
                     <input type="text" name="nama" value="{{ old('nama') }}" required maxlength="255" placeholder="Masukkan nama lengkap" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-[#091E6E] outline-none transition-all font-medium text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">NPK</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">NPK <span class="text-red-500">*</span></label>
                     <input type="text" name="npk" value="{{ old('npk') }}" required maxlength="6" pattern="[A-Za-z0-9._-]+" placeholder="Masukkan NPK" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-[#091E6E] outline-none font-black text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Jabatan</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Jabatan <span class="text-red-500">*</span></label>
                     <select name="occupation" required class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none font-bold text-[#091E6E] text-xs md:text-sm">
                         @foreach($occupations as $occ)
                             <option value="{{ $occ->code }}" @selected(old('occupation') === $occ->code)>{{ $occ->name }}</option>
@@ -213,27 +213,27 @@
                     </select>
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Dept / Line Code</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Dept / Line Code <span class="text-red-500">*</span></label>
                     <input type="text" name="line_code" value="{{ old('line_code') }}" required maxlength="50" placeholder="Contoh: PROD1" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none font-medium text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Phone / WA</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Phone / WA <span class="text-red-500">*</span></label>
                     <input type="text" name="phone" value="{{ old('phone') }}" required maxlength="255" pattern="[0-9+().\s-]+" placeholder="Contoh: 08123456789" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none font-medium text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Transport</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Transport <span class="text-red-500">*</span></label>
                     <input type="text" name="transport" value="{{ old('transport', '-') }}" required maxlength="255" placeholder="Contoh: MOTOR" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none font-medium text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Status Karyawan</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Status Karyawan <span class="text-red-500">*</span></label>
                     <input type="text" name="status_emp" value="{{ old('status_emp', 'ACTIVE') }}" required maxlength="255" placeholder="Contoh: ACTIVE" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none font-medium text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Status Employment</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Status Employment <span class="text-red-500">*</span></label>
                     <input type="text" name="employment_status" value="{{ old('employment_status', 'ACTIVE') }}" required maxlength="255" placeholder="Contoh: ACTIVE" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none font-medium text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Sub-Section</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Sub-Section <span class="text-red-500">*</span></label>
                     <select name="sub_section" required class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none font-bold text-[#091E6E] text-xs md:text-sm">
                         @foreach($subSections as $sub)
                             <option value="{{ $sub->code }}" @selected(old('sub_section') === $sub->code)>{{ $sub->code }} - {{ $sub->name }}</option>
@@ -259,7 +259,7 @@
             <form id="formEdit" method="POST" class="p-4 md:p-8 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5 text-left">
                 @csrf @method('PUT')
                 <div class="col-span-1 sm:col-span-2">
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Lengkap</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Lengkap <span class="text-red-500">*</span></label>
                     <input type="text" name="nama" id="edit_nama" required maxlength="255" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div>
@@ -267,33 +267,33 @@
                     <input type="text" name="npk" id="edit_npk" readonly maxlength="6" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-100 border border-gray-200 rounded-lg md:rounded-xl outline-none font-black text-[#091E6E] cursor-not-allowed shadow-inner text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Jabatan</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Jabatan <span class="text-red-500">*</span></label>
                     <select name="occupation" id="edit_occupation" required class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none font-bold text-[#091E6E] text-xs md:text-sm">
                         @foreach($occupations as $occ) <option value="{{ $occ->code }}">{{ $occ->name }}</option> @endforeach
                     </select>
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Dept / Line Code</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Dept / Line Code <span class="text-red-500">*</span></label>
                     <input type="text" name="line_code" id="edit_line_code" required maxlength="50" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Phone / WA</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Phone / WA <span class="text-red-500">*</span></label>
                     <input type="text" name="phone" id="edit_phone" required maxlength="255" pattern="[0-9+().\s-]+" placeholder="Contoh: 08123456789" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Transport</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Transport <span class="text-red-500">*</span></label>
                     <input type="text" name="transport" id="edit_transport" required maxlength="255" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Status Karyawan</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Status Karyawan <span class="text-red-500">*</span></label>
                     <input type="text" name="status_emp" id="edit_status_emp" required maxlength="255" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Status Employment</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Status Employment <span class="text-red-500">*</span></label>
                     <input type="text" name="employment_status" id="edit_employment_status" required maxlength="255" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Sub-Section</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Sub-Section <span class="text-red-500">*</span></label>
                     <select name="sub_section" id="edit_sub_section" required class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none font-bold text-[#091E6E] text-xs md:text-sm">
                         @foreach($subSections as $sub) <option value="{{ $sub->code }}">{{ $sub->code }} - {{ $sub->name }}</option> @endforeach
                     </select>

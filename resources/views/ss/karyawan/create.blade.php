@@ -190,7 +190,7 @@
                     <div class="mb-6">
                         <label class="block text-gray-700 text-sm font-bold mb-2">File PDF Ide SS <span class="text-red-500">*</span></label>
                         <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-[#091E6E] transition-all bg-gray-50/30">
-                            <input type="file" name="file" accept=".pdf" required
+                            <input type="file" name="file" id="ssFileInput" accept=".pdf" required
                                 class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#091E6E] file:text-white hover:file:bg-[#130998] file:cursor-pointer">
                             <p class="text-xs text-gray-400 mt-3">Maksimal 5MB, format PDF</p>
                         </div>
@@ -223,6 +223,9 @@
 @if(Session::has('error'))
 <script>Swal.fire({ icon: 'error', title: 'Gagal', text: @json(Session::get('error')), confirmButtonColor: '#091E6E' });</script>
 @endif
+@error('file')
+<script>Swal.fire({ icon: 'error', title: 'File tidak valid', text: @json($message), confirmButtonColor: '#091E6E' });</script>
+@enderror
 <script>
 (function() {
     const isLdr = @json($user->isLdr());
@@ -232,6 +235,8 @@
     const panelSelf = document.getElementById('panelSelf');
     const selectOpr = document.getElementById('employee_npk');
     const submitLabel = document.getElementById('submitLabel');
+    const fileInput = document.getElementById('ssFileInput');
+    const maxFileSize = 5 * 1024 * 1024;
 
     function updateLdrScoreTotal() {
         const totalEl = document.getElementById('ldrScoreTotal');
@@ -281,6 +286,19 @@
 
     document.getElementById('formSsSubmit')?.addEventListener('submit', function(e) {
         e.preventDefault();
+        const file = fileInput?.files?.[0];
+
+        if (file && file.size > maxFileSize) {
+            Swal.fire({
+                icon: 'error',
+                title: 'File terlalu besar',
+                text: 'Ukuran file PDF maksimal 5MB. Silakan pilih file yang lebih kecil.',
+                confirmButtonColor: '#091E6E'
+            });
+            fileInput.value = '';
+            return;
+        }
+
         const t = typeInput?.value === 'opr' ? 'operator (OPR)' : 'Anda sendiri';
         Swal.fire({
             title: 'Ajukan SS?',

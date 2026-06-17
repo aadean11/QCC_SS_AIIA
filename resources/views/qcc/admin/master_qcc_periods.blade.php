@@ -175,23 +175,23 @@
             <form id="formAdd" action="{{ route('qcc.admin.store_period') }}" method="POST" class="p-4 md:p-8 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                 @csrf
                 <div class="col-span-1 sm:col-span-2">
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Periode</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Periode <span class="text-red-500">*</span></label>
                     <input type="text" name="period_name" required placeholder="Contoh: Periode Genap" class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-[#091E6E] outline-none transition-all font-medium text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Kode Periode</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Kode Periode <span class="text-red-500">*</span></label>
                     <input type="text" name="period_code" required placeholder="Contoh: P2-2025" class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-[#091E6E] outline-none font-medium text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tahun</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tahun <span class="text-red-500">*</span></label>
                     <input type="number" name="year" value="{{ date('Y') }}" required class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-[#091E6E] outline-none font-medium text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tanggal Mulai</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tanggal Mulai <span class="text-red-500">*</span></label>
                     <input type="date" name="start_date" id="add_start_date" required class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-[#091E6E] outline-none font-medium text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tanggal Selesai</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tanggal Selesai <span class="text-red-500">*</span></label>
                     <input type="date" name="end_date" id="add_end_date" required class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-[#091E6E] outline-none font-medium text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div class="col-span-1 sm:col-span-2 pt-2 md:pt-4">
@@ -216,23 +216,23 @@
             <form id="formEdit" method="POST" class="p-4 md:p-8 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                 @csrf @method('PUT')
                 <div class="col-span-1 sm:col-span-2">
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Periode</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Periode <span class="text-red-500">*</span></label>
                     <input type="text" name="period_name" id="edit_period_name" required class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Kode Periode</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Kode Periode <span class="text-red-500">*</span></label>
                     <input type="text" name="period_code" id="edit_period_code" required class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tahun</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tahun <span class="text-red-500">*</span></label>
                     <input type="number" name="year" id="edit_year" required class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tanggal Mulai</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tanggal Mulai <span class="text-red-500">*</span></label>
                     <input type="date" name="start_date" id="edit_start_date" required class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tanggal Selesai</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tanggal Selesai <span class="text-red-500">*</span></label>
                     <input type="date" name="end_date" id="edit_end_date" required class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <div class="col-span-1 sm:col-span-2">
@@ -324,8 +324,11 @@
         
         const list = document.getElementById('deadlineList');
         list.innerHTML = '';
+
+        // Pastikan urutan step selalu ascending berdasarkan step_number
+        const sortedSteps = [...periodSteps].sort((a, b) => a.step.step_number - b.step.step_number);
         
-        periodSteps.forEach(ps => {
+        sortedSteps.forEach(ps => {
             list.innerHTML += `
                 <tr class="border-t border-gray-100">
                     <td class="px-3 md:px-4 py-2 md:py-3 whitespace-nowrap">

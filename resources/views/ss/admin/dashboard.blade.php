@@ -24,6 +24,8 @@
 
         <form action="{{ route('ss.admin.dashboard') }}" method="GET" id="filterForm" class="flex flex-col md:flex-row gap-3 w-full md:w-auto flex-wrap">
             <input type="hidden" name="view_level" id="view_level" value="{{ $viewLevel }}">
+            <input type="hidden" name="month" id="hidden_month" value="{{ $selectedMonth ?? '' }}">
+            <input type="hidden" name="year" id="hidden_year" value="{{ $selectedYear }}">
             @if($viewLevel == 'department' && $isAdmin)
             <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm">
                 <i class="fa-solid fa-layer-group text-amber-500 text-xs"></i>
@@ -35,22 +37,24 @@
                 </select>
             </div>
             @endif
+
+            {{-- Month-Year Picker --}}
             <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm">
                 <i class="fa-regular fa-calendar text-blue-500 text-xs"></i>
-                <select name="month" onchange="this.form.submit()" class="text-xs font-bold text-[#091E6E] outline-none bg-transparent cursor-pointer">
-                    <option value="" {{ $selectedMonth === null ? 'selected' : '' }}>Semua Bulan</option>
-                    @foreach($months as $num => $name)
-                        <option value="{{ $num }}" {{ $selectedMonth == $num ? 'selected' : '' }}>{{ $name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm">
-                <i class="fa-regular fa-calendar-alt text-blue-500 text-xs"></i>
-                <select name="year" onchange="this.form.submit()" class="text-xs font-bold text-[#091E6E] outline-none bg-transparent cursor-pointer">
-                    @foreach($years as $y)
-                        <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }}>{{ $y }}</option>
-                    @endforeach
-                </select>
+                <input
+                    type="month"
+                    id="monthYearPicker"
+                    value="{{ $selectedMonth ? sprintf('%04d-%02d', $selectedYear, $selectedMonth) : '' }}"
+                    min="{{ ($years[0] ?? date('Y')) }}-01"
+                    max="{{ ($years[count($years)-1] ?? date('Y')) }}-12"
+                    class="text-xs font-bold text-[#091E6E] outline-none bg-transparent cursor-pointer"
+                    title="Pilih Bulan & Tahun"
+                >
+                <button type="button" id="clearMonthBtn" onclick="clearMonthFilter()"
+                    class="text-gray-400 hover:text-red-400 transition-colors {{ $selectedMonth ? '' : 'hidden' }}"
+                    title="Tampilkan semua bulan">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
             </div>
         </form>
     </div>
@@ -156,6 +160,37 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 <script>
+    // Month-Year Picker logic
+    document.addEventListener('DOMContentLoaded', function () {
+        const picker = document.getElementById('monthYearPicker');
+        const clearBtn = document.getElementById('clearMonthBtn');
+
+        if (picker) {
+            picker.addEventListener('change', function () {
+                const val = this.value; // format: "YYYY-MM" or ""
+                if (val) {
+                    const parts = val.split('-');
+                    document.getElementById('hidden_year').value = parts[0];
+                    document.getElementById('hidden_month').value = parseInt(parts[1], 10);
+                    if (clearBtn) clearBtn.classList.remove('hidden');
+                } else {
+                    document.getElementById('hidden_month').value = '';
+                    if (clearBtn) clearBtn.classList.add('hidden');
+                }
+                document.getElementById('filterForm').submit();
+            });
+        }
+    });
+
+    function clearMonthFilter() {
+        const picker = document.getElementById('monthYearPicker');
+        const clearBtn = document.getElementById('clearMonthBtn');
+        if (picker) picker.value = '';
+        document.getElementById('hidden_month').value = '';
+        if (clearBtn) clearBtn.classList.add('hidden');
+        document.getElementById('filterForm').submit();
+    }
+
     function switchTab(level) {
         document.getElementById('view_level').value = level;
         document.getElementById('filterForm').submit();

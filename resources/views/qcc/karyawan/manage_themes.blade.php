@@ -157,7 +157,7 @@
                 @csrf
                 <input type="hidden" name="qcc_circle_id" value="{{ $circle->id }}">
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Pilih Periode Aktif</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Pilih Periode Aktif <span class="text-red-500">*</span></label>
                     <select name="qcc_period_id" required class="w-full mt-2 px-3 md:px-5 py-2 md:py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:rounded-2xl outline-none font-bold text-[#091E6E] text-xs md:text-sm focus:ring-2 focus:ring-[#091E6E] transition-all">
                         <option value="">-- Pilih Periode --</option>
                         @foreach($activePeriods as $p) 
@@ -166,7 +166,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Judul Tema Perbaikan</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Judul Tema Perbaikan <span class="text-red-500">*</span></label>
                     <input type="text" name="theme_name" required placeholder="Contoh: Optimasi Efisiensi Mesin CNC-01" class="w-full mt-2 px-3 md:px-5 py-2 md:py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:rounded-2xl focus:ring-2 focus:ring-[#091E6E] outline-none font-medium text-[#091E6E] text-xs md:text-sm transition-all">
                 </div>
                 <div class="bg-blue-50 p-3 md:p-5 rounded-xl md:rounded-2xl border border-blue-100 text-[8px] md:text-[10px] text-blue-600 italic">
@@ -192,13 +192,13 @@
                 @csrf @method('PUT')
                 <input type="hidden" name="qcc_circle_id" value="{{ $circle->id }}">
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Pilih Periode</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Pilih Periode <span class="text-red-500">*</span></label>
                     <select name="qcc_period_id" id="edit_theme_period" required class="w-full mt-2 px-3 md:px-5 py-2 md:py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:rounded-2xl focus:ring-2 focus:ring-amber-500 outline-none font-bold text-[#091E6E] text-xs md:text-sm transition-all">
                         @foreach($activePeriods as $p) <option value="{{ $p->id }}">{{ $p->period_name }} ({{ $p->year }})</option> @endforeach
                     </select>
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Judul Tema</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Judul Tema <span class="text-red-500">*</span></label>
                     <input type="text" name="theme_name" id="edit_theme_name" required class="w-full mt-2 px-3 md:px-5 py-2 md:py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:rounded-2xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-[#091E6E] text-xs md:text-sm transition-all">
                 </div>
                 <div class="flex flex-col sm:flex-row gap-3 md:gap-4 pt-2 md:pt-4">

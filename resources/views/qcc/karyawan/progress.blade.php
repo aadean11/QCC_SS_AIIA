@@ -244,7 +244,7 @@
                 <input type="hidden" name="qcc_circle_id" value="{{ $theme->qcc_circle_id }}">
 
                 <div class="space-y-2">
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1 text-left block">Pilih File (Wajib PDF)</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1 text-left block">Pilih File (Wajib PDF) <span class="text-red-500">*</span></label>
                     <div class="relative group">
                         <input type="file" name="file" id="fileInput" accept=".pdf" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="updateFileName(this)">
                         <div class="w-full p-4 md:p-8 border-2 border-dashed border-gray-200 rounded-xl md:rounded-3xl group-hover:border-[#091E6E] group-hover:bg-blue-50 transition-all text-center">

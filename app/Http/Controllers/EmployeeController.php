@@ -8,6 +8,7 @@ use App\Models\Occupation;
 use App\Models\SubSection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Database\QueryException;
 
 class EmployeeController extends Controller
 {
@@ -59,8 +60,15 @@ class EmployeeController extends Controller
 
     public function destroy($id)
     {
-        Employee::destroy($id);
-        return redirect()->back()->with('success', 'Data karyawan telah dihapus dari sistem.');
+        try {
+            Employee::destroy($id);
+            return redirect()->back()->with('success', 'Data karyawan telah dihapus dari sistem.');
+        } catch (QueryException $e) {
+            return redirect()->back()->with(
+                'error',
+                'Data karyawan tidak bisa dihapus karena sudah digunakan pada data QCC, SS, user, approval, atau relasi master lain. Hapus atau ubah data terkait terlebih dahulu.'
+            );
+        }
     }
 
     private function rules(?int $employeeId = null): array

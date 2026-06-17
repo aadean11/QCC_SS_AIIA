@@ -142,7 +142,7 @@
                 @csrf
                 @foreach($formFields as $field)
                     <div>
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">{{ $field['label'] }}</label>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">{{ $field['label'] }} <span class="text-red-500">*</span></label>
                         <input type="{{ $field['type'] }}" name="{{ $field['name'] }}" @if(isset($field['min'])) min="{{ $field['min'] }}" @endif @if(isset($field['step'])) step="{{ $field['step'] }}" @endif required class="w-full mt-2 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#091E6E] outline-none font-bold text-[#091E6E] text-sm">
                     </div>
                 @endforeach
@@ -182,7 +182,7 @@
                 @csrf @method('PUT')
                 @foreach($formFields as $field)
                     <div>
-                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">{{ $field['label'] }}</label>
+                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">{{ $field['label'] }} <span class="text-red-500">*</span></label>
                         <input type="{{ $field['type'] }}" name="{{ $field['name'] }}" id="edit_{{ $field['name'] }}" @if(isset($field['min'])) min="{{ $field['min'] }}" @endif @if(isset($field['step'])) step="{{ $field['step'] }}" @endif required class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-[#091E6E] text-xs md:text-sm">
                     </div>
                 @endforeach

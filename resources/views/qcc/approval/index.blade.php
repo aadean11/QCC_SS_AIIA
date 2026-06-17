@@ -169,7 +169,7 @@
 
                 <!-- Input Note (Hanya muncul jika REJECT) -->
                 <div id="noteArea" class="hidden animate-reveal">
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Alasan Penolakan (Wajib)</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Alasan Penolakan (Wajib) <span class="text-red-500">*</span></label>
                     <textarea name="note" id="rejectionNote" rows="3" placeholder="Sebutkan alasan atau poin yang perlu diperbaiki..." 
                         class="w-full mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-red-500 outline-none font-medium text-xs md:text-sm transition-all"></textarea>
                 </div>

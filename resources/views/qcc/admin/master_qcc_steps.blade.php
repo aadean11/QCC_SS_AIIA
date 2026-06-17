@@ -170,11 +170,11 @@
             <form id="formAdd" action="{{ route('qcc.admin.store_step') }}" method="POST" enctype="multipart/form-data" class="p-4 md:p-8 space-y-4 md:space-y-6">
                 @csrf
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nomor Urut Step</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nomor Urut Step <span class="text-red-500">*</span></label>
                     <input type="number" name="step_number" required class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-[#091E6E] outline-none font-medium text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Langkah</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Langkah <span class="text-red-500">*</span></label>
                     <input type="text" name="step_name" required class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-[#091E6E] outline-none font-medium text-xs md:text-sm">
                 </div>
                 <div>
@@ -209,7 +209,7 @@
                     <input type="number" name="step_number" id="edit_number" readonly class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-100 border border-gray-200 rounded-lg md:rounded-xl outline-none font-bold text-gray-400 cursor-not-allowed text-xs md:text-sm">
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Langkah</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Langkah <span class="text-red-500">*</span></label>
                     <input type="text" name="step_name" id="edit_name" required class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-xs md:text-sm">
                 </div>
                 <div>

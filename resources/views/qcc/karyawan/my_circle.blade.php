@@ -194,13 +194,13 @@
                 <div class="space-y-4 md:space-y-6">
                     <h4 class="text-[10px] md:text-xs font-bold text-[#091E6E] uppercase border-b pb-2">1. Detail Kelompok</h4>
                     <div>
-                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Circle</label>
+                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Circle <span class="text-red-500">*</span></label>
                         <input type="text" name="circle_name" required placeholder="Masukkan nama unik..." class="w-full mt-2 px-3 md:px-5 py-2 md:py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:rounded-2xl focus:ring-2 focus:ring-[#091E6E] outline-none font-medium text-[#091E6E] text-xs md:text-sm">
                     </div>
 
                     <!-- INPUT UPLOAD STEP 0 -->
                     <div>
-                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Upload File Step 0 (PDF)</label>
+                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Upload File Step 0 (PDF) <span class="text-red-500">*</span></label>
                         <div class="mt-2 relative">
                             <input type="file" name="step0_file" required accept="application/pdf" class="w-full px-3 py-2 bg-white border-2 border-dashed border-gray-200 rounded-xl text-[10px] text-gray-500 file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-bold file:bg-blue-50 file:text-[#091E6E] hover:file:bg-blue-100 cursor-pointer transition-all">
                         </div>
@@ -271,7 +271,7 @@
                 <div class="space-y-4 md:space-y-6">
                     <h4 class="text-[10px] md:text-xs font-bold text-[#091E6E] uppercase border-b pb-2">Detail Kelompok</h4>
                     <div>
-                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Circle</label>
+                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Circle <span class="text-red-500">*</span></label>
                         <input type="text" name="circle_name" id="edit_circle_name" required class="w-full mt-2 px-3 md:px-5 py-2 md:py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:rounded-2xl focus:ring-2 focus:ring-amber-500 outline-none text-xs md:text-sm">
                     </div>
                 </div>

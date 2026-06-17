@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Database\QueryException;
 
 class UserController extends Controller
 {
@@ -71,13 +72,20 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        $user = User::findOrFail($id);
-        // Cegah menghapus diri sendiri
-        if ($user->id == Auth::id()) {
-            return redirect()->back()->with('error', 'Anda tidak dapat menghapus akun sendiri.');
+        try {
+            $user = User::findOrFail($id);
+            // Cegah menghapus diri sendiri
+            if ($user->id == Auth::id()) {
+                return redirect()->back()->with('error', 'Anda tidak dapat menghapus akun sendiri.');
+            }
+            $user->delete();
+            return redirect()->back()->with('success', 'User berhasil dihapus.');
+        } catch (QueryException $e) {
+            return redirect()->back()->with(
+                'error',
+                'User tidak bisa dihapus karena masih digunakan pada data relasi lain. Nonaktifkan user atau ubah data terkait terlebih dahulu.'
+            );
         }
-        $user->delete();
-        return redirect()->back()->with('success', 'User berhasil dihapus.');
     }
 
     private function rules(?int $userId = null, bool $isUpdate = false): array

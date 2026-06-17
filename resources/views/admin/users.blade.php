@@ -180,19 +180,19 @@
             <form id="formAdd" action="{{ route('admin.master_user.store') }}" method="POST" class="p-4 md:p-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 @csrf
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">NPK</label>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">NPK <span class="text-red-500">*</span></label>
                     <input type="text" name="npk" value="{{ old('npk') }}" required maxlength="255" placeholder="Contoh: 123456" class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-[#091E6E] outline-none text-sm">
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">Nama Lengkap</label>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Nama Lengkap <span class="text-red-500">*</span></label>
                     <input type="text" name="nama" value="{{ old('nama') }}" required maxlength="255" class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-[#091E6E] outline-none text-sm">
                 </div>
                 <div class="sm:col-span-2">
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">Email</label>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Email <span class="text-red-500">*</span></label>
                     <input type="email" name="email" value="{{ old('email') }}" required maxlength="255" class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-[#091E6E] outline-none text-sm">
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">Role</label>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Role <span class="text-red-500">*</span></label>
                     <select name="role" required class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg outline-none text-sm font-semibold">
                         @foreach($roles as $role)
                         <option value="{{ $role }}" @selected(old('role') === $role)>{{ $role }}</option>
@@ -200,18 +200,18 @@
                     </select>
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">Status User</label>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Status User <span class="text-red-500">*</span></label>
                     <select name="status_user" required class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg outline-none">
                         <option value="ACTIVE" @selected(old('status_user', 'ACTIVE') === 'ACTIVE')>ACTIVE</option>
                         <option value="INACTIVE" @selected(old('status_user') === 'INACTIVE')>INACTIVE</option>
                     </select>
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">OT PAR</label>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">OT PAR <span class="text-red-500">*</span></label>
                     <input type="text" name="ot_par" value="{{ old('ot_par', '-') }}" required maxlength="255" placeholder="Contoh: -" class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg outline-none text-sm">
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">Limit MP</label>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Limit MP <span class="text-red-500">*</span></label>
                     <input type="number" name="limit_mp" value="{{ old('limit_mp', 0) }}" required min="0" step="1" placeholder="0" class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg outline-none text-sm">
                 </div>
                 <div class="sm:col-span-2 text-xs text-gray-400 bg-gray-50 p-2 rounded-lg">
@@ -234,19 +234,19 @@
             <form id="formEdit" method="POST" class="p-4 md:p-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 @csrf @method('PUT')
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">NPK</label>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">NPK <span class="text-red-500">*</span></label>
                     <input type="text" name="npk" id="edit_npk" required maxlength="255" class="w-full mt-1 px-3 py-2 bg-gray-100 border rounded-lg outline-none text-sm font-mono" readonly>
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">Nama</label>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Nama <span class="text-red-500">*</span></label>
                     <input type="text" name="nama" id="edit_nama" required maxlength="255" class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-amber-500 outline-none text-sm">
                 </div>
                 <div class="sm:col-span-2">
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">Email</label>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Email <span class="text-red-500">*</span></label>
                     <input type="email" name="email" id="edit_email" required maxlength="255" class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-amber-500 outline-none text-sm">
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">Role</label>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Role <span class="text-red-500">*</span></label>
                     <select name="role" id="edit_role" required class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg outline-none">
                         @foreach($roles as $role)
                         <option value="{{ $role }}">{{ $role }}</option>
@@ -254,18 +254,18 @@
                     </select>
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">Status</label>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Status <span class="text-red-500">*</span></label>
                     <select name="status_user" id="edit_status_user" required class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg outline-none">
                         <option value="ACTIVE">ACTIVE</option>
                         <option value="INACTIVE">INACTIVE</option>
                     </select>
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">OT PAR</label>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">OT PAR <span class="text-red-500">*</span></label>
                     <input type="text" name="ot_par" id="edit_ot_par" required maxlength="255" class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg outline-none text-sm">
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">Limit MP</label>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Limit MP <span class="text-red-500">*</span></label>
                     <input type="number" name="limit_mp" id="edit_limit_mp" required min="0" step="1" class="w-full mt-1 px-3 py-2 bg-gray-50 border rounded-lg outline-none text-sm">
                 </div>
                 <div class="sm:col-span-2">

@@ -229,7 +229,7 @@
                     <h4 id="circleNameDisplay" class="text-lg md:text-xl font-black text-[#091E6E] uppercase italic mt-1 leading-tight"></h4>
                 </div>
                 <div id="circleNoteArea" class="hidden animate-reveal">
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1 block mb-1">Alasan Penolakan Pendaftaran</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1 block mb-1">Alasan Penolakan Pendaftaran <span class="text-red-500">*</span></label>
                     <textarea name="note" id="circleRejectionNote" rows="3" placeholder="Sebutkan alasan penolakan..." class="w-full mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-red-500 outline-none font-medium text-xs md:text-sm"></textarea>
                 </div>
                 <p id="circleDescription" class="text-xs md:text-sm text-gray-600 font-medium leading-relaxed"></p>

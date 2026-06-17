@@ -123,14 +123,14 @@
             <form id="formAdd" action="{{ route('qcc.admin.store_target') }}" method="POST" class="p-4 md:p-8 space-y-4 md:space-y-5">
                 @csrf
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Pilih Periode</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Pilih Periode <span class="text-red-500">*</span></label>
                     <select name="qcc_period_id" required class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border rounded-lg md:rounded-xl font-bold text-[#091E6E] text-xs md:text-sm focus:ring-2 focus:ring-[#091E6E] outline-none">
                         <option value="">-- Pilih Periode --</option>
                         @foreach($periods as $p) <option value="{{ $p->id }}">{{ $p->period_name }} ({{ $p->year }})</option> @endforeach
                     </select>
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Pilih Departemen</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Pilih Departemen <span class="text-red-500">*</span></label>
                     <select name="department_code" required class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border rounded-lg md:rounded-xl font-bold text-[#091E6E] text-xs md:text-sm focus:ring-2 focus:ring-[#091E6E] outline-none">
                         <option value="">-- Pilih Departemen --</option>
                         @foreach($departments as $d)
@@ -139,7 +139,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Jumlah Target Circle</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Jumlah Target Circle <span class="text-red-500">*</span></label>
                     <input type="number" name="target_amount" required min="1" placeholder="0" class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border rounded-lg md:rounded-xl focus:ring-2 focus:ring-[#091E6E] outline-none font-bold text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <button type="submit" class="w-full py-3 md:py-4 bg-[#091E6E] text-white rounded-xl font-bold shadow-lg hover:bg-[#130998] transition-all uppercase tracking-widest text-[10px] md:text-xs">Simpan Target</button>
@@ -161,7 +161,7 @@
             <form id="formEdit" method="POST" class="p-4 md:p-8 space-y-4 md:space-y-5">
                 @csrf @method('PUT')
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Jumlah Target Circle</label>
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Jumlah Target Circle <span class="text-red-500">*</span></label>
                     <input type="number" name="target_amount" id="edit_target_amount" required min="1" class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-bold text-[#091E6E] text-xs md:text-sm">
                 </div>
                 <button type="submit" class="w-full py-3 md:py-4 bg-amber-500 text-white rounded-xl font-bold shadow-lg uppercase tracking-widest text-[10px] md:text-xs hover:bg-amber-600 transition-all">Update Target</button>
