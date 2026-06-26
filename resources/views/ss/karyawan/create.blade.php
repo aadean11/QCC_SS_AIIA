@@ -199,7 +199,7 @@
 
                     <div class="mb-8">
                         <label class="block text-gray-700 text-sm font-bold mb-2">Catatan (opsional)</label>
-                        <textarea name="notes" rows="3" class="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-[#091E6E] bg-gray-50/30 text-sm" placeholder="Catatan penilaian atau deskripsi singkat...">{{ old('notes') }}</textarea>
+                        <textarea name="notes" rows="3" maxlength="20" class="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-[#091E6E] bg-gray-50/30 text-sm" placeholder="Catatan penilaian atau deskripsi singkat...">{{ old('notes') }}</textarea>
                         @error('notes') <p class="text-red-500 text-xs mt-2">{{ $message }}</p> @enderror
                     </div>
 

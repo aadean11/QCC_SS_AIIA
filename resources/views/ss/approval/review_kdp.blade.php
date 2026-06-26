@@ -113,7 +113,7 @@
 
                 <div class="mb-8">
                     <label class="block text-gray-700 text-sm font-bold mb-2">Catatan KDP (opsional)</label>
-                    <textarea name="kdp_notes" rows="4" class="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-[#091E6E] bg-gray-50/30 text-sm" placeholder="Tulis alasan persetujuan atau penolakan..."></textarea>
+                    <textarea name="kdp_notes" rows="4" maxlength="20" class="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-[#091E6E] bg-gray-50/30 text-sm" placeholder="Tulis alasan persetujuan atau penolakan..."></textarea>
                     @error('kdp_notes') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 

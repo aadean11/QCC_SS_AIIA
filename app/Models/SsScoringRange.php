@@ -82,6 +82,11 @@ class SsScoringRange extends Model
         return $managerMaxScore !== null && $score > $managerMaxScore;
     }
 
+    public static function effectiveReviewScore(?int $kdpScore, ?int $spvScore): ?int
+    {
+        return $kdpScore ?? $spvScore;
+    }
+
     private static function maxActiveScoreForApprovers(array $approverLevels): ?int
     {
         $normalizedLevels = array_map('strtoupper', $approverLevels);

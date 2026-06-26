@@ -226,11 +226,17 @@
                 </div>
                 <div>
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Status Karyawan <span class="text-red-500">*</span></label>
-                    <input type="text" name="status_emp" value="{{ old('status_emp', 'ACTIVE') }}" required maxlength="255" placeholder="Contoh: ACTIVE" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none font-medium text-[#091E6E] text-xs md:text-sm">
+                    <select name="status_emp" required class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none font-bold text-[#091E6E] text-xs md:text-sm">
+                        <option value="ACTIVE" @selected(old('status_emp', 'ACTIVE') === 'ACTIVE')>ACTIVE</option>
+                        <option value="INACTIVE" @selected(old('status_emp') === 'INACTIVE')>INACTIVE</option>
+                    </select>
                 </div>
                 <div>
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Status Employment <span class="text-red-500">*</span></label>
-                    <input type="text" name="employment_status" value="{{ old('employment_status', 'ACTIVE') }}" required maxlength="255" placeholder="Contoh: ACTIVE" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none font-medium text-[#091E6E] text-xs md:text-sm">
+                    <select name="employment_status" required class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none font-bold text-[#091E6E] text-xs md:text-sm">
+                        <option value="ACTIVE" @selected(old('employment_status', 'ACTIVE') === 'ACTIVE')>ACTIVE</option>
+                        <option value="INACTIVE" @selected(old('employment_status') === 'INACTIVE')>INACTIVE</option>
+                    </select>
                 </div>
                 <div>
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Sub-Section <span class="text-red-500">*</span></label>
@@ -286,11 +292,17 @@
                 </div>
                 <div>
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Status Karyawan <span class="text-red-500">*</span></label>
-                    <input type="text" name="status_emp" id="edit_status_emp" required maxlength="255" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none text-xs md:text-sm">
+                    <select name="status_emp" id="edit_status_emp" required class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none font-bold text-[#091E6E] text-xs md:text-sm">
+                        <option value="ACTIVE">ACTIVE</option>
+                        <option value="INACTIVE">INACTIVE</option>
+                    </select>
                 </div>
                 <div>
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Status Employment <span class="text-red-500">*</span></label>
-                    <input type="text" name="employment_status" id="edit_employment_status" required maxlength="255" class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none text-xs md:text-sm">
+                    <select name="employment_status" id="edit_employment_status" required class="w-full mt-1 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl outline-none font-bold text-[#091E6E] text-xs md:text-sm">
+                        <option value="ACTIVE">ACTIVE</option>
+                        <option value="INACTIVE">INACTIVE</option>
+                    </select>
                 </div>
                 <div>
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Sub-Section <span class="text-red-500">*</span></label>
@@ -360,8 +372,14 @@
         document.getElementById('det_line').innerText = emp.line_code;
         document.getElementById('det_phone').innerText = emp.phone || '-';
         document.getElementById('det_transport').innerText = emp.transport || '-';
-        document.getElementById('det_status_emp').innerText = emp.status_emp || '-';
-        document.getElementById('det_employment_status').innerText = emp.employment_status || '-';
+        
+        // Convert numeric values (1/2) from database to ACTIVE/INACTIVE for display
+        const statusVal = String(emp.status_emp || '1');
+        document.getElementById('det_status_emp').innerText = (statusVal === '1' || statusVal.toUpperCase() === 'ACTIVE') ? 'ACTIVE' : 'INACTIVE';
+        
+        const empStatusVal = String(emp.employment_status || '1');
+        document.getElementById('det_employment_status').innerText = (empStatusVal === '1' || empStatusVal.toUpperCase() === 'ACTIVE') ? 'ACTIVE' : 'INACTIVE';
+        
         document.getElementById('det_sub').innerText = emp.sub_section;
         openModal('modalDetail');
     }
@@ -375,8 +393,14 @@
         document.getElementById('edit_line_code').value = emp.line_code;
         document.getElementById('edit_phone').value = emp.phone || '';
         document.getElementById('edit_transport').value = emp.transport || '-';
-        document.getElementById('edit_status_emp').value = emp.status_emp || 'ACTIVE';
-        document.getElementById('edit_employment_status').value = emp.employment_status || 'ACTIVE';
+        
+        // Convert numeric values (1/2) from database to ACTIVE/INACTIVE for UI dropdown
+        const statusVal = String(emp.status_emp || '1');
+        document.getElementById('edit_status_emp').value = (statusVal === '1' || statusVal.toUpperCase() === 'ACTIVE') ? 'ACTIVE' : 'INACTIVE';
+        
+        const empStatusVal = String(emp.employment_status || '1');
+        document.getElementById('edit_employment_status').value = (empStatusVal === '1' || empStatusVal.toUpperCase() === 'ACTIVE') ? 'ACTIVE' : 'INACTIVE';
+        
         document.getElementById('edit_sub_section').value = emp.sub_section;
         openModal('modalEdit');
     }
@@ -400,6 +424,7 @@
     // --- KONFIRMASI SIMPAN ---
     document.getElementById('formAdd').addEventListener('submit', function(e) {
         e.preventDefault();
+        const form = this;  // Save form reference to use in callback
         Swal.fire({ 
             title: 'Simpan Data?', 
             text: "Pastikan NPK dan data karyawan sudah benar.", 
@@ -408,13 +433,14 @@
             confirmButtonColor: '#091E6E', 
             confirmButtonText: 'Ya, Simpan!' 
         }).then((result) => { 
-            if (result.isConfirmed) this.submit(); 
+            if (result.isConfirmed) form.submit();
         });
     });
 
     // --- KONFIRMASI UPDATE ---
     document.getElementById('formEdit').addEventListener('submit', function(e) {
         e.preventDefault();
+        const form = this;  // Save form reference to use in callback
         Swal.fire({ 
             title: 'Update Data?', 
             text: "Perubahan akan disimpan secara permanen.", 
@@ -423,7 +449,7 @@
             confirmButtonColor: '#F59E0B', 
             confirmButtonText: 'Ya, Update!' 
         }).then((result) => { 
-            if (result.isConfirmed) this.submit(); 
+            if (result.isConfirmed) form.submit();
         });
     });
 

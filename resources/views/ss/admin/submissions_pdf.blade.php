@@ -59,36 +59,33 @@
                 <th class="center" style="width: 28px;">No</th>
                 <th style="width: 120px;">Pengaju</th>
                 <th style="width: 110px;">Departemen</th>
-                <th>Judul Ide</th>
-                <th style="width: 70px;">Tanggal</th>
-                <th class="center" style="width: 48px;">Score</th>
-                <th style="width: 82px;">Status</th>
-                <th class="right" style="width: 90px;">Reward</th>
+                <th class="center" style="width: 60px;">Jumlah Ide</th>
+                <th class="right" style="width: 100px;">Total Reward</th>
             </tr>
         </thead>
         <tbody>
-            @forelse($submissions as $ss)
+            @php
+                $groupedSubmissions = $submissions->groupBy('employee_npk');
+            @endphp
+            @forelse($groupedSubmissions as $npk => $employeeSubmissions)
+                @php
+                    $firstSubmission = $employeeSubmissions->first();
+                    $totalReward = $employeeSubmissions->sum(function($sub) {
+                        return $sub->reward_amount ?? $sub->calculated_reward_amount ?? 0;
+                    });
+                @endphp
                 <tr>
                     <td class="center">{{ $loop->iteration }}</td>
-                    <td>{{ $ss->employee->nama ?? $ss->employee_npk }}</td>
-                    <td>{{ $ss->department?->name ?? $ss->department_code }}</td>
-                    <td>{{ $ss->idea_title ?? '-' }}</td>
-                    <td>{{ $ss->submission_date ? \Carbon\Carbon::parse($ss->submission_date)->format('d/m/Y') : '-' }}</td>
-                    <td class="center">{{ $ss->score ?? '-' }}</td>
-                    <td>{{ strtoupper(str_replace('_', ' ', $ss->status)) }}</td>
+                    <td>{{ $firstSubmission->employee->nama ?? $firstSubmission->employee_npk }}</td>
+                    <td>{{ $firstSubmission->department?->name ?? $firstSubmission->department_code }}</td>
+                    <td class="center">{{ $employeeSubmissions->count() }}</td>
                     <td class="right">
-                        @if($ss->reward_amount)
-                            Rp {{ number_format($ss->reward_amount, 0, ',', '.') }}
-                        @elseif($ss->calculated_reward_amount)
-                            Rp {{ number_format($ss->calculated_reward_amount, 0, ',', '.') }}
-                        @else
-                            -
-                        @endif
+                        Rp {{ number_format($totalReward, 0, ',', '.') }}
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8" class="empty">Tidak ada data SS sesuai filter.</td>
+                    <td colspan="5" class="empty">Tidak ada data SS sesuai filter.</td>
                 </tr>
             @endforelse
         </tbody>

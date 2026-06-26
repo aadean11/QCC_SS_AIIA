@@ -740,6 +740,89 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            // Fungsi untuk update counter textarea
+            function updateTextareaCounter(textarea) {
+                let counter = textarea.nextElementSibling;
+                
+                // Jika belum ada counter, buat baru
+                if (!counter || !counter.classList.contains('textarea-counter')) {
+                    counter = document.createElement('div');
+                    counter.className = 'textarea-counter';
+                    textarea.insertAdjacentElement('afterend', counter);
+                }
+
+                const max = parseInt(textarea.getAttribute('maxlength') || '0', 10);
+                const current = textarea.value.length;
+                
+                // Update text
+                counter.textContent = `${current}/${max}`;
+                
+                // Styling dinamis berdasarkan kapasitas
+                let baseClass = 'text-[11px] font-semibold text-right mt-1.5 tracking-wide';
+                
+                if (current === 0) {
+                    counter.className = `textarea-counter ${baseClass} text-gray-400`;
+                } else if (current < max * 0.5) {
+                    counter.className = `textarea-counter ${baseClass} text-green-600`;
+                } else if (current < max * 0.85) {
+                    counter.className = `textarea-counter ${baseClass} text-amber-600`;
+                } else if (current < max) {
+                    counter.className = `textarea-counter ${baseClass} text-orange-600`;
+                } else {
+                    counter.className = `textarea-counter ${baseClass} text-red-600 font-bold`;
+                }
+            }
+
+            // Inisialisasi semua textarea dengan maxlength
+            document.querySelectorAll('textarea[maxlength]').forEach((textarea) => {
+                // Buat counter jika belum ada
+                if (!textarea.nextElementSibling?.classList?.contains('textarea-counter')) {
+                    const counter = document.createElement('div');
+                    counter.className = 'textarea-counter';
+                    textarea.insertAdjacentElement('afterend', counter);
+                }
+
+                // Event listeners
+                textarea.addEventListener('input', () => updateTextareaCounter(textarea));
+                textarea.addEventListener('change', () => updateTextareaCounter(textarea));
+                textarea.addEventListener('textarea-counter:update', () => updateTextareaCounter(textarea));
+                
+                // Initial update
+                updateTextareaCounter(textarea);
+            });
+
+            // Observer untuk textarea yang ditambahkan secara dinamis (modal, form via AJAX, dll)
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.nodeType === 1) { // Element node
+                            const textareas = node.querySelectorAll ? node.querySelectorAll('textarea[maxlength]') : [];
+                            
+                            // Jika node itu sendiri adalah textarea
+                            if (node.tagName === 'TEXTAREA' && node.hasAttribute('maxlength')) {
+                                textareas.push(node);
+                            }
+                            
+                            textareas.forEach((textarea) => {
+                                if (!textarea.nextElementSibling?.classList?.contains('textarea-counter')) {
+                                    const counter = document.createElement('div');
+                                    counter.className = 'textarea-counter';
+                                    textarea.insertAdjacentElement('afterend', counter);
+                                    textarea.addEventListener('input', () => updateTextareaCounter(textarea));
+                                    textarea.addEventListener('change', () => updateTextareaCounter(textarea));
+                                    updateTextareaCounter(textarea);
+                                }
+                            });
+                        }
+                    });
+                });
+            });
+
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true,
+            });
+
             // TAMPILKAN SWEETALERT SELAMAT DATANG (HANYA SEKALI SETELAH LOGIN)
             @if(session('login_success'))
                 Swal.fire({
@@ -766,6 +849,9 @@
             @endif
             @if(session('info'))
                 Swal.fire({ icon: 'info', title: 'Informasi', text: "{{ session('info') }}", confirmButtonColor: '#091E6E', scrollbarPadding: false });
+            @endif
+            @if($errors->any())
+                Swal.fire({ icon: 'error', title: 'Validasi Gagal!', text: @json($errors->first()), confirmButtonColor: '#091E6E', scrollbarPadding: false });
             @endif
         });
     </script>

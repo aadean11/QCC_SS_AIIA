@@ -106,9 +106,16 @@
                                 if($c->status == 'ACTIVE') $badgeColor = 'bg-emerald-50 text-emerald-600 border-emerald-100';
                                 if(str_contains($c->status, 'REJECTED')) $badgeColor = 'bg-red-50 text-red-600 border-red-100';
                             @endphp
-                            <span class="px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[8px] md:text-[9px] font-bold border {{ $badgeColor }}">
-                                {{ $c->status }}
-                            </span>
+                            <div class="flex flex-col items-center gap-1.5">
+                                <span class="px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[8px] md:text-[9px] font-bold border {{ $badgeColor }}">
+                                    {{ $c->status }}
+                                </span>
+                                @if(str_contains($c->status, 'REJECTED'))
+                                    <span class="text-[7px] md:text-[8px] bg-yellow-50 text-yellow-600 px-1.5 py-0.5 rounded font-bold border border-yellow-100 italic">
+                                        <i class="fa-solid fa-arrow-rotate-left mr-1"></i> Revisi ke SPV
+                                    </span>
+                                @endif    
+                            </div>
                         </td>
 
                         <td class="px-3 md:px-6 py-2 md:py-3 rounded-r-xl border-y border-r border-gray-100 text-center">
@@ -195,7 +202,8 @@
                     <h4 class="text-[10px] md:text-xs font-bold text-[#091E6E] uppercase border-b pb-2">1. Detail Kelompok</h4>
                     <div>
                         <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Circle <span class="text-red-500">*</span></label>
-                        <input type="text" name="circle_name" required placeholder="Masukkan nama unik..." class="w-full mt-2 px-3 md:px-5 py-2 md:py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:rounded-2xl focus:ring-2 focus:ring-[#091E6E] outline-none font-medium text-[#091E6E] text-xs md:text-sm">
+                        <input type="text" name="circle_name" id="create_circle_name" maxlength="20" required placeholder="Masukkan nama unik..." class="w-full mt-2 px-3 md:px-5 py-2 md:py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:rounded-2xl focus:ring-2 focus:ring-[#091E6E] outline-none font-medium text-[#091E6E] text-xs md:text-sm">
+                        <div class="mt-1 text-right text-[8px] md:text-[9px] font-bold" id="counter_create_circle_name" style="color: #9ca3af;">0/20</div>
                     </div>
 
                     <!-- INPUT UPLOAD STEP 0 -->
@@ -272,7 +280,8 @@
                     <h4 class="text-[10px] md:text-xs font-bold text-[#091E6E] uppercase border-b pb-2">Detail Kelompok</h4>
                     <div>
                         <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama Circle <span class="text-red-500">*</span></label>
-                        <input type="text" name="circle_name" id="edit_circle_name" required class="w-full mt-2 px-3 md:px-5 py-2 md:py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:rounded-2xl focus:ring-2 focus:ring-amber-500 outline-none text-xs md:text-sm">
+                        <input type="text" name="circle_name" id="edit_circle_name" maxlength="20" required class="w-full mt-2 px-3 md:px-5 py-2 md:py-3.5 bg-gray-50 border border-gray-200 rounded-xl md:rounded-2xl focus:ring-2 focus:ring-amber-500 outline-none text-xs md:text-sm">
+                        <div class="mt-1 text-right text-[8px] md:text-[9px] font-bold" id="counter_edit_circle_name" style="color: #9ca3af;">0/20</div>
                     </div>
                 </div>
                 <div class="space-y-4">
@@ -399,13 +408,99 @@
         });
     });
 
+    // Update counter untuk input nama create
+    const createCircleNameInput = document.getElementById('create_circle_name');
+    if (createCircleNameInput) {
+        function updateCreateCircleCounter() {
+            const input = document.getElementById('create_circle_name');
+            const counter = document.getElementById('counter_create_circle_name');
+            const length = input.value.length;
+            const percentage = (length / 20) * 100;
+            counter.textContent = `${length}/20`;
+            
+            // Apply color based on capacity
+            if (percentage === 0) counter.style.color = '#9ca3af'; // gray-400
+            else if (percentage <= 50) counter.style.color = '#16a34a'; // green-600
+            else if (percentage <= 85) counter.style.color = '#b45309'; // amber-600
+            else if (percentage < 100) counter.style.color = '#ea580c'; // orange-600
+            else counter.style.color = '#dc2626'; // red-600 bold
+        }
+        createCircleNameInput.addEventListener('input', updateCreateCircleCounter);
+    }
+
+    // Update counter untuk input nama edit
+    const editCircleNameInput = document.getElementById('edit_circle_name');
+    if (editCircleNameInput) {
+        function updateEditCircleCounter() {
+            const input = document.getElementById('edit_circle_name');
+            const counter = document.getElementById('counter_edit_circle_name');
+            const length = input.value.length;
+            const percentage = (length / 20) * 100;
+            counter.textContent = `${length}/20`;
+            
+            // Apply color based on capacity
+            if (percentage === 0) counter.style.color = '#9ca3af'; // gray-400
+            else if (percentage <= 50) counter.style.color = '#16a34a'; // green-600
+            else if (percentage <= 85) counter.style.color = '#b45309'; // amber-600
+            else if (percentage < 100) counter.style.color = '#ea580c'; // orange-600
+            else counter.style.color = '#dc2626'; // red-600 bold
+        }
+        editCircleNameInput.addEventListener('input', updateEditCircleCounter);
+    }
+
     document.getElementById('formStoreCircle')?.addEventListener('submit', function(e) {
         e.preventDefault();
+        const circleName = document.getElementById('create_circle_name').value.trim();
+        
+        if (circleName.length === 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Nama Circle Kosong!',
+                text: 'Silakan masukkan nama circle terlebih dahulu.',
+                confirmButtonColor: '#091E6E'
+            });
+            return;
+        }
+        
+        if (circleName.length > 20) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Nama Circle Terlalu Panjang!',
+                html: `Nama circle maksimal <b>20 karakter</b>. Saat ini Anda sudah memasukkan <b>${circleName.length} karakter</b>.<br><small class="text-red-500">Silakan kurangi karakter Anda.</small>`,
+                confirmButtonColor: '#EF4444',
+                confirmButtonText: 'Kembali'
+            });
+            return;
+        }
+        
         Swal.fire({ title: 'Buat Circle Baru?', text: "Data akan disimpan sebagai kelompok QCC resmi.", icon: 'question', showCancelButton: true, confirmButtonColor: '#091E6E', confirmButtonText: 'Ya, Buat!' }).then((result) => { if (result.isConfirmed) this.submit(); });
     });
 
     document.getElementById('formUpdateCircle')?.addEventListener('submit', function(e) {
         e.preventDefault();
+        const circleName = document.getElementById('edit_circle_name').value.trim();
+        
+        if (circleName.length === 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Nama Circle Kosong!',
+                text: 'Silakan masukkan nama circle terlebih dahulu.',
+                confirmButtonColor: '#F59E0B'
+            });
+            return;
+        }
+        
+        if (circleName.length > 20) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Nama Circle Terlalu Panjang!',
+                html: `Nama circle maksimal <b>20 karakter</b>. Saat ini Anda sudah memasukkan <b>${circleName.length} karakter</b>.<br><small class="text-red-500">Silakan kurangi karakter Anda.</small>`,
+                confirmButtonColor: '#EF4444',
+                confirmButtonText: 'Kembali'
+            });
+            return;
+        }
+        
         Swal.fire({ title: 'Simpan Perubahan?', text: "Data anggota akan disinkronkan ulang.", icon: 'question', showCancelButton: true, confirmButtonColor: '#F59E0B', confirmButtonText: 'Ya, Update!' }).then((result) => { if (result.isConfirmed) this.submit(); });
     });
 

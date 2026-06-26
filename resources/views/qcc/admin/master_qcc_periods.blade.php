@@ -75,7 +75,6 @@
                                 $statusClasses = [
                                     'ACTIVE' => 'bg-emerald-50 text-emerald-600 border-emerald-100',
                                     'INACTIVE' => 'bg-gray-50 text-gray-400 border-gray-100',
-                                    'CLOSED' => 'bg-red-50 text-red-600 border-red-100',
                                 ];
                             @endphp
                             <span class="px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[8px] md:text-[10px] font-bold uppercase border {{ $statusClasses[$period->status] ?? $statusClasses['INACTIVE'] }}">
@@ -240,7 +239,6 @@
                     <select name="status" id="edit_status" class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-[#091E6E] text-xs md:text-sm">
                         <option value="ACTIVE">ACTIVE</option>
                         <option value="INACTIVE">INACTIVE</option>
-                        <option value="CLOSED">CLOSED</option>
                     </select>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-3 col-span-1 sm:col-span-2 mt-2 md:mt-4">
@@ -302,7 +300,7 @@
         const badge = document.getElementById('det_status');
         badge.innerText = period.status;
         const s = period.status;
-        badge.className = `px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[8px] md:text-[10px] font-bold uppercase border ${s == 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : (s == 'CLOSED' ? 'bg-red-50 text-red-600 border-red-100' : 'bg-gray-50 text-gray-400 border-gray-100')}`;
+        badge.className = `px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[8px] md:text-[10px] font-bold uppercase border ${s == 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-gray-50 text-gray-400 border-gray-100'}`;
 
         const stepsCont = document.getElementById('det_steps');
         stepsCont.innerHTML = '';
@@ -336,7 +334,7 @@
                         <span class="text-[7px] md:text-[9px] text-gray-400 font-black">${ps.step.step_name}</span>
                     </td>
                     <td class="px-3 md:px-4 py-2 md:py-3 text-center">
-                        <input type="date" name="deadlines[${ps.qcc_step_id}]" value="${ps.deadline_date}" 
+                        <input type="date" name="deadlines[${ps.step.step_number}]" value="${ps.deadline_date}" 
                             min="${period.start_date}" max="${period.end_date}"
                             class="w-full px-2 md:px-3 py-1.5 md:py-2 bg-gray-50 border border-gray-200 rounded-lg text-[9px] md:text-xs outline-none focus:ring-1 focus:ring-[#091E6E] font-bold text-[#091E6E]">
                     </td>
@@ -382,7 +380,67 @@
 
     document.getElementById('formDeadline').addEventListener('submit', function(e) {
         e.preventDefault();
-        Swal.fire({ title: 'Simpan Deadline?', text: "Batas waktu pengumpulan per langkah akan diperbarui.", icon: 'question', showCancelButton: true, confirmButtonColor: '#091E6E', confirmButtonText: 'Ya, Simpan!' }).then((result) => { if (result.isConfirmed) this.submit(); });
+        
+        // Validasi deadline urutan step
+        const deadlineInputs = document.querySelectorAll('input[name^="deadlines["]');
+        const deadlines = {};
+        
+        // Ambil semua nilai deadline dengan key step_number
+        deadlineInputs.forEach(input => {
+            const match = input.name.match(/deadlines\[(\d+)\]/);
+            if (match) {
+                const stepNumber = parseInt(match[1]);
+                deadlines[stepNumber] = input.value;
+            }
+        });
+        
+        // Urutkan step number
+        const sortedSteps = Object.keys(deadlines).map(Number).sort((a, b) => a - b);
+        
+        // Validasi urutan deadline
+        let isValid = true;
+        let errorMessage = 'Deadline langkah tidak valid:\n';
+        let violations = [];
+        
+        for (let i = 1; i < sortedSteps.length; i++) {
+            const currentStep = sortedSteps[i];
+            const previousStep = sortedSteps[i - 1];
+            const currentDeadline = new Date(deadlines[currentStep]);
+            const previousDeadline = new Date(deadlines[previousStep]);
+            
+            if (currentDeadline < previousDeadline) {
+                isValid = false;
+                violations.push(`❌ Deadline Step ${currentStep} (${deadlines[currentStep]}) tidak boleh lebih awal dari Step ${previousStep} (${deadlines[previousStep]})`);
+            }
+        }
+        
+        if (!isValid) {
+            errorMessage += violations.join('\n');
+            Swal.fire({
+                icon: 'error',
+                title: 'Validasi Deadline Gagal!',
+                html: '<pre style="text-align: left; font-size: 12px; color: #666; white-space: pre-wrap; word-wrap: break-word;">' + errorMessage + '</pre>',
+                confirmButtonColor: '#EF4444',
+                confirmButtonText: 'Kembali'
+            });
+            return;
+        }
+        
+        // Jika valid, tampilkan konfirmasi
+        Swal.fire({
+            title: 'Simpan Deadline?',
+            text: "Batas waktu pengumpulan per langkah akan diperbarui. Pastikan urutan deadline sudah benar!",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#091E6E',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Ya, Simpan!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.submit();
+            }
+        });
     });
 
     function confirmDelete(id) {

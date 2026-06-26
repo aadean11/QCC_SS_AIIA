@@ -7,7 +7,11 @@ use App\Models\User;
 use App\Models\Role;
 use App\Models\Employee;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -105,18 +109,72 @@ class AuthController extends Controller
     public function forgotPassword(Request $request)
     {
         $request->validate([
-            'npk' => 'required',
-            'password' => 'required|min:3',
-            'confirm_password' => 'required|same:password'
+            'email' => 'required|email',
         ]);
 
-        $user = User::where('npk', $request->npk)->first();
-        if (!$user) return response()->json(['status' => 'error', 'message' => 'NPK tidak terdaftar!']);
+        $user = User::where('email', $request->email)->first();
+        if (!$user) return response()->json(['status' => 'error', 'message' => 'Email tidak terdaftar!']);
+
+        $plainToken = Str::random(64);
+
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $user->email],
+            [
+                'token' => Hash::make($plainToken),
+                'created_at' => now(),
+            ]
+        );
+
+        $resetUrl = route('password.reset', ['token' => $plainToken, 'email' => $user->email]);
+
+        Mail::raw(
+            "Halo {$user->nama},\n\nKlik link berikut untuk reset password SIGITA:\n{$resetUrl}\n\nLink berlaku selama 60 menit.\n\nJika Anda tidak meminta reset password, abaikan email ini.",
+            function ($message) use ($user) {
+                $message->to($user->email)
+                    ->subject('Reset Password SIGITA');
+            }
+        );
+
+        return response()->json(['status' => 'success', 'message' => 'Link reset password sudah dikirim ke email terdaftar.']);
+    }
+
+    public function showResetPassword(Request $request, string $token)
+    {
+        return view('auth.reset-password', [
+            'token' => $token,
+            'email' => $request->query('email'),
+        ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:3|confirmed',
+        ]);
+
+        $reset = DB::table('password_reset_tokens')->where('email', $request->email)->first();
+        if (!$reset || !Hash::check($request->token, $reset->token)) {
+            return redirect()->back()->withInput()->with('error', 'Link reset password tidak valid.');
+        }
+
+        if (Carbon::parse($reset->created_at)->addMinutes(60)->isPast()) {
+            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+            return redirect()->route('login')->with('error', 'Link reset password sudah kedaluwarsa. Silakan minta link baru.');
+        }
+
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Email tidak terdaftar.');
+        }
 
         $user->password = Hash::make($request->password);
         $user->save();
 
-        return response()->json(['status' => 'success', 'message' => 'Password berhasil diperbarui!']);
+        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+        return redirect()->route('login')->with('success', 'Password berhasil diperbarui. Silakan login dengan password baru.');
     }
 
     public function logout(Request $request) {

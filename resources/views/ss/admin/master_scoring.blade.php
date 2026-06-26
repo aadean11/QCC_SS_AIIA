@@ -148,7 +148,7 @@
                 @endforeach
                 <div class="md:col-span-2">
                     <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Keterangan</label>
-                    <textarea name="description" rows="3" class="w-full mt-2 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#091E6E] outline-none text-sm"></textarea>
+                    <textarea name="description" rows="3" maxlength="20" class="w-full mt-2 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#091E6E] outline-none text-sm"></textarea>
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tambahan Nilai</label>
@@ -158,10 +158,7 @@
                     <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tambahan Hadiah (Rp)</label>
                     <input type="number" name="extra_reward_increment" min="0" step="500" class="w-full mt-2 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#091E6E] outline-none font-bold text-[#091E6E] text-sm" placeholder="Contoh: 3500">
                 </div>
-                <label class="md:col-span-2 flex items-center gap-2 text-xs font-bold text-[#091E6E]">
-                    <input type="checkbox" name="is_active" value="1" checked class="rounded border-gray-300">
-                    Aktif
-                </label>
+                <input type="hidden" name="is_active" value="1">
                 <button type="submit" class="md:col-span-2 w-full py-4 bg-[#091E6E] text-white rounded-xl font-bold shadow-lg hover:bg-[#130998] transition-all uppercase tracking-widest text-xs">Simpan Master Scoring</button>
             </form>
         </div>
@@ -188,7 +185,7 @@
                 @endforeach
                 <div class="col-span-1 sm:col-span-2">
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Keterangan</label>
-                    <textarea name="description" id="edit_description" rows="3" class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-[#091E6E] text-xs md:text-sm"></textarea>
+                    <textarea name="description" id="edit_description" rows="3" maxlength="20" class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-[#091E6E] text-xs md:text-sm"></textarea>
                 </div>
                 <div>
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tambahan Nilai</label>

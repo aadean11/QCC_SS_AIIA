@@ -108,7 +108,7 @@
 
                 <div class="mb-6">
                     <label class="block text-gray-700 text-sm font-bold mb-2">Alasan / Komentar Supervisor</label>
-                    <textarea name="supervisor_reason" rows="3" class="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-[#091E6E] bg-gray-50/30 text-sm" placeholder="Alasan keputusan ide...">{{ old('supervisor_reason') }}</textarea>
+                    <textarea name="supervisor_reason" rows="3" maxlength="20" class="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-[#091E6E] bg-gray-50/30 text-sm" placeholder="Alasan keputusan ide...">{{ old('supervisor_reason') }}</textarea>
                     @error('supervisor_reason') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
@@ -134,7 +134,7 @@
 
                 <div class="mb-8">
                     <label class="block text-gray-700 text-sm font-bold mb-2">Catatan SPV (opsional)</label>
-                    <textarea name="spv_notes" rows="4" class="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-[#091E6E] bg-gray-50/30 text-sm" placeholder="Tulis alasan persetujuan atau penolakan..."></textarea>
+                    <textarea name="spv_notes" rows="4" maxlength="20" class="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-[#091E6E] bg-gray-50/30 text-sm" placeholder="Tulis alasan persetujuan atau penolakan..."></textarea>
                     @error('spv_notes') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 

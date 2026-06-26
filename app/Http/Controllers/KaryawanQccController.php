@@ -186,6 +186,15 @@ class KaryawanQccController extends Controller
             'step0_file' => 'required|mimes:pdf|max:10240',
         ]);
 
+        $activePeriodId = QccPeriod::where('status', 'ACTIVE')->value('id') ?? 1;
+        $duplicateCircle = QccCircle::where('department_code', $deptCode)
+            ->where('qcc_period_id', $activePeriodId)
+            ->where('circle_name', $request->circle_name)
+            ->exists();
+        if ($duplicateCircle) {
+            return redirect()->back()->withInput()->with('error', 'Nama circle sudah terdaftar pada departemen dan periode aktif ini.');
+        }
+
         try {
             DB::beginTransaction();
 
@@ -194,7 +203,7 @@ class KaryawanQccController extends Controller
                 'circle_code' => 'C-'.strtoupper(bin2hex(random_bytes(3))),
                 'circle_name' => $request->circle_name,
                 'department_code' => $deptCode,
-                'qcc_period_id' => QccPeriod::where('status', 'ACTIVE')->value('id') ?? 1,
+                'qcc_period_id' => $activePeriodId,
                 'status' => 'WAITING SPV',
                 'step0_file_name' => 'pending',      // placeholder sementara
                 'step0_file_path' => '',              // string kosong (tidak null)
@@ -263,22 +272,30 @@ class KaryawanQccController extends Controller
             return redirect()->back()->with('error', 'Anda bukan leader dari circle ini.');
         }
 
-        // Hanya bisa update jika status masih WAITING SPV atau REJECTED
-        if (!in_array($circle->status, ['WAITING SPV', 'REJECTED'])) {
-            return redirect()->back()->with('error', 'Circle sudah aktif, tidak bisa diubah.');
-        }
-
         $request->validate([
             'circle_name' => 'required|string|max:255',
             'members' => 'required|array|min:1',
         ]);
 
+        $duplicateCircle = QccCircle::where('department_code', $circle->department_code)
+            ->where('qcc_period_id', $circle->qcc_period_id)
+            ->where('circle_name', $request->circle_name)
+            ->where('id', '!=', $circle->id)
+            ->exists();
+        if ($duplicateCircle) {
+            return redirect()->back()->withInput()->with('error', 'Nama circle sudah terdaftar pada departemen dan periode ini.');
+        }
+
         try {
             DB::beginTransaction();
 
-            // Update nama circle
+            // Tentukan status baru: jika REJECTED (BY SPV/KDP), ubah ke WAITING SPV; jika ACTIVE/WAITING SPV, pertahankan
+            $newStatus = str_contains($circle->status, 'REJECTED') ? 'WAITING SPV' : $circle->status;
+
+            // Update nama circle dan status
             $circle->update([
                 'circle_name' => $request->circle_name,
+                'status' => $newStatus,
             ]);
 
             // Hapus semua anggota lama (kecuali leader)
@@ -401,7 +418,9 @@ class KaryawanQccController extends Controller
             'qcc_circle_id' => 'required|exists:m_qcc_circles,id',
             'qcc_period_id' => 'required|exists:m_qcc_periods,id',
             'theme_name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'nullable|string|max:20',
+        ], [
+            'description.max' => 'Deskripsi maksimal 20 karakter.',
         ]);
 
         $circle = QccCircle::findOrFail($request->qcc_circle_id);
@@ -418,15 +437,6 @@ class KaryawanQccController extends Controller
         // Cek apakah circle sudah aktif
         if ($circle->status !== 'ACTIVE') {
             return redirect()->back()->with('error', 'Circle belum di-approve, tidak bisa membuat tema.');
-        }
-
-        // Opsional: cek apakah sudah ada tema aktif untuk periode ini
-        $activeThemeExists = QccTheme::where('qcc_circle_id', $circle->id)
-            ->where('qcc_period_id', $request->qcc_period_id)
-            ->where('status', 'ACTIVE')
-            ->exists();
-        if ($activeThemeExists) {
-            return redirect()->back()->with('error', 'Sudah ada tema aktif untuk periode ini. Nonaktifkan dulu jika ingin membuat baru.');
         }
 
         try {
@@ -482,9 +492,13 @@ class KaryawanQccController extends Controller
 
         $request->validate([
             'theme_name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'nullable|string|max:20',
             'status' => 'nullable|in:ACTIVE,INACTIVE',
+        ], [
+            'description.max' => 'Deskripsi maksimal 20 karakter.',
         ]);
+
+
 
         try {
             $theme->update([
@@ -580,22 +594,25 @@ class KaryawanQccController extends Controller
         if (!$this->checkAccess()) return redirect('/login');
         
         $request->validate([
-            'qcc_step_id' => 'required',
-            'qcc_theme_id' => 'required',
-            'qcc_circle_id' => 'required',
+            'qcc_step_id' => 'required|exists:m_qcc_steps,id',
+            'qcc_theme_id' => 'required|exists:m_qcc_themes,id',
+            'qcc_circle_id' => 'required|exists:m_qcc_circles,id',
             'file' => 'required|mimes:pdf|max:10240'
         ]);
 
         try {
             if ($request->hasFile('file')) {
+                $theme = QccTheme::where('id', $request->qcc_theme_id)
+                    ->where('qcc_circle_id', $request->qcc_circle_id)
+                    ->firstOrFail();
                 $file = $request->file('file');
                 // Ambil NPK dari Auth user yang login (bukan dari employee, tapi langsung dari user)
                 $npk = Auth::user()->npk;
 
-                $folderPath = "qcc/progress/circle_{$request->qcc_circle_id}/theme_{$request->qcc_theme_id}";
+                $folderPath = "qcc/progress/circle_{$request->qcc_circle_id}/theme_{$theme->id}";
                 $oldTrans = QccCircleStepTransaction::where([
                     'qcc_circle_id' => $request->qcc_circle_id,
-                    'qcc_theme_id' => $request->qcc_theme_id,
+                    'qcc_theme_id' => $theme->id,
                     'qcc_step_id' => $request->qcc_step_id
                 ])->first();
 
@@ -608,7 +625,7 @@ class KaryawanQccController extends Controller
                 QccCircleStepTransaction::updateOrCreate(
                     [
                         'qcc_circle_id' => $request->qcc_circle_id,
-                        'qcc_theme_id' => $request->qcc_theme_id,
+                        'qcc_theme_id' => $theme->id,
                         'qcc_step_id' => $request->qcc_step_id
                     ],
                     [

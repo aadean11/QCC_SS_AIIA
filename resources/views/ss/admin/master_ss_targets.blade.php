@@ -137,7 +137,7 @@
                 </div>
                 <div>
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Keterangan (opsional)</label>
-                    <textarea name="description" rows="2" class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border rounded-lg md:rounded-xl text-xs md:text-sm focus:ring-2 focus:ring-[#091E6E] outline-none"></textarea>
+                    <textarea name="description" rows="2" maxlength="20" class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border rounded-lg md:rounded-xl text-xs md:text-sm focus:ring-2 focus:ring-[#091E6E] outline-none"></textarea>
                 </div>
                 <button type="submit" class="w-full py-3 md:py-4 bg-[#091E6E] text-white rounded-xl font-bold shadow-lg hover:bg-[#130998] transition-all uppercase tracking-widest text-[10px] md:text-xs">Simpan Target</button>
             </form>
@@ -164,7 +164,7 @@
                 </div>
                 <div>
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Keterangan</label>
-                    <textarea name="description" id="edit_description" rows="2" class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl text-xs md:text-sm focus:ring-2 focus:ring-amber-500 outline-none"></textarea>
+                    <textarea name="description" id="edit_description" rows="2" maxlength="20" class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl text-xs md:text-sm focus:ring-2 focus:ring-amber-500 outline-none"></textarea>
                 </div>
                 <button type="submit" class="w-full py-3 md:py-4 bg-amber-500 text-white rounded-xl font-bold shadow-lg uppercase tracking-widest text-[10px] md:text-xs hover:bg-amber-600 transition-all">Update Target</button>
             </form>

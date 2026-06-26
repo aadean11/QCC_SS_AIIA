@@ -12,7 +12,7 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 md:mb-8 gap-4">
         <div>
             <h2 class="text-2xl md:text-3xl font-bold text-[#091E6E]">Review Komite SS</h2>
-            <p class="text-xs md:text-sm text-gray-400">SS dengan nilai melebihi batas KDP/Manager</p>
+            <p class="text-xs md:text-sm text-gray-400">Persetujuan akhir komite dan persiapan pemberian reward</p>
         </div>
 
         <form action="{{ route('ss.admin.review.index') }}" method="GET" class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full md:w-auto">
@@ -40,7 +40,7 @@
                         <th class="px-2 md:px-4 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold rounded-tl-2xl text-center w-12">No</th>
                         <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold">Pengaju</th>
                         <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold">Departemen</th>
-                        <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold">Nilai KDP</th>
+                        <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold">Nilai</th>
                         <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold">Tanggal</th>
                         <th class="px-3 md:px-6 py-3 md:py-4 text-center text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold rounded-tr-2xl">Aksi</th>
                     </tr>
@@ -56,7 +56,7 @@
                         </td>
                         <td class="px-3 md:px-6 py-2 md:py-3 border-y border-gray-100 text-xs md:text-sm text-gray-600">{{ $ss->department_code }}</td>
                         <td class="px-3 md:px-6 py-2 md:py-3 border-y border-gray-100">
-                            <span class="bg-orange-50 text-orange-700 px-2 py-1 rounded-full text-xs font-bold">{{ $ss->kdp_score_total ?? $ss->score ?? '-' }}</span>
+                            <span class="bg-orange-50 text-orange-700 px-2 py-1 rounded-full text-xs font-bold">{{ $ss->kdp_score_total ?? $ss->spv_score_total ?? $ss->score ?? '-' }}</span>
                         </td>
                         <td class="px-3 md:px-6 py-2 md:py-3 border-y border-gray-100 text-xs md:text-sm text-gray-600">{{ optional($ss->updated_at)->format('d/m/Y H:i') }}</td>
                         <td class="px-3 md:px-6 py-2 md:py-3 rounded-r-xl border-y border-r border-gray-100 text-center">

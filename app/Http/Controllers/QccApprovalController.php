@@ -85,7 +85,9 @@ class QccApprovalController extends Controller
 
         $request->validate([
             'action' => 'required|in:approve,reject',
-            'note'   => 'nullable|string|max:500'
+            'note'   => 'nullable|string|max:20'
+        ], [
+            'note.max' => 'Catatan maksimal 20 karakter.'
         ]);
 
         $step = QccCircleStepTransaction::findOrFail($id);
@@ -175,7 +177,9 @@ class QccApprovalController extends Controller
 
         $request->validate([
             'action' => 'required|in:approve,reject',
-            'note'   => 'nullable|string|max:500'
+            'note'   => 'nullable|string|max:20'
+        ], [
+            'note.max' => 'Catatan maksimal 20 karakter.'
         ]);
 
         $circle = QccCircle::findOrFail($id);

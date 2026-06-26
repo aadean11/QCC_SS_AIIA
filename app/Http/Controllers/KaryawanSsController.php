@@ -207,8 +207,10 @@ class KaryawanSsController extends Controller
             'implementation_status' => ['required', 'string', Rule::in(array_keys(SsScoringService::implementationStatuses()))],
             */
             'file' => 'required|mimes:pdf|max:5120',
-            'notes' => 'nullable|string|max:500',
+            'notes' => 'nullable|string|max:20',
             'employee_npk' => 'nullable|string',
+        ], [
+            'notes.max' => 'Catatan maksimal 20 karakter.',
         ]);
 
         $ldrScores = null;

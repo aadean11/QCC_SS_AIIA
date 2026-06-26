@@ -150,18 +150,11 @@
                     <form id="formForgot" class="space-y-4">
                         @csrf
                         <div>
-                            <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Username (NPK) <span class="text-red-500">*</span></label>
-                            <input type="text" id="forgot_npk" required class="w-full px-5 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] text-sm">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Email Terdaftar <span class="text-red-500">*</span></label>
+                            <input type="email" id="forgot_email" required class="w-full px-5 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] text-sm">
                         </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Password Baru <span class="text-red-500">*</span></label>
-                            <input type="password" id="new_pass" required class="w-full px-5 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] text-sm">
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Konfirmasi Password <span class="text-red-500">*</span></label>
-                            <input type="password" id="confirm_pass" required class="w-full px-5 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#091E6E] text-sm">
-                        </div>
-                        <button type="submit" class="w-full btn-gradient py-4 text-white rounded-xl font-black shadow-lg uppercase tracking-widest text-xs mt-4">Update Password</button>
+                        <p class="text-[11px] text-gray-400 leading-relaxed px-1">Link untuk membuat password baru akan dikirim ke email yang terhubung dengan akun SIGITA.</p>
+                        <button type="submit" class="w-full btn-gradient py-4 text-white rounded-xl font-black shadow-lg uppercase tracking-widest text-xs mt-4">Kirim Link Reset</button>
                     </form>
                 </div>
             </div>
@@ -177,6 +170,13 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        @if(session('success'))
+            Swal.fire({ icon: 'success', title: 'Berhasil', text: @json(session('success')) });
+        @endif
+        @if(session('error'))
+            Swal.fire({ icon: 'error', title: 'Gagal', text: @json(session('error')) });
+        @endif
+
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
@@ -212,31 +212,21 @@
         // FORGOT PASSWORD
         document.getElementById('formForgot').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const npk = document.getElementById('forgot_npk').value;
-            const pass = document.getElementById('new_pass').value;
-            const confirm = document.getElementById('confirm_pass').value;
+            const email = document.getElementById('forgot_email').value;
 
-            if (npk.trim() === '') {
-                Swal.fire({ icon: 'error', title: 'Gagal', text: 'NPK tidak boleh kosong.' });
-                return;
-            }
-            if (pass.length < 3) {
-                Swal.fire({ icon: 'error', title: 'Gagal', text: 'Password baru minimal 3 karakter.' });
-                return;
-            }
-            if (pass !== confirm) {
-                Swal.fire({ icon: 'error', title: 'Gagal', text: 'Konfirmasi password tidak cocok.' });
+            if (email.trim() === '') {
+                Swal.fire({ icon: 'error', title: 'Gagal', text: 'Email tidak boleh kosong.' });
                 return;
             }
 
             const result = await Swal.fire({
-                title: 'Konfirmasi Reset Password',
-                text: `Apakah Anda yakin ingin mereset password untuk NPK ${npk}?`,
+                title: 'Kirim Link Reset?',
+                text: `Link reset password akan dikirim ke ${email}.`,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#091E6E',
                 cancelButtonColor: '#d33',
-                confirmButtonText: 'Ya, Reset!',
+                confirmButtonText: 'Ya, Kirim!',
                 cancelButtonText: 'Batal'
             });
 
@@ -246,7 +236,7 @@
                 const response = await fetch("{{ route('password.forgot') }}", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                    body: JSON.stringify({ npk: npk, password: pass, confirm_password: confirm })
+                    body: JSON.stringify({ email: email })
                 });
                 const data = await response.json();
                 if (data.status === 'success') {

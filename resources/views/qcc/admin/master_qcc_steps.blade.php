@@ -179,7 +179,7 @@
                 </div>
                 <div>
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Deskripsi</label>
-                    <textarea name="description" rows="3" class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-[#091E6E] outline-none font-medium text-xs md:text-sm"></textarea>
+                    <textarea name="description" rows="3" maxlength="20" class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-[#091E6E] outline-none font-medium text-xs md:text-sm"></textarea>
                 </div>
                 <div>
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Upload Template (PPT/Excel)</label>
@@ -214,7 +214,7 @@
                 </div>
                 <div>
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Deskripsi</label>
-                    <textarea name="description" id="edit_desc" rows="3" class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-xs md:text-sm"></textarea>
+                    <textarea name="description" id="edit_desc" rows="3" maxlength="20" class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-xs md:text-sm"></textarea>
                 </div>
                 <div class="border-t pt-3 md:pt-4">
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Ganti Template File</label>
@@ -287,6 +287,7 @@
         document.getElementById('edit_number').value = step.step_number;
         document.getElementById('edit_name').value = step.step_name;
         document.getElementById('edit_desc').value = step.description;
+        document.getElementById('edit_desc').dispatchEvent(new Event('textarea-counter:update'));
         
         const fileInfo = document.getElementById('current_file_info');
         if(step.template_file_name) {

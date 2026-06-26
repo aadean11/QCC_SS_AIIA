@@ -121,9 +121,12 @@ class SsApprovalController extends Controller
             'action' => 'required|in:approved,rejected',
             'supervisor_decision' => ['required', 'string', Rule::in(array_keys(SsScoringService::supervisorDecisions()))],
             'standard_review' => ['nullable', 'string', Rule::in(array_keys(SsScoringService::standardReviews()))],
-            'spv_notes' => 'nullable|string|max:500',
-            'supervisor_reason' => 'nullable|string|max:1000',
-        ], SsScoringService::scoreValidationRules()));
+            'spv_notes' => 'nullable|string|max:20',
+            'supervisor_reason' => 'nullable|string|max:20',
+        ], SsScoringService::scoreValidationRules()), [
+            'spv_notes.max' => 'Catatan maksimal 20 karakter.',
+            'supervisor_reason.max' => 'Alasan maksimal 20 karakter.',
+        ]);
 
         $submission = $this->findSubmissionForReview($employee, (int) $id, 'spv_review');
         $scores = $request->action === 'approved'
@@ -225,13 +228,15 @@ class SsApprovalController extends Controller
         $requiresScoring = SsScoringRange::needsKdpScoringAfterSpv($submission->spv_score_total);
         $rules = [
             'action' => 'required|in:approved,rejected',
-            'kdp_notes' => 'nullable|string|max:500',
+            'kdp_notes' => 'nullable|string|max:20',
         ];
         if ($requiresScoring) {
             $rules = array_merge($rules, SsScoringService::scoreValidationRules());
         }
 
-        $request->validate($rules);
+        $request->validate($rules, [
+            'kdp_notes.max' => 'Catatan maksimal 20 karakter.',
+        ]);
         $scores = $request->action === 'approved'
             ? ($requiresScoring ? SsScoringService::normalizeScores($request->input('scores', [])) : ($submission->spv_scores ?? []))
             : null;
@@ -247,25 +252,16 @@ class SsApprovalController extends Controller
         $submission->score = $total;
 
         if ($request->action === 'approved') {
-            if ($requiresScoring && SsScoringRange::needsAdminScoringAfterKdp($total)) {
-                $submission->status = 'admin_review';
-                $submission->final_score = null;
-                $submission->final_approved_at = null;
-                $submission->calculated_reward_amount = null;
-                $submission->reward_amount = null;
-                $submission->paid_at = null;
-            } else {
-                $rewardAmount = SsScoringRange::rewardForScore($total);
-
-                $submission->status = 'approved';
-                $submission->final_score = $total;
-                $submission->final_approved_at = now();
-                $submission->calculated_reward_amount = $rewardAmount;
-                $submission->reward_amount = null;
-                $submission->paid_at = null;
-            }
+            $submission->status = 'admin_review';
+            $submission->final_score = null;
+            $submission->final_approved_at = null;
+            $submission->calculated_reward_amount = null;
+            $submission->reward_amount = null;
+            $submission->paid_at = null;
         } else {
             $submission->status = 'rejected';
+            $submission->final_score = null;
+            $submission->final_approved_at = null;
             $submission->calculated_reward_amount = null;
             $submission->reward_amount = null;
             $submission->paid_at = null;
@@ -273,6 +269,11 @@ class SsApprovalController extends Controller
 
         $submission->save();
 
-        return redirect()->route('ss.approval.kdp')->with('success', 'Review KDP berhasil disimpan.');
+        $message = match ($submission->status) {
+            'admin_review' => 'Review KDP berhasil disimpan. SS diteruskan ke komite untuk persetujuan dan pemberian reward.',
+            default => 'Review KDP berhasil disimpan. SS ditolak.',
+        };
+
+        return redirect()->route('ss.approval.kdp')->with('success', $message);
     }
 }

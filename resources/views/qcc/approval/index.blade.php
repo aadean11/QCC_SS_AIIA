@@ -145,6 +145,15 @@
                 {{ $pendingThemes->links('pagination::tailwind') }}
             </div>
         </div>
+
+        <!-- Legend Info -->
+        <div class="flex flex-wrap gap-2 md:gap-4 justify-center mt-6 md:mt-8 bg-white/50 p-3 md:p-4 rounded-xl md:rounded-2xl border border-white">
+            <div class="flex items-center gap-1 md:gap-2 text-[7px] md:text-[9px] font-bold text-gray-500 uppercase"><span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-gray-100 border"></span> Belum Upload</div>
+            <div class="flex items-center gap-1 md:gap-2 text-[7px] md:text-[9px] font-bold text-gray-500 uppercase"><span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-yellow-400"></span> Menunggu SPV</div>
+            <div class="flex items-center gap-1 md:gap-2 text-[7px] md:text-[9px] font-bold text-gray-500 uppercase"><span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-blue-500"></span> Menunggu KDP</div>
+            <div class="flex items-center gap-1 md:gap-2 text-[7px] md:text-[9px] font-bold text-gray-500 uppercase"><span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-emerald-500"></span> Approved</div>
+            <div class="flex items-center gap-1 md:gap-2 text-[7px] md:text-[9px] font-bold text-gray-500 uppercase"><span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-red-500"></span> Rejected</div>
+        </div>
     </div>
 </div>
 
@@ -170,7 +179,7 @@
                 <!-- Input Note (Hanya muncul jika REJECT) -->
                 <div id="noteArea" class="hidden animate-reveal">
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Alasan Penolakan (Wajib) <span class="text-red-500">*</span></label>
-                    <textarea name="note" id="rejectionNote" rows="3" placeholder="Sebutkan alasan atau poin yang perlu diperbaiki..." 
+                    <textarea name="note" id="rejectionNote" rows="3" maxlength="20" placeholder="Sebutkan alasan atau poin yang perlu diperbaiki..." 
                         class="w-full mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-red-500 outline-none font-medium text-xs md:text-sm transition-all"></textarea>
                 </div>
 

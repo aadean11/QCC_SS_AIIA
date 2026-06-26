@@ -166,11 +166,11 @@
                 </div>
                 <div>
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Deskripsi</label>
-                    <textarea name="description" rows="3" placeholder="Jelaskan kegunaan tool ini..." class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-[#091E6E] outline-none font-medium text-xs md:text-sm"></textarea>
+                    <textarea name="description" rows="3" maxlength="20" placeholder="Jelaskan kegunaan tool ini..." class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-[#091E6E] outline-none font-medium text-xs md:text-sm"></textarea>
                 </div>
                 <div>
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Template File (PPT/Excel/PDF)</label>
-                    <input type="file" name="template_file" class="w-full mt-1 md:mt-2 text-[9px] md:text-xs text-gray-400 file:mr-3 md:file:mr-4 file:py-1.5 md:file:py-2 file:px-3 md:file:px-4 file:rounded-full file:border-0 file:text-[9px] md:file:text-xs file:font-bold file:bg-blue-50 file:text-[#091E6E] hover:file:bg-blue-100">
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Template File (PPT/Excel, max 10 MB)</label>
+                    <input type="file" name="template_file" accept=".ppt,.pptx,.xls,.xlsx" class="seven-tool-file w-full mt-1 md:mt-2 text-[9px] md:text-xs text-gray-400 file:mr-3 md:file:mr-4 file:py-1.5 md:file:py-2 file:px-3 md:file:px-4 file:rounded-full file:border-0 file:text-[9px] md:file:text-xs file:font-bold file:bg-blue-50 file:text-[#091E6E] hover:file:bg-blue-100">
                 </div>
                 <button type="submit" class="w-full py-3 md:py-4 bg-[#091E6E] text-white rounded-xl font-bold shadow-lg hover:bg-[#130998] transition-all uppercase tracking-widest text-[10px] md:text-xs">Simpan Tool</button>
             </form>
@@ -194,11 +194,11 @@
                 </div>
                 <div>
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Deskripsi</label>
-                    <textarea name="description" id="edit_desc" rows="3" class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-xs md:text-sm"></textarea>
+                    <textarea name="description" id="edit_desc" rows="3" maxlength="20" class="w-full mt-1 md:mt-2 px-3 md:px-4 py-2 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-xs md:text-sm"></textarea>
                 </div>
                 <div class="border-t pt-3 md:pt-4">
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Ganti Template File</label>
-                    <input type="file" name="template_file" class="w-full mt-1 md:mt-2 text-[9px] md:text-xs text-gray-400 file:mr-3 md:file:mr-4 file:py-1.5 md:file:py-2 file:px-3 md:file:px-4 file:rounded-full file:border-0 file:text-[9px] md:file:text-xs file:font-bold file:bg-amber-50 file:text-amber-600 hover:file:bg-amber-100">
+                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Ganti Template File (PPT/Excel, max 10 MB)</label>
+                    <input type="file" name="template_file" accept=".ppt,.pptx,.xls,.xlsx" class="seven-tool-file w-full mt-1 md:mt-2 text-[9px] md:text-xs text-gray-400 file:mr-3 md:file:mr-4 file:py-1.5 md:file:py-2 file:px-3 md:file:px-4 file:rounded-full file:border-0 file:text-[9px] md:file:text-xs file:font-bold file:bg-amber-50 file:text-amber-600 hover:file:bg-amber-100">
                     <div id="current_file_info" class="mt-2 md:mt-3 hidden">
                         <p class="text-[8px] md:text-[10px] text-emerald-600 font-bold flex items-center gap-1 italic">
                             <i class="fa-solid fa-paperclip"></i> File Aktif: <span id="txt_file_name"></span>
@@ -285,6 +285,37 @@
     }
 
     // === SWEETALERT HANDLING ===
+    document.querySelectorAll('.seven-tool-file').forEach((input) => {
+        input.addEventListener('change', function() {
+            const file = this.files[0];
+            if (!file) return;
+
+            const allowedExtensions = ['ppt', 'pptx', 'xls', 'xlsx'];
+            const extension = file.name.split('.').pop().toLowerCase();
+            const maxSize = 10 * 1024 * 1024;
+
+            if (!allowedExtensions.includes(extension)) {
+                this.value = '';
+                Swal.fire({
+                    icon: 'error',
+                    title: 'File Tidak Valid!',
+                    text: 'Template file harus berupa Excel atau PowerPoint.',
+                    confirmButtonColor: '#091E6E'
+                });
+                return;
+            }
+
+            if (file.size > maxSize) {
+                this.value = '';
+                Swal.fire({
+                    icon: 'error',
+                    title: 'File Terlalu Besar!',
+                    text: 'Ukuran template file maksimal 10 MB.',
+                    confirmButtonColor: '#091E6E'
+                });
+            }
+        });
+    });
 
     // 1. Success Message
     @if(Session::has('success')) 

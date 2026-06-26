@@ -69,8 +69,8 @@
                 <thead>
                     <tr class="sidebar-gradient shadow-md">
                         <th class="px-2 md:px-4 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-widest font-bold rounded-tl-2xl text-center w-12">No</th>
-                        <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold w-1/4">Periode</th>
                         <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold">Judul Tema Perbaikan</th>
+                        <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold text-center w-40">Periode</th>
                         <th class="px-3 md:px-6 py-3 md:py-4 text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold text-center w-32">Status</th>
                         <th class="px-3 md:px-6 py-3 md:py-4 text-center text-white text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold rounded-tr-2xl w-48">Opsi</th>
                     </tr>
@@ -81,14 +81,14 @@
                         <td class="px-2 md:px-4 py-2 md:py-4 rounded-l-xl border-y border-l text-center font-bold text-gray-500 text-xs md:text-sm">
                             {{ ($themes->currentPage() - 1) * $themes->perPage() + $loop->iteration }}
                         </td>
+                        
+                        <td class="px-3 md:px-6 py-2 md:py-4 border-y">
+                            <p class="font-bold text-[#091E6E] group-hover:text-[#1035D1] transition-colors leading-tight text-xs md:text-sm">{{ $theme->theme_name }}</p>
+                        </td>
 
                         <td class="px-3 md:px-6 py-2 md:py-4 border-y">
                             <span class="font-bold text-[#091E6E] text-[10px] md:text-xs uppercase">{{ $theme->period->period_name }}</span>
                             <p class="text-[8px] md:text-[9px] text-gray-400 font-bold">Tahun: {{ $theme->period->year }}</p>
-                        </td>
-                        
-                        <td class="px-3 md:px-6 py-2 md:py-4 border-y">
-                            <p class="font-bold text-[#091E6E] group-hover:text-[#1035D1] transition-colors leading-tight text-xs md:text-sm">{{ $theme->theme_name }}</p>
                         </td>
                         
                         <td class="px-3 md:px-6 py-2 md:py-4 border-y text-center">

@@ -142,6 +142,15 @@
         <div class="mt-4 md:mt-6">
             {{ $circles->links('pagination::tailwind') }}
         </div>
+
+        <!-- Legend Info -->
+        <div class="flex flex-wrap gap-2 md:gap-4 justify-center mt-6 md:mt-8 bg-white/50 p-3 md:p-4 rounded-xl md:rounded-2xl border border-white">
+            <div class="flex items-center gap-1 md:gap-2 text-[7px] md:text-[9px] font-bold text-gray-500 uppercase"><span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-gray-100 border"></span> Belum Upload</div>
+            <div class="flex items-center gap-1 md:gap-2 text-[7px] md:text-[9px] font-bold text-gray-500 uppercase"><span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-yellow-400"></span> Menunggu SPV</div>
+            <div class="flex items-center gap-1 md:gap-2 text-[7px] md:text-[9px] font-bold text-gray-500 uppercase"><span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-blue-500"></span> Menunggu KDP</div>
+            <div class="flex items-center gap-1 md:gap-2 text-[7px] md:text-[9px] font-bold text-gray-500 uppercase"><span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-emerald-500"></span> Approved</div>
+            <div class="flex items-center gap-1 md:gap-2 text-[7px] md:text-[9px] font-bold text-gray-500 uppercase"><span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-red-500"></span> Rejected</div>
+        </div>
     </div>
 </div>
 @endsection

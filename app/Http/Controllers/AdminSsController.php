@@ -266,7 +266,9 @@ class AdminSsController extends Controller
             'month' => 'required|integer|min:1|max:12',
             'department_code' => ['required', Rule::exists('m_departments', 'code')],
             'target_amount' => 'required|integer|min:1',
-            'description' => 'nullable|string|max:500',
+            'description' => 'nullable|string|max:20',
+        ], [
+            'description.max' => 'Deskripsi maksimal 20 karakter.',
         ]);
 
         $exists = SsTarget::where('year', $request->year)
@@ -292,11 +294,36 @@ class AdminSsController extends Controller
         $target = SsTarget::findOrFail($id);
 
         $request->validate([
+            'year' => 'sometimes|required|integer|min:2000|max:2100',
+            'month' => 'sometimes|required|integer|min:1|max:12',
+            'department_code' => ['sometimes', 'required', Rule::exists('m_departments', 'code')],
             'target_amount' => 'required|integer|min:1',
-            'description' => 'nullable|string|max:500',
+            'description' => 'nullable|string|max:20',
+        ], [
+            'description.max' => 'Deskripsi maksimal 20 karakter.',
         ]);
 
-        $target->update($request->only(['target_amount', 'description']));
+        $payload = $request->only(['target_amount', 'description']);
+        if ($request->has('year')) {
+            $payload['year'] = $request->year;
+        }
+        if ($request->has('month')) {
+            $payload['month'] = $request->month;
+        }
+        if ($request->has('department_code')) {
+            $payload['department_code'] = $request->department_code;
+        }
+
+        $exists = SsTarget::where('year', $payload['year'] ?? $target->year)
+            ->where('month', $payload['month'] ?? $target->month)
+            ->where('department_code', $payload['department_code'] ?? $target->department_code)
+            ->where('id', '!=', $target->id)
+            ->exists();
+        if ($exists) {
+            return redirect()->back()->withInput()->with('error', 'Target untuk departemen pada bulan tersebut sudah ada!');
+        }
+
+        $target->update($payload);
 
         return redirect()->route('ss.admin.master_targets')->with('success', 'Target SS berhasil diperbarui!');
     }
@@ -495,8 +522,22 @@ class AdminSsController extends Controller
             ->findOrFail($id);
         $criteria = SsScoringService::criteria();
         $criteriaMaxScores = SsScoringService::criteriaMaxScores();
+        $effectiveScore = SsScoringRange::effectiveReviewScore(
+            $submission->kdp_score_total,
+            $submission->spv_score_total
+        );
+        $requiresScoring = SsScoringRange::needsAdminScoringAfterKdp($effectiveScore);
+        $referenceReward = SsScoringRange::rewardForScore($effectiveScore);
 
-        return view('ss.admin.review_form', compact('user', 'submission', 'criteria', 'criteriaMaxScores'));
+        return view('ss.admin.review_form', compact(
+            'user',
+            'submission',
+            'criteria',
+            'criteriaMaxScores',
+            'requiresScoring',
+            'effectiveScore',
+            'referenceReward'
+        ));
     }
 
     public function adminReviewStore(Request $request, $id)
@@ -504,44 +545,50 @@ class AdminSsController extends Controller
         if (!$this->checkAdmin()) abort(403);
         $user = $this->getUser();
 
-        $request->validate(array_merge([
-            'action' => 'required|in:approved,rejected',
-            'admin_notes' => 'nullable|string|max:500',
-        ], SsScoringService::scoreValidationRules()));
-
         $submission = SsSubmission::where('status', 'admin_review')->findOrFail($id);
-        $scores = $request->action === 'approved'
+        $effectiveScore = SsScoringRange::effectiveReviewScore(
+            $submission->kdp_score_total,
+            $submission->spv_score_total
+        );
+        $requiresScoring = SsScoringRange::needsAdminScoringAfterKdp($effectiveScore);
+
+        $rules = [
+            'admin_notes' => 'nullable|string|max:20',
+        ];
+        if ($requiresScoring) {
+            $rules = array_merge($rules, SsScoringService::scoreValidationRules());
+        }
+
+        $request->validate($rules, [
+            'admin_notes.max' => 'Catatan maksimal 20 karakter.',
+        ]);
+
+        $previousScores = $submission->kdp_scores ?? $submission->spv_scores ?? [];
+        $scores = $requiresScoring
             ? SsScoringService::normalizeScores($request->input('scores', []))
-            : null;
-        $total = $scores ? SsScoringService::total($scores) : null;
+            : $previousScores;
+        $total = $scores ? SsScoringService::total($scores) : $effectiveScore;
 
         $submission->admin_notes = $request->admin_notes;
-        $submission->admin_status = $request->action;
+        $submission->admin_status = 'approved';
         $submission->admin_approved_at = now();
         $submission->admin_npk = $user?->npk;
-        $submission->admin_scores = $scores;
-        $submission->admin_score_total = $total;
+        $submission->admin_scores = $requiresScoring ? $scores : null;
+        $submission->admin_score_total = $requiresScoring ? $total : null;
         $submission->score = $total;
-
-        if ($request->action === 'approved') {
-            $submission->status = 'approved';
-            $submission->final_score = $total;
-            $submission->final_approved_at = now();
-            $submission->calculated_reward_amount = SsScoringRange::rewardForScore($total);
-            $submission->reward_amount = null;
-            $submission->paid_at = null;
-        } else {
-            $submission->status = 'rejected';
-            $submission->final_score = null;
-            $submission->final_approved_at = null;
-            $submission->calculated_reward_amount = null;
-            $submission->reward_amount = null;
-            $submission->paid_at = null;
-        }
+        $submission->status = 'approved';
+        $submission->final_score = $total;
+        $submission->final_approved_at = now();
+        $submission->calculated_reward_amount = SsScoringRange::rewardForScore($total);
+        $submission->reward_amount = null;
+        $submission->paid_at = null;
 
         $submission->save();
 
-        return redirect()->route('ss.admin.review.index')->with('success', 'Review admin/komite berhasil disimpan.');
+        return redirect()->route('ss.admin.review.index')->with(
+            'success',
+            'Review komite berhasil disimpan. Silakan berikan reward melalui menu Hasil & Reward.'
+        );
     }
 
     public function rewardStore(Request $request, $id)
@@ -596,6 +643,9 @@ class AdminSsController extends Controller
         if (!$this->checkAdmin()) abort(403);
 
         $data = $this->validateScoringRange($request);
+        if ($this->hasDuplicateScoringRange($data)) {
+            return redirect()->back()->withInput()->with('error', 'Master scoring dengan range, ranking, dan level approval tersebut sudah ada.');
+        }
         if ($this->hasOverlappingActiveRange($data)) {
             return redirect()->back()->withInput()->with('error', 'Range total nilai aktif tidak boleh tumpang tindih.');
         }
@@ -611,6 +661,9 @@ class AdminSsController extends Controller
 
         $range = SsScoringRange::findOrFail($id);
         $data = $this->validateScoringRange($request);
+        if ($this->hasDuplicateScoringRange($data, (int) $id)) {
+            return redirect()->back()->withInput()->with('error', 'Master scoring dengan range, ranking, dan level approval tersebut sudah ada.');
+        }
         if ($this->hasOverlappingActiveRange($data, (int) $id)) {
             return redirect()->back()->withInput()->with('error', 'Range total nilai aktif tidak boleh tumpang tindih.');
         }
@@ -641,10 +694,12 @@ class AdminSsController extends Controller
             'ranking' => 'required|integer|min:1|max:255',
             'reward_amount' => 'required|numeric|min:0',
             'approver_level' => 'nullable|string|max:100',
-            'description' => 'nullable|string|max:1000',
+            'description' => 'nullable|string|max:20',
             'extra_score_increment' => 'nullable|integer|min:1',
             'extra_reward_increment' => 'nullable|numeric|min:0',
             'is_active' => 'nullable|boolean',
+        ], [
+            'description.max' => 'Deskripsi maksimal 20 karakter.',
         ]);
 
         $data['is_active'] = $request->boolean('is_active');
@@ -662,6 +717,16 @@ class AdminSsController extends Controller
             ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
             ->where('min_score', '<=', $data['max_score'])
             ->where('max_score', '>=', $data['min_score'])
+            ->exists();
+    }
+
+    private function hasDuplicateScoringRange(array $data, ?int $ignoreId = null): bool
+    {
+        return SsScoringRange::where('min_score', $data['min_score'])
+            ->where('max_score', $data['max_score'])
+            ->where('ranking', $data['ranking'])
+            ->where('approver_level', $data['approver_level'])
+            ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
             ->exists();
     }
 }

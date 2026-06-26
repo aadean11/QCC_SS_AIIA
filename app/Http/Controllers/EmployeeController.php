@@ -87,8 +87,8 @@ class EmployeeController extends Controller
             'sub_section' => ['required', 'string', Rule::exists('m_sub_sections', 'code')],
             'occupation' => ['required', 'string', Rule::exists('m_occupations', 'code')],
             'transport' => ['required', 'string', 'max:255'],
-            'status_emp' => ['required', 'string', 'max:255'],
-            'employment_status' => ['required', 'string', 'max:255'],
+            'status_emp' => ['required', 'string', Rule::in(['1', '2', 'ACTIVE', 'INACTIVE'])],
+            'employment_status' => ['required', 'string', Rule::in(['1', '2', 'ACTIVE', 'INACTIVE'])],
         ];
     }
 
@@ -114,6 +114,9 @@ class EmployeeController extends Controller
 
     private function employeePayload(array $validated, bool $withDefaults = false): array
     {
+        $validated['status_emp'] = $this->normalizeStatusValue($validated['status_emp']);
+        $validated['employment_status'] = $this->normalizeStatusValue($validated['employment_status']);
+
         if (!$withDefaults) {
             return $validated;
         }
@@ -124,5 +127,14 @@ class EmployeeController extends Controller
         }
 
         return $validated;
+    }
+
+    private function normalizeStatusValue(string $value): string
+    {
+        return match (strtoupper($value)) {
+            'ACTIVE', '1' => '1',
+            'INACTIVE', '2' => '2',
+            default => $value,
+        };
     }
 }

@@ -334,8 +334,13 @@ class AdminQccController extends Controller
     {
         $request->validate([
             'step_number' => 'required|numeric|unique:m_qcc_steps,step_number',
-            'step_name' => 'required',
+            'step_name' => 'required|string|max:255|unique:m_qcc_steps,step_name',
+            'description' => 'nullable|string|max:20',
             'template_file' => 'nullable|mimes:ppt,pptx,xls,xlsx,pdf|max:10240',
+        ], [
+            'step_number.unique' => 'Nomor step sudah terdaftar.',
+            'step_name.unique' => 'Nama step sudah terdaftar.',
+            'description.max' => 'Deskripsi maksimal 20 karakter.',
         ]);
 
         $data = $request->only(['step_number', 'step_name', 'description']);
@@ -356,8 +361,17 @@ class AdminQccController extends Controller
     {
         $step = QccStep::findOrFail($id);
         $request->validate([
-            'step_name' => 'required',
+            'step_name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('m_qcc_steps', 'step_name')->ignore($step->id),
+            ],
+            'description' => 'nullable|string|max:20',
             'template_file' => 'nullable|mimes:ppt,pptx,xls,xlsx,pdf|max:10240',
+        ], [
+            'step_name.unique' => 'Nama step sudah terdaftar.',
+            'description.max' => 'Deskripsi maksimal 20 karakter.',
         ]);
 
         $data = $request->only(['step_name', 'description']);
@@ -431,7 +445,16 @@ class AdminQccController extends Controller
             'year' => 'required|digits:4',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
+        ], [
+            'period_code.unique' => 'Kode periode sudah terdaftar.',
         ]);
+
+        $duplicateName = QccPeriod::where('period_name', $request->period_name)
+            ->where('year', $request->year)
+            ->exists();
+        if ($duplicateName) {
+            return redirect()->back()->withInput()->with('error', 'Nama periode untuk tahun tersebut sudah terdaftar.');
+        }
 
         $newPeriod = DB::transaction(function () use ($request) {
             $data = $request->all();
@@ -474,12 +497,25 @@ class AdminQccController extends Controller
         }
 
         $request->validate([
-            'period_code' => 'required|unique:m_qcc_periods,period_code,'.$id,
+            'period_code' => [
+                'required',
+                Rule::unique('m_qcc_periods', 'period_code')->ignore($period->id),
+            ],
             'period_name' => 'required',
             'year' => 'required|digits:4',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
+        ], [
+            'period_code.unique' => 'Kode periode sudah terdaftar.',
         ]);
+
+        $duplicateName = QccPeriod::where('period_name', $request->period_name)
+            ->where('year', $request->year)
+            ->where('id', '!=', $period->id)
+            ->exists();
+        if ($duplicateName) {
+            return redirect()->back()->withInput()->with('error', 'Nama periode untuk tahun tersebut sudah terdaftar.');
+        }
 
         $period->update($request->only(['period_code', 'period_name', 'year', 'start_date', 'end_date', 'status']));
 
@@ -558,6 +594,9 @@ class AdminQccController extends Controller
             'qcc_period_id' => ['required', Rule::exists('m_qcc_periods', 'id')],
             'department_code' => ['required', Rule::exists('m_departments', 'code')],
             'target_amount' => 'required|numeric|min:1',
+            'description' => 'nullable|string|max:20',
+        ], [
+            'description.max' => 'Deskripsi maksimal 20 karakter.',
         ]);
 
         $exists = QccTarget::where('qcc_period_id', $request->qcc_period_id)
@@ -575,7 +614,24 @@ class AdminQccController extends Controller
     public function updateTarget(Request $request, $id)
     {
         $target = QccTarget::findOrFail($id);
-        $target->update($request->all());
+        $request->validate([
+            'qcc_period_id' => ['required', Rule::exists('m_qcc_periods', 'id')],
+            'department_code' => ['required', Rule::exists('m_departments', 'code')],
+            'target_amount' => 'required|numeric|min:1',
+            'description' => 'nullable|string|max:20',
+        ], [
+            'description.max' => 'Deskripsi maksimal 20 karakter.',
+        ]);
+
+        $exists = QccTarget::where('qcc_period_id', $request->qcc_period_id)
+            ->where('department_code', $request->department_code)
+            ->where('id', '!=', $target->id)
+            ->exists();
+        if ($exists) {
+            return redirect()->back()->withInput()->with('error', 'Target untuk Departemen ini di periode tersebut sudah ada!');
+        }
+
+        $target->update($request->only(['qcc_period_id', 'department_code', 'target_amount', 'description']));
         return redirect()->back()->with('success', 'Target berhasil diperbarui!');
     }
 
@@ -770,8 +826,14 @@ class AdminQccController extends Controller
     public function storeSevenTool(Request $request)
     {
         $request->validate([
-            'tool_name' => 'required|string|max:255',
-            'template_file' => 'nullable|mimes:ppt,pptx,xls,xlsx,pdf|max:10240',
+            'tool_name' => 'required|string|max:255|unique:m_qcc_seven_tools,tool_name',
+            'description' => 'nullable|string|max:20',
+            'template_file' => 'nullable|mimes:ppt,pptx,xls,xlsx|max:10240',
+        ], [
+            'tool_name.unique' => 'Nama seven tool sudah terdaftar.',
+            'description.max' => 'Deskripsi maksimal 20 karakter.',
+            'template_file.mimes' => 'Template file harus berupa Excel atau PowerPoint.',
+            'template_file.max' => 'Ukuran template file maksimal 10 MB.',
         ]);
 
         $data = $request->only(['tool_name', 'description']);
@@ -792,8 +854,19 @@ class AdminQccController extends Controller
     {
         $tool = QccSevenTool::findOrFail($id);
         $request->validate([
-            'tool_name' => 'required',
-            'template_file' => 'nullable|mimes:ppt,pptx,xls,xlsx,pdf|max:10240',
+            'tool_name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('m_qcc_seven_tools', 'tool_name')->ignore($tool->id),
+            ],
+            'description' => 'nullable|string|max:20',
+            'template_file' => 'nullable|mimes:ppt,pptx,xls,xlsx|max:10240',
+        ], [
+            'tool_name.unique' => 'Nama seven tool sudah terdaftar.',
+            'description.max' => 'Deskripsi maksimal 20 karakter.',
+            'template_file.mimes' => 'Template file harus berupa Excel atau PowerPoint.',
+            'template_file.max' => 'Ukuran template file maksimal 10 MB.',
         ]);
 
         $data = $request->only(['tool_name', 'description']);

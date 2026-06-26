@@ -25,6 +25,8 @@ Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.forgot');
+Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 
 // Halaman Welcome (Hanya untuk user yang login)
 Route::middleware(['auth'])->group(function () {

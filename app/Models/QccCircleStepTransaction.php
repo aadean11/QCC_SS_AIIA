@@ -17,6 +17,7 @@ class QccCircleStepTransaction extends Model
         'file_type', 
         'upload_by', 
         'status',
+        'upload_at',
         'spv_note',
         'kdp_note'
     ];
