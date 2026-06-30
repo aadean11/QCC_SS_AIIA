@@ -5,23 +5,24 @@
 @section('content')
 @php
     $dateFrom = request('date_from');
-    $dateTo = request('date_to');
-
-    if (!$dateFrom && !$dateTo && request()->filled('month') && request()->filled('year')) {
-        $dateFrom = sprintf('%04d-%02d-01', (int) request('year'), (int) request('month'));
-        $dateTo = \Carbon\Carbon::parse($dateFrom)->endOfMonth()->toDateString();
-    }
-
-    // Derive month-year values for the pickers
-    $monthFrom = $dateFrom ? \Carbon\Carbon::parse($dateFrom)->format('Y-m') : '';
-    $monthTo   = $dateTo   ? \Carbon\Carbon::parse($dateTo)->format('Y-m')   : '';
+    $dateTo   = request('date_to');
 
     $periodDisplay = ($dateFrom && $dateTo)
         ? \Carbon\Carbon::parse($dateFrom)->format('d/m/Y') . ' — ' . \Carbon\Carbon::parse($dateTo)->format('d/m/Y')
-        : '';
-    $minYear = min($years);
-    $maxYear = max($years);
+        : ($dateFrom ? 'Dari ' . \Carbon\Carbon::parse($dateFrom)->format('d/m/Y') : ($dateTo ? 'Sampai ' . \Carbon\Carbon::parse($dateTo)->format('d/m/Y') : ''));
+
     $hasDateFilter = filled($dateFrom) || filled($dateTo);
+
+    // Label kolom tanggal sesuai status yang dipilih
+    $selectedStatus = request('status');
+    $dateColumnLabel = match($selectedStatus) {
+        'approved'     => 'Tanggal Approved',
+        'rewarded'     => 'Tanggal Reward Dibayar',
+        'admin_review' => 'Tanggal Admin Review',
+        'kdp_review'   => 'Tanggal KDP Review',
+        'spv_review'   => 'Tanggal SPV Review',
+        default        => 'Tanggal Pengajuan',
+    };
 @endphp
 
 <div class="animate-reveal">
@@ -40,7 +41,7 @@
     <div class="glass-card rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-5 shadow-sm border border-white mb-6 md:mb-8">
         <form method="GET" id="filterForm" class="space-y-4">
             <input type="hidden" name="date_from" id="filterDateFrom" value="{{ $dateFrom }}">
-            <input type="hidden" name="date_to" id="filterDateTo" value="{{ $dateTo }}">
+            <input type="hidden" name="date_to"   id="filterDateTo"   value="{{ $dateTo }}">
 
             <!-- Top row: search + actions -->
             <div class="flex flex-col lg:flex-row lg:items-center gap-3">
@@ -90,16 +91,16 @@
                     <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-1">Status</label>
                     <div class="flex items-center gap-2 bg-white px-3 h-11 rounded-2xl border border-gray-200 shadow-sm">
                         <i class="fa-solid fa-filter text-[10px] text-gray-400 shrink-0"></i>
-                        <select name="status" onchange="this.form.submit()"
+                        <select name="status" id="statusSelect" onchange="this.form.submit()"
                             class="text-[10px] md:text-xs font-bold text-[#091E6E] outline-none cursor-pointer bg-transparent w-full min-w-0">
                             <option value="">Semua Status</option>
-                            <option value="submitted" {{ request('status') == 'submitted' ? 'selected' : '' }}>Submitted</option>
-                            <option value="spv_review" {{ request('status') == 'spv_review' ? 'selected' : '' }}>Need SPV</option>
-                            <option value="kdp_review" {{ request('status') == 'kdp_review' ? 'selected' : '' }}>KDP Review</option>
+                            <option value="submitted"    {{ request('status') == 'submitted'    ? 'selected' : '' }}>Submitted</option>
+                            <option value="spv_review"   {{ request('status') == 'spv_review'   ? 'selected' : '' }}>Need SPV</option>
+                            <option value="kdp_review"   {{ request('status') == 'kdp_review'   ? 'selected' : '' }}>KDP Review</option>
                             <option value="admin_review" {{ request('status') == 'admin_review' ? 'selected' : '' }}>Admin Review</option>
-                            <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
-                            <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
-                            <option value="rewarded" {{ request('status') == 'rewarded' ? 'selected' : '' }}>Rewarded</option>
+                            <option value="approved"     {{ request('status') == 'approved'     ? 'selected' : '' }}>Approved</option>
+                            <option value="rejected"     {{ request('status') == 'rejected'     ? 'selected' : '' }}>Rejected</option>
+                            <option value="rewarded"     {{ request('status') == 'rewarded'     ? 'selected' : '' }}>Rewarded</option>
                         </select>
                     </div>
                 </div>
@@ -121,12 +122,21 @@
                 </div>
             </div>
 
-            <!-- Date filter — Month/Year Range Picker -->
+            <!-- Date filter — Date Range Picker -->
             <div class="flex flex-col gap-2 pt-1">
                 <div class="flex items-center justify-between">
-                    <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-1">
-                        Periode Bulan
-                    </label>
+                    <div class="flex items-center gap-2">
+                        <label class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-1">
+                            Periode
+                        </label>
+                        <!-- Dynamic label showing which date column is being filtered -->
+                        <span id="dateColumnBadge"
+                            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] md:text-[9px] font-bold uppercase tracking-wider
+                                   {{ $selectedStatus ? 'bg-blue-100 text-blue-700 border border-blue-200' : 'bg-gray-100 text-gray-500 border border-gray-200' }}">
+                            <i class="fa-solid fa-calendar-day text-[7px]"></i>
+                            {{ $dateColumnLabel }}
+                        </span>
+                    </div>
                     @if($hasDateFilter)
                         <button type="button" id="clearPeriod"
                             class="flex items-center gap-1 text-[9px] md:text-[10px] font-bold text-red-400 hover:text-red-600 transition-colors"
@@ -139,6 +149,12 @@
 
                 <!-- Preset buttons -->
                 <div class="flex flex-wrap gap-2">
+                    <button type="button" data-preset="today" class="period-preset px-3 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-wider border transition-all">
+                        Hari Ini
+                    </button>
+                    <button type="button" data-preset="this_week" class="period-preset px-3 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-wider border transition-all">
+                        Minggu Ini
+                    </button>
                     <button type="button" data-preset="this_month" class="period-preset px-3 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-wider border transition-all">
                         Bulan Ini
                     </button>
@@ -153,38 +169,34 @@
                     </button>
                 </div>
 
-                <!-- Month-Year range pickers -->
+                <!-- Date range pickers -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <!-- From -->
                     <div class="flex flex-col gap-1">
-                        <span class="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider pl-1">Dari</span>
+                        <span class="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider pl-1">Dari Tanggal</span>
                         <div class="flex items-center gap-2 bg-white px-3 h-11 rounded-2xl border border-gray-200 shadow-sm transition-all hover:border-[#091E6E] focus-within:border-[#091E6E] focus-within:ring-2 focus-within:ring-[#091E6E]/20">
                             <i class="fa-regular fa-calendar text-[10px] text-blue-400 shrink-0"></i>
                             <input
-                                type="month"
-                                id="monthFromPicker"
-                                value="{{ $monthFrom }}"
-                                min="{{ $minYear }}-01"
-                                max="{{ $maxYear }}-12"
+                                type="date"
+                                id="dateFromPicker"
+                                value="{{ $dateFrom }}"
                                 class="flex-1 min-w-0 text-[10px] md:text-xs font-bold text-[#091E6E] outline-none bg-transparent cursor-pointer"
-                                title="Dari bulan"
+                                title="Dari tanggal"
                             >
                         </div>
                     </div>
 
                     <!-- To -->
                     <div class="flex flex-col gap-1">
-                        <span class="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider pl-1">Sampai</span>
+                        <span class="text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-wider pl-1">Sampai Tanggal</span>
                         <div class="flex items-center gap-2 bg-white px-3 h-11 rounded-2xl border border-gray-200 shadow-sm transition-all hover:border-[#091E6E] focus-within:border-[#091E6E] focus-within:ring-2 focus-within:ring-[#091E6E]/20">
                             <i class="fa-regular fa-calendar text-[10px] text-blue-400 shrink-0"></i>
                             <input
-                                type="month"
-                                id="monthToPicker"
-                                value="{{ $monthTo }}"
-                                min="{{ $minYear }}-01"
-                                max="{{ $maxYear }}-12"
+                                type="date"
+                                id="dateToPicker"
+                                value="{{ $dateTo }}"
                                 class="flex-1 min-w-0 text-[10px] md:text-xs font-bold text-[#091E6E] outline-none bg-transparent cursor-pointer"
-                                title="Sampai bulan"
+                                title="Sampai tanggal"
                             >
                         </div>
                     </div>
@@ -195,6 +207,9 @@
                 <div class="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-xl border border-blue-100">
                     <i class="fa-solid fa-calendar-check text-[10px] text-blue-500"></i>
                     <span class="text-[10px] md:text-xs font-bold text-[#091E6E]">{{ $periodDisplay }}</span>
+                    @if($selectedStatus)
+                        <span class="text-[9px] text-blue-400 font-medium">· filter berdasarkan {{ strtolower($dateColumnLabel) }}</span>
+                    @endif
                 </div>
                 @endif
             </div>
@@ -233,7 +248,22 @@
                         </td>
 
                         <td class="px-3 md:px-6 py-2 md:py-3 border-y border-gray-100">
-                            <span class="text-gray-600 text-xs md:text-sm">{{ \Carbon\Carbon::parse($ss->submission_date)->format('d/m/Y') }}</span>
+                            @php
+                                $relevantDate = match(request('status')) {
+                                    'approved'     => $ss->final_approved_at,
+                                    'rewarded'     => $ss->paid_at,
+                                    'admin_review' => $ss->admin_approved_at,
+                                    'kdp_review'   => $ss->kdp_approved_at,
+                                    'spv_review'   => $ss->spv_approved_at,
+                                    default        => $ss->submission_date,
+                                };
+                            @endphp
+                            <span class="text-gray-600 text-xs md:text-sm">
+                                {{ $relevantDate ? \Carbon\Carbon::parse($relevantDate)->format('d/m/Y') : '-' }}
+                            </span>
+                            @if(request('status') && $ss->submission_date && request('status') !== 'submitted')
+                                <span class="block text-[9px] text-gray-400">Diajukan: {{ \Carbon\Carbon::parse($ss->submission_date)->format('d/m/Y') }}</span>
+                            @endif
                         </td>
 
                         <td class="px-3 md:px-6 py-2 md:py-3 border-y border-gray-100">
@@ -349,60 +379,64 @@
         const form          = document.getElementById('filterForm');
         const dateFromInput = document.getElementById('filterDateFrom');
         const dateToInput   = document.getElementById('filterDateTo');
-        const pickerFrom    = document.getElementById('monthFromPicker');
-        const pickerTo      = document.getElementById('monthToPicker');
+        const pickerFrom    = document.getElementById('dateFromPicker');
+        const pickerTo      = document.getElementById('dateToPicker');
         const clearBtn      = document.getElementById('clearPeriod');
         const presetButtons = document.querySelectorAll('.period-preset');
 
         // ── helpers ──────────────────────────────────────────────────────────
-        function monthToFirstDay(ym) {
-            // ym = "YYYY-MM"  →  "YYYY-MM-01"
-            return ym ? ym + '-01' : '';
+        function padNum(n) { return String(n).padStart(2, '0'); }
+
+        function formatDate(d) {
+            // d = Date object → "YYYY-MM-DD"
+            return `${d.getFullYear()}-${padNum(d.getMonth() + 1)}-${padNum(d.getDate())}`;
         }
 
-        function monthToLastDay(ym) {
-            if (!ym) return '';
-            const [y, m] = ym.split('-').map(Number);
-            const last = new Date(y, m, 0).getDate(); // day 0 of next month = last day of this month
-            return `${y}-${String(m).padStart(2, '0')}-${String(last).padStart(2, '0')}`;
+        function todayStr() {
+            return formatDate(new Date());
         }
 
-        function toYm(dateStr) {
-            // "YYYY-MM-DD" → "YYYY-MM"
-            return dateStr ? dateStr.substring(0, 7) : '';
-        }
-
-        function padMonth(n) { return String(n).padStart(2, '0'); }
-
-        function nowYm() {
+        function thisWeekRange() {
             const d = new Date();
-            return `${d.getFullYear()}-${padMonth(d.getMonth() + 1)}`;
+            const day = d.getDay(); // 0=Sun
+            const diffToMon = (day === 0) ? -6 : 1 - day;
+            const mon = new Date(d);
+            mon.setDate(d.getDate() + diffToMon);
+            const sun = new Date(mon);
+            sun.setDate(mon.getDate() + 6);
+            return { from: formatDate(mon), to: formatDate(sun) };
         }
 
-        function prevMonthYm() {
+        function thisMonthRange() {
             const d = new Date();
-            d.setDate(1);
-            d.setMonth(d.getMonth() - 1);
-            return `${d.getFullYear()}-${padMonth(d.getMonth() + 1)}`;
+            const first = new Date(d.getFullYear(), d.getMonth(), 1);
+            const last  = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+            return { from: formatDate(first), to: formatDate(last) };
+        }
+
+        function lastMonthRange() {
+            const d = new Date();
+            const first = new Date(d.getFullYear(), d.getMonth() - 1, 1);
+            const last  = new Date(d.getFullYear(), d.getMonth(), 0);
+            return { from: formatDate(first), to: formatDate(last) };
         }
 
         function thisYearRange() {
             const y = new Date().getFullYear();
-            return { from: `${y}-01`, to: `${y}-12` };
+            return { from: `${y}-01-01`, to: `${y}-12-31` };
         }
 
-        // ── apply a from/to month range and submit ────────────────────────────
-        function applyRange(ymFrom, ymTo, shouldSubmit = true) {
-            dateFromInput.value = monthToFirstDay(ymFrom);
-            dateToInput.value   = monthToLastDay(ymTo);
-
-            pickerFrom.value = ymFrom || '';
-            pickerTo.value   = ymTo   || '';
+        // ── apply a from/to date range and submit ─────────────────────────────
+        function applyRange(from, to, shouldSubmit = true) {
+            dateFromInput.value = from || '';
+            dateToInput.value   = to   || '';
+            pickerFrom.value    = from || '';
+            pickerTo.value      = to   || '';
 
             // keep "to" >= "from"
-            if (ymFrom && ymTo && ymTo < ymFrom) {
-                pickerTo.value      = ymFrom;
-                dateToInput.value   = monthToLastDay(ymFrom);
+            if (from && to && to < from) {
+                pickerTo.value    = from;
+                dateToInput.value = from;
             }
 
             updatePresetActive();
@@ -411,8 +445,8 @@
 
         // ── highlight matching preset ─────────────────────────────────────────
         function updatePresetActive() {
-            const from = toYm(dateFromInput.value);
-            const to   = toYm(dateToInput.value);
+            const from = dateFromInput.value;
+            const to   = dateToInput.value;
 
             presetButtons.forEach(btn => {
                 btn.classList.remove('active');
@@ -423,35 +457,33 @@
                     return;
                 }
 
-                const now = nowYm();
-                const prev = prevMonthYm();
-                const yr = thisYearRange();
+                const today = todayStr();
+                const week  = thisWeekRange();
+                const month = thisMonthRange();
+                const lm    = lastMonthRange();
+                const yr    = thisYearRange();
 
-                if (preset === 'this_month'  && from === now  && to === now)  btn.classList.add('active');
-                if (preset === 'last_month'  && from === prev && to === prev) btn.classList.add('active');
-                if (preset === 'this_year'   && from === yr.from && to === yr.to) btn.classList.add('active');
+                if (preset === 'today'      && from === today    && to === today)    btn.classList.add('active');
+                if (preset === 'this_week'  && from === week.from && to === week.to) btn.classList.add('active');
+                if (preset === 'this_month' && from === month.from && to === month.to) btn.classList.add('active');
+                if (preset === 'last_month' && from === lm.from  && to === lm.to)   btn.classList.add('active');
+                if (preset === 'this_year'  && from === yr.from  && to === yr.to)   btn.classList.add('active');
             });
         }
 
         // ── picker events ─────────────────────────────────────────────────────
         pickerFrom.addEventListener('change', function () {
-            let ymFrom = this.value;
-            let ymTo   = pickerTo.value;
-
-            // auto-set "to" if empty or before "from"
-            if (!ymTo || ymTo < ymFrom) ymTo = ymFrom;
-
-            applyRange(ymFrom, ymTo, true);
+            let from = this.value;
+            let to   = pickerTo.value;
+            if (!to || to < from) to = from;
+            applyRange(from, to, true);
         });
 
         pickerTo.addEventListener('change', function () {
-            let ymTo   = this.value;
-            let ymFrom = pickerFrom.value;
-
-            // auto-set "from" if empty or after "to"
-            if (!ymFrom || ymFrom > ymTo) ymFrom = ymTo;
-
-            applyRange(ymFrom, ymTo, true);
+            let to   = this.value;
+            let from = pickerFrom.value;
+            if (!from || from > to) from = to;
+            applyRange(from, to, true);
         });
 
         // ── preset buttons ────────────────────────────────────────────────────
@@ -463,22 +495,29 @@
                     applyRange('', '', true);
                     return;
                 }
-
+                if (preset === 'today') {
+                    const t = todayStr();
+                    applyRange(t, t, true);
+                    return;
+                }
+                if (preset === 'this_week') {
+                    const r = thisWeekRange();
+                    applyRange(r.from, r.to, true);
+                    return;
+                }
                 if (preset === 'this_month') {
-                    const ym = nowYm();
-                    applyRange(ym, ym, true);
+                    const r = thisMonthRange();
+                    applyRange(r.from, r.to, true);
                     return;
                 }
-
                 if (preset === 'last_month') {
-                    const ym = prevMonthYm();
-                    applyRange(ym, ym, true);
+                    const r = lastMonthRange();
+                    applyRange(r.from, r.to, true);
                     return;
                 }
-
                 if (preset === 'this_year') {
-                    const yr = thisYearRange();
-                    applyRange(yr.from, yr.to, true);
+                    const r = thisYearRange();
+                    applyRange(r.from, r.to, true);
                     return;
                 }
             });

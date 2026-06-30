@@ -83,6 +83,12 @@
                                     <span class="inline-flex items-center gap-1 text-gray-500 text-sm"><i class="fa-regular fa-clock"></i> Pending</span>
                                 @endif
                             </div>
+                            @if($submission->spv_approved_at)
+                                <p class="text-[9px] md:text-[10px] text-gray-400 mt-2 flex items-center gap-1">
+                                    <i class="fa-regular fa-calendar-check text-[9px]"></i>
+                                    {{ \Carbon\Carbon::parse($submission->spv_approved_at)->format('d/m/Y H:i') }}
+                                </p>
+                            @endif
                         </div>
                         <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-100">
                             <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Catatan SPV</span>
@@ -106,6 +112,12 @@
                                     <span class="inline-flex items-center gap-1 text-gray-500 text-sm"><i class="fa-regular fa-clock"></i> Pending</span>
                                 @endif
                             </div>
+                            @if($submission->kdp_approved_at)
+                                <p class="text-[9px] md:text-[10px] text-gray-400 mt-2 flex items-center gap-1">
+                                    <i class="fa-regular fa-calendar-check text-[9px]"></i>
+                                    {{ \Carbon\Carbon::parse($submission->kdp_approved_at)->format('d/m/Y H:i') }}
+                                </p>
+                            @endif
                         </div>
                         <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-100">
                             <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Catatan KDP</span>
@@ -113,6 +125,59 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Review Admin -->
+                @if($submission->admin_status || $submission->admin_approved_at)
+                <div>
+                    <h3 class="text-sm md:text-base font-bold text-[#091E6E] border-l-4 border-[#091E6E] pl-3 mb-4">Review Admin / Komite</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                        <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                            <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Status</span>
+                            <div class="mt-1">
+                                @if($submission->admin_status == 'approved')
+                                    <span class="inline-flex items-center gap-1 text-green-600 font-semibold text-sm"><i class="fa-regular fa-circle-check"></i> Approved</span>
+                                @elseif($submission->admin_status == 'rejected')
+                                    <span class="inline-flex items-center gap-1 text-red-600 font-semibold text-sm"><i class="fa-regular fa-circle-xmark"></i> Rejected</span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 text-gray-500 text-sm"><i class="fa-regular fa-clock"></i> Pending</span>
+                                @endif
+                            </div>
+                            @if($submission->admin_approved_at)
+                                <p class="text-[9px] md:text-[10px] text-gray-400 mt-2 flex items-center gap-1">
+                                    <i class="fa-regular fa-calendar-check text-[9px]"></i>
+                                    {{ \Carbon\Carbon::parse($submission->admin_approved_at)->format('d/m/Y H:i') }}
+                                </p>
+                            @endif
+                        </div>
+                        <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                            <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Catatan Admin</span>
+                            <p class="text-sm md:text-base text-gray-700 mt-1">{{ $submission->admin_notes ?? '-' }}</p>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
+                <!-- Final Approved -->
+                @if($submission->final_approved_at)
+                <div>
+                    <h3 class="text-sm md:text-base font-bold text-[#091E6E] border-l-4 border-[#091E6E] pl-3 mb-4">Final Approval</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                        <div class="bg-gradient-to-r from-green-50 to-white p-4 rounded-xl border border-green-100">
+                            <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Tanggal Final Approved</span>
+                            <p class="text-sm md:text-base font-semibold text-green-700 mt-1 flex items-center gap-1">
+                                <i class="fa-regular fa-calendar-check"></i>
+                                {{ \Carbon\Carbon::parse($submission->final_approved_at)->format('d/m/Y H:i') }}
+                            </p>
+                        </div>
+                        @if($submission->final_score)
+                        <div class="bg-gradient-to-r from-blue-50 to-white p-4 rounded-xl border border-blue-100">
+                            <span class="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Final Score</span>
+                            <p class="text-3xl md:text-4xl font-black text-blue-600 mt-1">{{ $submission->final_score }}</p>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+                @endif
 
                 <!-- Reward -->
                 <div>

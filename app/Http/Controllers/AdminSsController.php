@@ -390,18 +390,43 @@ class AdminSsController extends Controller
         return $pdf->download($fileName);
     }
 
+    /**
+     * Map status to the relevant date column for filtering.
+     */
+    private function statusDateColumn(?string $status): string
+    {
+        return match ($status) {
+            'approved'     => 'final_approved_at',
+            'rewarded'     => 'paid_at',
+            'admin_review' => 'admin_approved_at',
+            'kdp_review'   => 'kdp_approved_at',
+            'spv_review'   => 'spv_approved_at',
+            default        => 'submission_date',
+        };
+    }
+
     private function filteredSubmissionsQuery(Request $request)
     {
         $search = $request->get('search');
-        $status = $request->get('status');
+        $status = $request->get('status') ?: null;
         $departmentCode = $request->get('department_code');
         $dateRange = $this->resolveSubmissionDateRange($request);
+        $dateColumn = $this->statusDateColumn($status);
+        $hasDateFilter = $dateRange['from'] || $dateRange['to'];
 
         return SsSubmission::with(['employee', 'department', 'ldr', 'spv', 'kdp'])
-            ->when($status, fn ($query) => $query->where('status', $status))
+            ->when($status, function ($query) use ($status, $dateColumn, $hasDateFilter) {
+                // Always filter by the selected status so only matching records are shown.
+                // When a date range is also active, additionally require the stage date
+                // column to be non-null (the date range itself will narrow it further).
+                $query->where('status', $status);
+                if ($hasDateFilter) {
+                    $query->whereNotNull($dateColumn);
+                }
+            })
             ->when($departmentCode, fn ($query) => $query->where('department_code', $departmentCode))
-            ->when($dateRange['from'], fn ($query) => $query->whereDate('submission_date', '>=', $dateRange['from']))
-            ->when($dateRange['to'], fn ($query) => $query->whereDate('submission_date', '<=', $dateRange['to']))
+            ->when($dateRange['from'], fn ($query) => $query->whereDate($dateColumn, '>=', $dateRange['from']))
+            ->when($dateRange['to'], fn ($query) => $query->whereDate($dateColumn, '<=', $dateRange['to']))
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->whereHas('employee', fn ($sq) => $sq->where('nama', 'like', "%{$search}%"))
@@ -420,22 +445,6 @@ class AdminSsController extends Controller
         $dateTo = $request->filled('date_to')
             ? Carbon::parse($request->get('date_to'))->endOfDay()
             : null;
-
-        if (!$dateFrom && !$dateTo && ($request->filled('month') || $request->filled('year'))) {
-            $month = $request->filled('month') ? (int) $request->get('month') : null;
-            $year = $request->filled('year') ? (int) $request->get('year') : (int) date('Y');
-
-            if ($month && $request->filled('year')) {
-                $dateFrom = Carbon::create($year, $month, 1)->startOfMonth();
-                $dateTo = Carbon::create($year, $month, 1)->endOfMonth();
-            } elseif ($request->filled('year')) {
-                $dateFrom = Carbon::create($year, 1, 1)->startOfYear();
-                $dateTo = Carbon::create($year, 12, 31)->endOfYear();
-            } elseif ($month) {
-                $dateFrom = Carbon::create($year, $month, 1)->startOfMonth();
-                $dateTo = Carbon::create($year, $month, 1)->endOfMonth();
-            }
-        }
 
         return ['from' => $dateFrom, 'to' => $dateTo];
     }

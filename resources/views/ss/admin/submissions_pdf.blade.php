@@ -28,11 +28,21 @@
     <h1>Daftar Ide Suggestion System</h1>
     <div class="subtitle">Dicetak pada {{ now()->format('d/m/Y H:i') }}</div>
 
+    @php
+        $dateColumnLabel = match($filters['status'] ?? null) {
+            'approved'     => 'Tgl Approved',
+            'rewarded'     => 'Tgl Reward Dibayar',
+            'admin_review' => 'Tgl Admin Review',
+            'kdp_review'   => 'Tgl KDP Review',
+            'spv_review'   => 'Tgl SPV Review',
+            default        => 'Tgl Pengajuan',
+        };
+    @endphp
     <table class="meta">
         <tr>
             <td class="label">Departemen</td>
             <td>{{ $filters['department'] ? $filters['department']->name.' ('.$filters['department']->code.')' : 'Semua Departemen' }}</td>
-            <td class="label">Periode</td>
+            <td class="label">Periode ({{ $dateColumnLabel }})</td>
             <td>
                 @if($filters['date_from'] && $filters['date_to'])
                     {{ \Carbon\Carbon::parse($filters['date_from'])->format('d/m/Y') }} — {{ \Carbon\Carbon::parse($filters['date_to'])->format('d/m/Y') }}
@@ -57,10 +67,11 @@
         <thead>
             <tr>
                 <th class="center" style="width: 28px;">No</th>
-                <th style="width: 120px;">Pengaju</th>
-                <th style="width: 110px;">Departemen</th>
+                <th style="width: 110px;">Pengaju</th>
+                <th class="center" style="width: 80px;">{{ $dateColumnLabel }}</th>
+                <th style="width: 100px;">Departemen</th>
                 <th class="center" style="width: 60px;">Jumlah Ide</th>
-                <th class="right" style="width: 100px;">Total Reward</th>
+                <th class="right" style="width: 90px;">Total Reward</th>
             </tr>
         </thead>
         <tbody>
@@ -77,6 +88,22 @@
                 <tr>
                     <td class="center">{{ $loop->iteration }}</td>
                     <td>{{ $firstSubmission->employee->nama ?? $firstSubmission->employee_npk }}</td>
+                    <td class="center">
+                        @php
+                            $relevantDate = match($filters['status'] ?? null) {
+                                'approved'     => $firstSubmission->final_approved_at,
+                                'rewarded'     => $firstSubmission->paid_at,
+                                'admin_review' => $firstSubmission->admin_approved_at,
+                                'kdp_review'   => $firstSubmission->kdp_approved_at,
+                                'spv_review'   => $firstSubmission->spv_approved_at,
+                                default        => $firstSubmission->submission_date,
+                            };
+                        @endphp
+                        {{ $relevantDate ? \Carbon\Carbon::parse($relevantDate)->format('d/m/Y') : '-' }}
+                        @if(($filters['status'] ?? null) && ($filters['status'] !== 'submitted') && $firstSubmission->submission_date)
+                            <br><span style="font-size:8px;color:#6b7280;">Diajukan: {{ \Carbon\Carbon::parse($firstSubmission->submission_date)->format('d/m/Y') }}</span>
+                        @endif
+                    </td>
                     <td>{{ $firstSubmission->department?->name ?? $firstSubmission->department_code }}</td>
                     <td class="center">{{ $employeeSubmissions->count() }}</td>
                     <td class="right">
@@ -85,7 +112,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="5" class="empty">Tidak ada data SS sesuai filter.</td>
+                    <td colspan="6" class="empty">Tidak ada data SS sesuai filter.</td>
                 </tr>
             @endforelse
         </tbody>
