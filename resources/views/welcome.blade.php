@@ -444,20 +444,41 @@
                     @endif
 
                     @if(session('active_role') === 'admin')
+                        <div class="relative group" data-submenu="masterSubmenu">
+                            <button type="button" class="sidebar-link w-full justify-between dropdown-toggle {{ request()->is('admin/master-*') ? 'bg-white/10' : '' }}" data-dropdown="master">
+                                <div class="flex items-center gap-3">
+                                    <div class="icon-box">
+                                        <i class="fa-solid fa-database text-blue-200"></i>
+                                    </div>
+                                    <span class="menu-text font-medium whitespace-nowrap">Master Data</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-down text-[10px] dropdown-arrow {{ request()->is('admin/master-*') ? 'rotate-180' : '' }}" data-dropdown="master"></i>
+                            </button>
+                            <div class="menu-gap"></div>
 
-                        <a href="{{ route('admin.master_employee.index') }}" class="sidebar-link {{ request()->is('admin/master-employee*') ? 'bg-white/10' : '' }}">
-                            <div class="icon-box">
-                                <i class="fa-solid fa-users-gear text-blue-200"></i>
+                            <div id="masterSubmenu" class="submenu space-y-1 {{ request()->is('admin/master-*') ? 'show' : '' }}">
+                                <a href="{{ route('admin.master_employee.index') }}" class="{{ request()->is('admin/master-employee*') ? 'font-bold' : '' }}">
+                                    <i class="fa-solid fa-users-gear"></i>
+                                    <span class="menu-text">Master Karyawan</span>
+                                </a>
+                                <a href="{{ route('admin.master_user.index') }}" class="{{ request()->is('admin/master-user*') ? 'font-bold' : '' }}">
+                                    <i class="fa-solid fa-user-lock"></i>
+                                    <span class="menu-text">Master User</span>
+                                </a>
+                                <a href="{{ route('admin.master_departments.index') }}" class="{{ request()->is('admin/master-departments*') ? 'font-bold' : '' }}">
+                                    <i class="fa-solid fa-building"></i>
+                                    <span class="menu-text">Master Departemen</span>
+                                </a>
+                                <a href="{{ route('admin.master_sections.index') }}" class="{{ request()->is('admin/master-sections*') ? 'font-bold' : '' }}">
+                                    <i class="fa-solid fa-layer-group"></i>
+                                    <span class="menu-text">Master Section</span>
+                                </a>
+                                <a href="{{ route('admin.master_sub_sections.index') }}" class="{{ request()->is('admin/master-sub-sections*') ? 'font-bold' : '' }}">
+                                    <i class="fa-solid fa-sitemap"></i>
+                                    <span class="menu-text">Master Sub Section</span>
+                                </a>
                             </div>
-                            <span class="menu-text font-medium whitespace-nowrap">Master Karyawan</span>
-                        </a>
-
-                        <a href="{{ route('admin.master_user.index') }}" class="sidebar-link {{ request()->is('admin/master-user*') ? 'bg-white/10' : '' }}">
-                            <div class="icon-box">
-                                <i class="fa-solid fa-user-lock text-blue-200"></i>
-                            </div>
-                            <span class="menu-text font-medium whitespace-nowrap">Master User</span>
-                        </a>
+                        </div>
                     @endif
                 </nav>
             </div>
@@ -536,6 +557,7 @@
                 if (dropdown === 'qcc') toggleDropdown('qccSubmenu', e);
                 else if (dropdown === 'karyawan') toggleDropdown('karyawanSubmenu', e);
                 else if (dropdown === 'ss') toggleDropdown('ssSubmenu', e);
+                else if (dropdown === 'master') toggleDropdown('masterSubmenu', e);
             });
         });
 

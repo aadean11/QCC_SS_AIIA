@@ -9,6 +9,7 @@ use App\Http\Controllers\KaryawanQccController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\QccApprovalController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\MasterOrgController;
 use App\Http\Controllers\AdminSsController;
 use App\Http\Controllers\SsApprovalController;
 use App\Http\Controllers\KaryawanSsController;
@@ -43,6 +44,22 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/admin/master-user', [UserController::class, 'store'])->name('admin.master_user.store');
     Route::put('/admin/master-user/{id}', [UserController::class, 'update'])->name('admin.master_user.update');
     Route::delete('/admin/master-user/{id}', [UserController::class, 'destroy'])->name('admin.master_user.destroy');
+
+    // Master Organisasi (Admin only)
+    Route::get('/admin/master-departments', [MasterOrgController::class, 'departmentsIndex'])->name('admin.master_departments.index');
+    Route::post('/admin/master-departments', [MasterOrgController::class, 'storeDepartment'])->name('admin.master_departments.store');
+    Route::put('/admin/master-departments/{id}', [MasterOrgController::class, 'updateDepartment'])->name('admin.master_departments.update');
+    Route::delete('/admin/master-departments/{id}', [MasterOrgController::class, 'destroyDepartment'])->name('admin.master_departments.destroy');
+
+    Route::get('/admin/master-sections', [MasterOrgController::class, 'sectionsIndex'])->name('admin.master_sections.index');
+    Route::post('/admin/master-sections', [MasterOrgController::class, 'storeSection'])->name('admin.master_sections.store');
+    Route::put('/admin/master-sections/{id}', [MasterOrgController::class, 'updateSection'])->name('admin.master_sections.update');
+    Route::delete('/admin/master-sections/{id}', [MasterOrgController::class, 'destroySection'])->name('admin.master_sections.destroy');
+
+    Route::get('/admin/master-sub-sections', [MasterOrgController::class, 'subSectionsIndex'])->name('admin.master_sub_sections.index');
+    Route::post('/admin/master-sub-sections', [MasterOrgController::class, 'storeSubSection'])->name('admin.master_sub_sections.store');
+    Route::put('/admin/master-sub-sections/{id}', [MasterOrgController::class, 'updateSubSection'])->name('admin.master_sub_sections.update');
+    Route::delete('/admin/master-sub-sections/{id}', [MasterOrgController::class, 'destroySubSection'])->name('admin.master_sub_sections.destroy');
 });
 
 // Monitoring QCC dan SS (Admin & Karyawan)
